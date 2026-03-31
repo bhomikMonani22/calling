@@ -3,871 +3,985 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calling Tracker — Yantrayug</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>CallTracker — Yantrayug</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --ink:#0b0c0e;--ink2:#141518;--ink3:#1c1e23;--ink4:#252830;
-  --wire:#2e313a;--wire2:#3a3d48;--dim:#5a5f70;--mid:#8890a4;
-  --text:#d8dce8;--bright:#f0f2f8;
-  --lime:#b8ff57;--lime-dim:rgba(184,255,87,.10);
-  --amber:#ffb830;--amber-dim:rgba(255,184,48,.10);
-  --sky:#5ab4ff;--sky-dim:rgba(90,180,255,.10);
-  --red:#ff4d4d;--red-dim:rgba(255,77,77,.10);
-  --purple:#c084fc;--purple-dim:rgba(192,132,252,.10);
-  --green:#4ade80;--green-dim:rgba(74,222,128,.10);
-  --TOP:52px;
+  /* Lemon Yellow–inspired palette */
+  --y:#F5C518;          /* primary yellow */
+  --y-dim:rgba(245,197,24,.12);
+  --y-deep:#D4A800;
+  --bg:#FAFAF7;         /* warm off-white page bg */
+  --bg2:#FFFFFF;        /* card white */
+  --bg3:#F2F2EE;        /* subtle panel */
+  --border:#E8E8E2;
+  --border2:#D4D4CC;
+  --ink:#0F0F0D;        /* near black text */
+  --ink2:#2A2A26;
+  --mid:#6B6B64;
+  --dim:#9E9E96;
+  --red:#E5342A;
+  --red-dim:rgba(229,52,42,.10);
+  --green:#1A8C50;
+  --green-dim:rgba(26,140,80,.10);
+  --blue:#1A6AE5;
+  --blue-dim:rgba(26,106,229,.10);
+  --orange:#E57A1A;
+  --orange-dim:rgba(229,122,26,.10);
+  --TOP:60px;
+  --SIDE:220px;
+  --radius:10px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
 }
-html,body{height:100%;overflow:hidden}
-body{background:var(--ink);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px}
+
+/* ── LOGIN SCREEN ── */
+#loginScreen{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+#loginScreen.hidden{display:none}
+.login-wrap{width:420px;max-width:95vw}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+.login-logo-mark{width:44px;height:44px;background:var(--y);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif}
+.login-logo-text{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+.login-logo-text span{color:var(--mid);font-weight:400}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;box-shadow:var(--shadow-md)}
+.login-title{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--mid);margin-bottom:24px}
+.login-label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.login-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:11px 14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border .15s;background:var(--bg);margin-bottom:14px}
+.login-input:focus{border-color:var(--y);background:var(--bg2)}
+.login-role-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+.role-btn{padding:10px 8px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer;text-align:center;transition:all .15s;font-family:'Plus Jakarta Sans',sans-serif}
+.role-btn:hover{border-color:var(--y);background:var(--y-dim)}
+.role-btn.sel{border-color:var(--y);background:var(--y);color:var(--ink)}
+.role-btn-icon{font-size:20px;margin-bottom:4px}
+.role-btn-label{font-size:11px;font-weight:700;letter-spacing:.3px}
+.login-btn{width:100%;height:46px;border-radius:8px;border:none;background:var(--y);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s;letter-spacing:-.2px}
+.login-btn:hover{background:var(--y-deep)}
+.login-err{font-size:12px;color:var(--red);margin-bottom:12px;min-height:16px}
+.login-cfg{font-size:11px;color:var(--dim);text-align:center;margin-top:16px;cursor:pointer;text-decoration:underline}
+
+/* ── SHEET CONFIG MODAL ── */
+#cfgModal{position:fixed;inset:0;z-index:1000;background:rgba(15,15,13,.5);display:none;align-items:center;justify-content:center}
+#cfgModal.show{display:flex}
+.cfg-card{background:var(--bg2);border-radius:16px;padding:28px 32px;width:500px;max-width:95vw;box-shadow:var(--shadow-md);border:1px solid var(--border)}
+.cfg-title{font-size:17px;font-weight:700;margin-bottom:4px}
+.cfg-sub{font-size:12px;color:var(--mid);margin-bottom:20px;line-height:1.6}
+.cfg-label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.cfg-input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink);outline:none;transition:border .15s;background:var(--bg);margin-bottom:12px}
+.cfg-input:focus{border-color:var(--y)}
+.cfg-hint{font-size:11px;color:var(--dim);line-height:1.7;background:var(--bg3);border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.cfg-hint code{background:var(--border);padding:1px 5px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:10px}
+.cfg-actions{display:flex;gap:10px;justify-content:flex-end}
+.cfg-cancel{padding:0 20px;height:40px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.cfg-save{padding:0 24px;height:40px;border-radius:8px;border:none;background:var(--y);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.cfg-err{font-size:12px;color:var(--red);margin-bottom:10px;min-height:14px}
+.cfg-ok{font-size:12px;color:var(--green);margin-bottom:10px;min-height:14px}
+
+/* ── SHELL ── */
+#shell{position:fixed;inset:0;display:none}
+#shell.show{display:flex}
+
+/* ── SIDEBAR ── */
+#sidebar{width:var(--SIDE);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:100}
+.sb-logo{padding:18px 20px 14px;border-bottom:1px solid var(--border)}
+.sb-logo-mark{width:36px;height:36px;background:var(--y);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--ink);margin-bottom:8px}
+.sb-logo-name{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.3px;line-height:1.2}
+.sb-logo-sub{font-size:11px;color:var(--mid);font-weight:400}
+.sb-date{padding:10px 20px;background:var(--y-dim);border-bottom:1px solid var(--border)}
+.sb-date-label{font-size:10px;font-weight:600;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.sb-date-val{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.sb-nav{flex:1;overflow-y:auto;padding:12px 10px}
+.sb-section{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;padding:8px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--mid);position:relative}
+.nav-item:hover{background:var(--bg3);color:var(--ink)}
+.nav-item.active{background:var(--y);color:var(--ink);font-weight:700}
+.nav-item .ni-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.nav-item .ni-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700;display:none}
+.nav-item .ni-badge.show{display:inline-block}
+.sb-user{padding:14px 20px;border-top:1px solid var(--border)}
+.sb-user-role{font-size:10px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
+.sb-user-name{font-size:14px;font-weight:700;color:var(--ink)}
+.sb-logout{margin-top:8px;width:100%;padding:7px 0;border-radius:6px;border:1.5px solid var(--border);background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s}
+.sb-logout:hover{border-color:var(--red);color:var(--red)}
+
+/* ── MAIN AREA ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
 
 /* TOPBAR */
-#topbar{position:fixed;top:0;left:0;right:0;z-index:300;height:var(--TOP);background:var(--ink2);border-bottom:1px solid var(--wire);display:flex;align-items:center}
-.brand{padding:0 16px;font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;letter-spacing:2px;color:var(--lime);text-transform:uppercase;white-space:nowrap;border-right:1px solid var(--wire);height:100%;display:flex;align-items:center;gap:8px;flex-shrink:0}
-.brand em{color:var(--bright);font-style:normal}
-.tabs{display:flex;height:100%;flex-shrink:0}
-.tab{height:100%;padding:0 13px;display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;color:var(--dim);cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all .15s;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
-.tab:hover{color:var(--text);background:var(--ink3)}
-.tab[data-t="O"].active{color:var(--sky);border-bottom-color:var(--sky);background:var(--sky-dim)}
-.tab[data-t="S"].active{color:var(--amber);border-bottom-color:var(--amber);background:var(--amber-dim)}
-.tab[data-t="A"].active{color:var(--lime);border-bottom-color:var(--lime);background:var(--lime-dim)}
-.tab[data-t="L"].active{color:var(--purple);border-bottom-color:var(--purple);background:var(--purple-dim)}
-.tab[data-t="C"].active{color:var(--green);border-bottom-color:var(--green);background:var(--green-dim)}
-.tab[data-t="D"].active{color:var(--mid);border-bottom-color:var(--mid);background:rgba(136,144,164,.08)}
-.notif-count{background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;font-weight:700;display:none}
-.notif-count.show{display:inline-block}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px;padding:0 14px;flex-shrink:0}
-.tbtn{height:30px;padding:0 11px;border-radius:5px;border:1px solid var(--wire);background:var(--ink3);color:var(--mid);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:.3px;text-transform:uppercase;transition:all .15s;white-space:nowrap}
-.tbtn:hover{border-color:var(--wire2);color:var(--text)}
-.tbtn.lime{border-color:var(--lime);color:var(--lime)}.tbtn.lime:hover{background:var(--lime-dim)}
-.tbtn.amber{border-color:var(--amber);color:var(--amber)}.tbtn.amber:hover{background:var(--amber-dim)}
-#syncDot{width:7px;height:7px;border-radius:50%;background:var(--dim);transition:background .4s;flex-shrink:0}
-#syncDot.syncing{background:var(--amber);animation:blink .7s infinite alternate}
-#syncDot.ok{background:var(--lime)}
-#syncDot.err{background:var(--red)}
-@keyframes blink{to{opacity:.3}}
-#dateLbl{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--lime);border:1px solid rgba(184,255,87,.3);background:var(--lime-dim);border-radius:4px;padding:3px 10px;white-space:nowrap}
+#topbar{height:var(--TOP);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
+.tb-title{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.tb-sub{font-size:12px;color:var(--mid)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.tb-btn{height:34px;padding:0 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tb-btn:hover{border-color:var(--border2);color:var(--ink)}
+.tb-btn.primary{background:var(--y);border-color:var(--y);color:var(--ink)}.tb-btn.primary:hover{background:var(--y-deep);border-color:var(--y-deep)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--dim);transition:background .4s;flex-shrink:0}
+.sync-dot.syncing{background:var(--orange);animation:pulse .7s infinite alternate}
+.sync-dot.ok{background:var(--green)}
+.sync-dot.err{background:var(--red)}
+@keyframes pulse{to{opacity:.3}}
 
-/* SETUP */
-#setupOverlay{position:fixed;inset:0;z-index:500;background:rgba(11,12,14,.97);display:flex;align-items:center;justify-content:center}
-#setupOverlay.hidden{display:none}
-.sbox{background:var(--ink2);border:1px solid var(--wire);border-radius:14px;padding:36px 40px;width:540px;max-width:95vw}
-.slogo{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;color:var(--lime);letter-spacing:3px;margin-bottom:4px}
-.slogo em{color:var(--bright);font-style:normal}
-.ssub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:24px;line-height:1.7}
-.slabel{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mid);letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
-.sinput{width:100%;background:var(--ink3);border:1px solid var(--wire);border-radius:7px;padding:10px 14px;color:var(--bright);font-family:'IBM Plex Mono',monospace;font-size:12px;outline:none;transition:border .15s;margin-bottom:14px}
-.sinput:focus{border-color:var(--lime)}
-.shint{background:var(--ink3);border-radius:8px;padding:12px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);line-height:1.8;margin-bottom:18px}
-.shint b{color:var(--text)}.shint code{color:var(--sky);background:var(--ink4);padding:1px 5px;border-radius:3px}
-.sgo{width:100%;height:44px;border-radius:8px;border:none;background:var(--lime);color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
-.sgo:hover{opacity:.85}
-.serr{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);margin-bottom:12px;min-height:16px}
-.ssaved{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--lime);margin-top:10px;text-align:center;min-height:14px}
-
-/* DAY CREATION BANNER */
-#dayBanner{display:none;background:rgba(255,184,48,.08);border-bottom:1px solid rgba(255,184,48,.3);padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--amber);align-items:center;gap:14px;flex-shrink:0;position:fixed;top:var(--TOP);left:0;right:0;z-index:200}
+/* DAY BANNER */
+#dayBanner{display:none;background:#FFF9E6;border-bottom:2px solid var(--y);padding:10px 24px;align-items:center;gap:14px;flex-shrink:0}
 #dayBanner.show{display:flex}
-#dayBanner strong{color:var(--bright)}
-.create-day-btn{height:30px;padding:0 14px;border-radius:5px;border:1px solid var(--amber);background:var(--amber);color:var(--ink);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;white-space:nowrap}
-.create-day-btn:hover{opacity:.85}
-.creating-msg{color:var(--lime)}
+#dayBanner span{font-size:13px;font-weight:500;color:var(--ink2)}
+.create-btn{height:32px;padding:0 16px;border-radius:6px;border:none;background:var(--y);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+.create-btn:hover{background:var(--y-deep)}.create-btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* APP */
-#app{position:fixed;left:0;right:0;bottom:0;top:var(--TOP)}
-#app.hidden{display:none}
-#app.has-banner{top:calc(var(--TOP) + 45px)}
-.pane{position:absolute;inset:0;display:none;flex-direction:column}
+/* PANES */
+#content{flex:1;overflow:hidden;position:relative}
+.pane{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden}
 .pane.active{display:flex}
 
 /* FILTER BAR */
-.fbar{background:var(--ink2);border-bottom:1px solid var(--wire);padding:8px 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0}
-.srch{position:relative;min-width:180px;flex:1;max-width:280px}
-.srch svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--dim)}
-.srch input{width:100%;background:var(--ink3);border:1px solid var(--wire);border-radius:7px;padding:7px 10px 7px 30px;color:var(--bright);font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border .15s}
-.srch input:focus{border-color:var(--sky)}.srch input::placeholder{color:var(--dim)}
-.fsel{height:32px;padding:0 10px;background:var(--ink3);border:1px solid var(--wire);border-radius:7px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:10px;outline:none;cursor:pointer;min-width:110px}
-.fsel:focus{border-color:var(--sky)}.fsel option{background:var(--ink3)}
-.drange-wrap{display:flex;align-items:center;gap:6px}
-.drange-wrap label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);white-space:nowrap}
-.drange-wrap input[type=range]{accent-color:var(--red);width:80px;cursor:pointer}
-.drange-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--red);min-width:36px}
-.chip{height:30px;padding:0 10px;border-radius:15px;border:1px solid var(--wire);background:var(--ink3);color:var(--mid);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;letter-spacing:.3px;text-transform:uppercase;transition:all .15s;white-space:nowrap}
-.chip:hover,.chip.on{background:var(--red-dim);border-color:var(--red);color:var(--red)}
-.chip.clear{border-color:var(--wire2)}.chip.clear:hover{background:var(--ink4);color:var(--text);border-color:var(--mid)}
-.stats{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
-.sbadge{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);padding:4px 9px;background:var(--ink3);border:1px solid var(--wire);border-radius:5px;white-space:nowrap}
-.sbadge strong{color:var(--bright);font-size:12px}.sbadge.money strong{color:var(--amber)}
+.fbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex-shrink:0}
+.srch{position:relative;min-width:180px;flex:1;max-width:260px}
+.srch-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:14px;pointer-events:none}
+.srch input{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px 7px 32px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;transition:border .15s;background:var(--bg)}
+.srch input:focus{border-color:var(--y);background:var(--bg2)}.srch input::placeholder{color:var(--dim)}
+.fsel{height:34px;padding:0 10px;border:1.5px solid var(--border);border-radius:8px;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:500;outline:none;cursor:pointer;background:var(--bg);min-width:110px}
+.fsel:focus{border-color:var(--y)}.fsel option{background:var(--bg2)}
+.dr-wrap{display:flex;align-items:center;gap:6px}
+.dr-wrap label{font-size:11px;font-weight:600;color:var(--mid);white-space:nowrap;letter-spacing:.3px}
+.dr-wrap input[type=range]{accent-color:var(--red);width:80px;cursor:pointer}
+.dr-lbl{font-size:11px;font-weight:700;color:var(--red);min-width:34px;font-family:'IBM Plex Mono',monospace}
+.fchip{height:30px;padding:0 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.fchip:hover,.fchip.on{background:var(--red-dim);border-color:var(--red);color:var(--red)}
+.fchip.clr{border-color:var(--border2)}.fchip.clr:hover{background:var(--bg3);color:var(--ink);border-color:var(--border2)}
+.fstats{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0}
+.fstat{font-size:11px;font-weight:600;color:var(--mid);padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;white-space:nowrap}
+.fstat strong{color:var(--ink);font-size:13px}
+.fstat.money strong{color:var(--green)}
 
-/* MEMBER BAR */
-.mbar{background:var(--ink);border-bottom:1px solid var(--wire);padding:7px 14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
-.mbar-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
-.mpill{height:26px;padding:0 12px;border-radius:13px;border:1px solid var(--wire);background:var(--ink2);color:var(--mid);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap;font-weight:600;letter-spacing:.3px}
-.mpill:hover{border-color:var(--wire2);color:var(--text)}
-.mpill.aO{border-color:var(--sky);color:var(--sky);background:var(--sky-dim)}
-.mpill.aS{border-color:var(--amber);color:var(--amber);background:var(--amber-dim)}
-.mpill.selO{border-color:var(--sky);color:var(--ink);background:var(--sky)}
-.mpill.selS{border-color:var(--amber);color:var(--ink);background:var(--amber)}
+/* MEMBER PILLS */
+.mbar{background:var(--bg);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.mbar-lbl{font-size:11px;font-weight:600;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+.mpill{height:28px;padding:0 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg2);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.mpill:hover{border-color:var(--border2);color:var(--ink)}
+.mpill.aO{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+.mpill.aS{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
+.mpill.selO{border-color:var(--blue);color:#fff;background:var(--blue)}
+.mpill.selS{border-color:var(--orange);color:#fff;background:var(--orange)}
 
 /* DATE BAR (admin) */
-.datebar{background:var(--ink2);border-bottom:1px solid var(--wire);padding:8px 14px;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;flex-shrink:0;overflow-x:auto}
-.datebar::-webkit-scrollbar{height:3px}.datebar::-webkit-scrollbar-thumb{background:var(--wire2)}
-.dpill{height:28px;padding:0 12px;border-radius:14px;border:1px solid var(--wire);background:var(--ink3);color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
-.dpill:hover{border-color:var(--wire2);color:var(--text)}
-.dpill.today{border-color:var(--lime);color:var(--lime);background:var(--lime-dim)}
-.dpill.sel{border-color:var(--bright);color:var(--ink);background:var(--bright)}
-.dpill.today.sel{color:var(--ink);background:var(--lime);border-color:var(--lime)}
+.datebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;flex-shrink:0}
+.datebar::-webkit-scrollbar{height:3px}.datebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.dpill{height:30px;padding:0 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0}
+.dpill:hover{border-color:var(--border2);color:var(--ink)}
+.dpill.today{border-color:var(--y);color:var(--ink);background:var(--y-dim)}
+.dpill.sel{border-color:var(--ink);color:var(--bg2);background:var(--ink)}
+.dpill.today.sel{border-color:var(--y);color:var(--ink);background:var(--y)}
 
 /* TABLE */
-.twrap{flex:1;overflow:auto;position:relative}
-.twrap::-webkit-scrollbar{width:7px;height:7px}
-.twrap::-webkit-scrollbar-track{background:var(--ink2)}
-.twrap::-webkit-scrollbar-thumb{background:var(--wire2);border-radius:4px}
-.twrap::-webkit-scrollbar-corner{background:var(--ink2)}
-table.mt{border-collapse:collapse;font-size:12px;width:100%;min-width:980px}
-table.mt thead th{position:sticky;top:0;z-index:50;background:var(--ink3);font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);padding:9px 10px;text-align:left;border-bottom:2px solid var(--wire);border-right:1px solid var(--wire);white-space:nowrap;letter-spacing:.4px}
-table.mt thead th.h-auto{color:var(--sky);background:rgba(90,180,255,.04)}
-table.mt thead th.h-hero{color:var(--amber);background:rgba(255,184,48,.04)}
-table.mt thead th.h-write{color:var(--lime);background:rgba(184,255,87,.04)}
-table.mt thead th.h-sep{width:2px;padding:0;background:var(--wire2);border-right:none}
-table.mt tbody tr{border-bottom:1px solid var(--wire);transition:background .1s}
-table.mt tbody tr:hover{background:rgba(255,255,255,.02)}
-table.mt td{padding:0;border-right:1px solid var(--wire);vertical-align:middle}
-table.mt td.sep{width:2px;min-width:2px;background:var(--wire2);border-right:none}
-.c-num{width:36px;text-align:center;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:0 6px;white-space:nowrap}
-.c-name{min-width:200px;max-width:240px;padding:9px 10px}
-.c-name-main{font-weight:600;color:var(--bright);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
-.c-name-sub{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.c-route{width:88px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mid);padding:0 6px;white-space:nowrap}
-.c-beat{width:78px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);padding:0 6px;white-space:nowrap}
-.c-mob{width:98px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:0 8px;white-space:nowrap}
-.c-mob a{color:var(--mid);text-decoration:none}.c-mob a:hover{color:var(--sky)}
-.c-bal{text-align:right;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap;width:90px}
-.c-bal.auto{color:var(--sky)}.c-bal.hero{color:var(--amber)}.c-bal.zero{color:var(--dim)}
-.c-days{width:56px;text-align:center;padding:0 4px}
-.dbg{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:22px;border-radius:11px;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:0 6px;font-weight:600}
-.dbg.over{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,77,77,.3)}
-.dbg.warn{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,184,48,.3)}
-.dbg.ok{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(184,255,87,.3)}
-.dbg.nil{color:var(--dim)}
-.c-rem{min-width:160px;max-width:200px;padding:0}
-.cinput{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:12px;padding:9px 8px;min-height:42px;resize:none;display:block;line-height:1.4}
-.cinput:focus{background:rgba(184,255,87,.05);color:var(--bright)}
-.cinput::placeholder{color:var(--wire2)}
+.twrap{flex:1;overflow:auto}
+.twrap::-webkit-scrollbar{width:6px;height:6px}.twrap::-webkit-scrollbar-track{background:var(--bg)}.twrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+table.dt{border-collapse:collapse;font-size:12px;width:100%;min-width:1000px}
+table.dt thead th{position:sticky;top:0;z-index:50;background:var(--bg3);font-size:10px;font-weight:700;color:var(--mid);padding:9px 12px;text-align:left;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;letter-spacing:.5px;text-transform:uppercase}
+table.dt thead th.th-auto{color:var(--blue)}
+table.dt thead th.th-hero{color:var(--orange)}
+table.dt thead th.th-write{color:var(--green)}
+table.dt thead th.th-sep{width:1px;padding:0;background:var(--border);border-right:none}
+table.dt tbody tr{border-bottom:1px solid var(--border);transition:background .08s}
+table.dt tbody tr:hover{background:#FAFAF5}
+table.dt td{padding:0;border-right:1px solid var(--border);vertical-align:middle}
+table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:none;padding:0}
+.c-num{width:38px;text-align:center;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:0 8px}
+.c-name{min-width:200px;max-width:240px;padding:10px 12px}
+.c-nm{font-weight:600;color:var(--ink);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
+.c-ns{font-size:10px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.c-route{width:90px;text-align:center;font-size:11px;font-weight:600;color:var(--mid);padding:0 8px;white-space:nowrap}
+.c-beat{width:80px;text-align:center;font-size:11px;color:var(--dim);padding:0 6px;white-space:nowrap}
+.c-mob{width:100px;text-align:center;font-size:11px;padding:0 8px;white-space:nowrap}
+.c-mob a{color:var(--blue);text-decoration:none;font-weight:500}.c-mob a:hover{text-decoration:underline}
+.c-bal{text-align:right;padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;width:96px}
+.c-bal.auto{color:var(--blue)}.c-bal.hero{color:var(--orange)}.c-bal.zero{color:var(--dim);font-weight:400}
+.c-days{width:58px;text-align:center;padding:0 4px}
+.dbg{display:inline-flex;align-items:center;justify-content:center;min-width:42px;height:24px;border-radius:20px;font-size:11px;font-weight:700;padding:0 8px;font-family:'IBM Plex Mono',monospace}
+.dbg.over{background:var(--red-dim);color:var(--red);border:1.5px solid rgba(229,52,42,.2)}
+.dbg.warn{background:var(--orange-dim);color:var(--orange);border:1.5px solid rgba(229,122,26,.2)}
+.dbg.ok{background:var(--green-dim);color:var(--green);border:1.5px solid rgba(26,140,80,.2)}
+.dbg.nil{color:var(--dim);font-size:13px}
+.c-rem{min-width:170px;max-width:210px;padding:0}
+.cinput{width:100%;background:transparent;border:none;outline:none;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:500;padding:10px 10px;min-height:44px;resize:none;display:block;line-height:1.4}
+.cinput:focus{background:#FFFDE6}.cinput::placeholder{color:var(--border2)}
 .cinput[readonly]{color:var(--dim);cursor:default}.cinput[readonly]:focus{background:transparent}
-.c-who{width:112px;padding:0}
-.csel{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:9px 6px;cursor:pointer;-webkit-appearance:none;appearance:none;min-height:42px}
-.csel:focus{background:rgba(184,255,87,.05)}.csel:disabled{color:var(--dim);cursor:default}.csel option{background:var(--ink3)}
-.c-cb{width:100px;padding:0 8px}
-.cb-wrap{display:flex;align-items:center;gap:5px}
-.cb-days-input{width:38px;background:var(--ink3);border:1px solid var(--wire);border-radius:4px;color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 5px;outline:none;text-align:center}
-.cb-days-input:focus{border-color:var(--amber)}
-.cb-set-btn{height:22px;padding:0 7px;border-radius:4px;border:1px solid var(--amber);background:transparent;color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:9px;cursor:pointer;white-space:nowrap;letter-spacing:.3px}
-.cb-set-btn:hover{background:var(--amber);color:var(--ink)}
-.cb-active{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--lime);background:var(--lime-dim);border:1px solid rgba(184,255,87,.3);border-radius:4px;padding:3px 6px;white-space:nowrap;display:flex;flex-direction:column;gap:2px}
-.cb-dismiss{background:transparent;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:0;line-height:1}.cb-dismiss:hover{color:var(--red)}
+.c-who{width:120px;padding:0}
+.csel{width:100%;background:transparent;border:none;outline:none;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:500;padding:10px 8px;cursor:pointer;-webkit-appearance:none;appearance:none;min-height:44px}
+.csel:focus{background:#FFFDE6}.csel:disabled{color:var(--dim);cursor:default}.csel option{background:var(--bg2)}
+.c-cb{width:110px;padding:0 10px}
+.cbwrap{display:flex;align-items:center;gap:5px}
+.cb-n{width:40px;border:1.5px solid var(--border);border-radius:6px;color:var(--orange);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:4px 6px;outline:none;text-align:center;background:var(--bg)}
+.cb-n:focus{border-color:var(--orange)}
+.cb-set{height:24px;padding:0 8px;border-radius:6px;border:1.5px solid var(--y);background:var(--y-dim);color:var(--ink);font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif}
+.cb-set:hover{background:var(--y);border-color:var(--y)}
+.cb-live{font-size:10px;font-weight:600;color:var(--green);background:var(--green-dim);border:1px solid rgba(26,140,80,.2);border-radius:6px;padding:3px 7px;white-space:nowrap;display:flex;gap:4px;align-items:center}
+.cb-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;line-height:1;padding:0}.cb-x:hover{color:var(--red)}
 
-/* NO DATA */
-.nodata{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);gap:10px}
-.spin{width:28px;height:28px;border-radius:50%;border:2px solid var(--wire);border-top-color:var(--lime);animation:rot .65s linear infinite}
+/* EMPTY / LOADER */
+.nodata{display:flex;flex-direction:column;align-items:center;justify-content:center;height:260px;color:var(--dim);gap:10px}
+.nodata-icon{font-size:36px;opacity:.4}
+.nodata-txt{font-size:13px;font-weight:500;color:var(--dim)}
+.spin{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--y);animation:rot .65s linear infinite}
 @keyframes rot{to{transform:rotate(360deg)}}
 
-/* LEADERBOARD */
-#pL{overflow-y:auto}
-.lb-inner{padding:28px 32px;max-width:900px}
-.lb-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--purple);letter-spacing:2px;margin-bottom:6px}
-.lb-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:22px}
-.lb-date-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
-.lb-date-row label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
-.lb-date-row input[type=date]{background:var(--ink3);border:1px solid var(--wire);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;outline:none}
-.lb-date-row input[type=date]:focus{border-color:var(--purple)}
-.lb-go{height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--purple);background:var(--purple-dim);color:var(--purple);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.4px}
-.lb-go:hover{background:var(--purple);color:var(--ink)}
-.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media(max-width:700px){.lb-grid{grid-template-columns:1fr}}
-.lb-card{background:var(--ink2);border:1px solid var(--wire);border-radius:10px;overflow:hidden}
-.lb-card-head{padding:12px 18px;border-bottom:1px solid var(--wire);font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px}
-.lb-card-head.office{color:var(--sky)}.lb-card-head.salesman{color:var(--amber)}
-.lb-row{display:flex;align-items:center;padding:10px 18px;border-bottom:1px solid var(--wire);gap:10px}
+/* ── ADMIN ONLY PANES ── */
+
+/* DASHBOARD */
+#pDash{overflow-y:auto}
+.dash-inner{padding:24px 28px;max-width:1100px}
+.dash-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.dash-sub{font-size:13px;color:var(--mid);margin-bottom:24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.kpi-val{font-size:28px;font-weight:800;color:var(--ink);letter-spacing:-.5px;line-height:1}
+.kpi-val.green{color:var(--green)}.kpi-val.red{color:var(--red)}.kpi-val.blue{color:var(--blue)}.kpi-val.orange{color:var(--orange)}
+.kpi-meta{font-size:11px;color:var(--dim);margin-top:5px}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:800px){.dash-row{grid-template-columns:1fr}}
+.dash-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.dash-card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dash-card-title{font-size:14px;font-weight:700;color:var(--ink)}
+.dash-card-body{padding:0}
+.lb-row{display:flex;align-items:center;padding:11px 20px;border-bottom:1px solid var(--border);gap:12px}
 .lb-row:last-child{border-bottom:none}
-.lb-rank{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;width:28px;flex-shrink:0;color:var(--dim)}
-.lb-rank.gold{color:#ffd700}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}
-.lb-name{flex:1;font-weight:600;color:var(--bright);font-size:13px}
-.lb-bar-wrap{width:120px;flex-shrink:0}
-.lb-bar-bg{background:var(--wire);border-radius:4px;height:6px;overflow:hidden}
-.lb-bar-fill{height:100%;border-radius:4px;transition:width .4s}
-.lb-bar-fill.office{background:var(--sky)}.lb-bar-fill.salesman{background:var(--amber)}
-.lb-count{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;width:36px;text-align:right;flex-shrink:0}
-.lb-count.office{color:var(--sky)}.lb-count.salesman{color:var(--amber)}
-.lb-empty{padding:20px 18px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)}
+.lb-rank{font-size:13px;font-weight:800;width:26px;flex-shrink:0;color:var(--dim);font-family:'IBM Plex Mono',monospace}
+.lb-rank.g{color:#D4A800}.lb-rank.s{color:#9E9E9E}.lb-rank.b{color:#CD7F32}
+.lb-name{flex:1;font-size:13px;font-weight:600;color:var(--ink)}
+.lb-bar-bg{width:100px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;flex-shrink:0}
+.lb-bar-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.lb-bar-fill.blue{background:var(--blue)}.lb-bar-fill.orange{background:var(--orange)}
+.lb-cnt{font-size:12px;font-weight:700;width:32px;text-align:right;flex-shrink:0;font-family:'IBM Plex Mono',monospace}
+.lb-cnt.blue{color:var(--blue)}.lb-cnt.orange{color:var(--orange)}
+.lb-empty{padding:20px;font-size:12px;color:var(--dim)}
+.ov-table{width:100%;border-collapse:collapse;font-size:12px}
+.ov-table th{background:var(--bg3);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.ov-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--ink);font-weight:500}
+.ov-table tr:last-child td{border-bottom:none}
+.ov-table tr:hover td{background:var(--bg3)}
+.money-cell{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-align:right}
+.money-cell.red{color:var(--red)}.money-cell.blue{color:var(--blue)}.money-cell.orange{color:var(--orange)}
+.dash-card-full{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px}
+
+/* LEADERBOARD (admin only) */
+#pLB{overflow-y:auto}
+.lb-inner{padding:24px 28px;max-width:900px}
+.lb-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.lb-sub{font-size:13px;color:var(--mid);margin-bottom:22px}
+.lb-date-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:22px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px}
+.lb-date-row label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.4px;text-transform:uppercase}
+.lb-date-row input[type=date]{border:1.5px solid var(--border);border-radius:6px;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;padding:6px 10px;outline:none;background:var(--bg)}
+.lb-date-row input[type=date]:focus{border-color:var(--y)}
+.lb-go{height:34px;padding:0 18px;border-radius:8px;border:none;background:var(--y);color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+.lb-go:hover{background:var(--y-deep)}
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.lb-grid{grid-template-columns:1fr}}
 
 /* CALLBACKS */
-#pC{overflow-y:auto}
-.cb-inner{padding:28px 32px;max-width:900px}
-.cb-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--green);letter-spacing:2px;margin-bottom:4px}
-.cb-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:22px}
-.cb-sec-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--wire)}
-.cb-sec-title.overdue{color:var(--red)}.cb-sec-title.today{color:var(--amber)}.cb-sec-title.upcoming{color:var(--mid)}
-.cbcard{background:var(--ink2);border:1px solid var(--wire);border-radius:10px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:flex-start;gap:14px}
-.cbcard.overdue{border-left:3px solid var(--red)}.cbcard.today{border-left:3px solid var(--amber)}.cbcard.upcoming{border-left:3px solid var(--wire2)}
-.cbcard-icon{font-size:20px;flex-shrink:0;margin-top:2px}
-.cbcard-body{flex:1;min-width:0}
-.cbcard-name{font-weight:700;color:var(--bright);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
-.cbcard-who{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);margin-bottom:6px}
-.cbcard-rem{font-size:12px;color:var(--text);background:var(--ink3);border-radius:6px;padding:8px 10px;line-height:1.5;border-left:2px solid var(--amber)}
-.cbcard-done{height:28px;padding:0 12px;border-radius:5px;border:1px solid var(--wire);background:transparent;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;margin-top:8px;display:inline-block}
-.cbcard-done:hover{border-color:var(--lime);color:var(--lime)}
-.cbcard-date{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;flex-shrink:0;padding-top:4px;text-align:right}
-.cbcard-date.overdue{color:var(--red)}.cbcard-date.today{color:var(--amber)}.cbcard-date.upcoming{color:var(--lime)}
-.cb-empty-msg{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);padding:16px 0}
+#pCB{overflow-y:auto}
+.cb-inner{padding:24px 28px;max-width:860px}
+.cb-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.cb-page-sub{font-size:13px;color:var(--mid);margin-bottom:22px}
+.cb-section-hd{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.cb-section-hd.overdue{color:var(--red)}.cb-section-hd.today{color:var(--orange)}.cb-section-hd.upcoming{color:var(--mid)}
+.cb-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:8px;display:flex;gap:14px;box-shadow:var(--shadow)}
+.cb-card.overdue{border-left:3px solid var(--red)}.cb-card.today{border-left:3px solid var(--orange)}.cb-card.upcoming{border-left:3px solid var(--border2)}
+.cb-card-ico{font-size:22px;flex-shrink:0;margin-top:2px}
+.cb-card-body{flex:1;min-width:0}
+.cb-card-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cb-card-meta{font-size:11px;color:var(--dim);margin-bottom:7px;font-weight:500}
+.cb-card-rem{font-size:12px;color:var(--ink2);background:var(--bg3);border-radius:6px;padding:8px 10px;line-height:1.5;border-left:3px solid var(--y)}
+.cb-done{height:28px;padding:0 12px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+.cb-done:hover{border-color:var(--green);color:var(--green)}
+.cb-card-date{flex-shrink:0;text-align:right;padding-top:2px}
+.cb-card-date-main{font-size:12px;font-weight:700}
+.cb-card-date-main.overdue{color:var(--red)}.cb-card-date-main.today{color:var(--orange)}.cb-card-date-main.upcoming{color:var(--green)}
+.cb-card-date-sub{font-size:10px;color:var(--dim);margin-top:2px}
+.cb-empty{font-size:13px;color:var(--dim);padding:20px 0}
 
-/* DUMP */
-#pD{overflow-y:auto}
-.dump-inner{padding:28px 32px;max-width:1060px}
-.dump-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--mid);letter-spacing:2px;margin-bottom:6px}
-.dump-desc{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim);margin-bottom:22px;line-height:1.7}
-.dump-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
-@media(max-width:800px){.dump-grid{grid-template-columns:1fr}}
-.dcard{background:var(--ink2);border:1px solid var(--wire);border-radius:12px;overflow:hidden}
-.dcard-head{padding:14px 20px;border-bottom:1px solid var(--wire);display:flex;align-items:center;justify-content:space-between}
-.dcard-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px}
-.dcard-title.auto{color:var(--sky)}.dcard-title.hero{color:var(--amber)}
-.dsheet-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 9px;border-radius:10px;letter-spacing:.4px}
-.dsheet-tag.auto{background:var(--sky-dim);color:var(--sky);border:1px solid rgba(90,180,255,.25)}
-.dsheet-tag.hero{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,184,48,.25)}
-.dcard-body{padding:18px 20px}
-.dropz{border:2px dashed var(--wire2);border-radius:9px;padding:20px 16px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;margin-bottom:14px}
-.dropz:hover,.dropz.drag-over{border-color:var(--purple);background:var(--purple-dim)}
+/* UPLOAD */
+#pUP{overflow-y:auto}
+.up-inner{padding:24px 28px;max-width:1000px}
+.up-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.up-sub{font-size:13px;color:var(--mid);margin-bottom:22px;line-height:1.6}
+.up-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:760px){.up-grid{grid-template-columns:1fr}}
+.up-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.up-card-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.up-card-title{font-size:16px;font-weight:800;letter-spacing:-.2px}
+.up-card-title.auto{color:var(--blue)}.up-card-title.hero{color:var(--orange)}
+.up-sheet-tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.4px}
+.up-sheet-tag.auto{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(26,106,229,.2)}
+.up-sheet-tag.hero{background:var(--orange-dim);color:var(--orange);border:1px solid rgba(229,122,26,.2)}
+.up-card-body{padding:18px 20px}
+.dropz{border:2px dashed var(--border2);border-radius:8px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-bottom:14px}
+.dropz:hover,.dropz.drag-over{border-color:var(--y);background:var(--y-dim)}
 .dropz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.drop-icon{font-size:24px;margin-bottom:6px}
-.drop-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mid);line-height:1.6}
-.drop-lbl b{color:var(--text)}.drop-lbl small{color:var(--dim);font-size:10px}
-.paste-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.paste-area{width:100%;min-height:70px;max-height:120px;background:var(--ink3);border:1px solid var(--wire);border-radius:7px;padding:10px 12px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;resize:vertical;outline:none;transition:border .15s}
-.paste-area:focus{border-color:var(--purple)}
-.parse-btn{width:100%;margin-top:12px;height:36px;border-radius:7px;border:none;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
-.parse-btn.auto{background:var(--sky);color:var(--ink)}.parse-btn.hero{background:var(--amber);color:var(--ink)}
-.parse-btn:hover{opacity:.85}.parse-btn:disabled{opacity:.4;cursor:not-allowed}
-.pcnt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mid);padding:6px 0;display:none;gap:10px;align-items:center}
-.pcnt span{color:var(--text);font-weight:600}.pcnt .pw{color:var(--amber)!important}
-.prev-wrap{margin-top:12px;border:1px solid var(--wire);border-radius:8px;overflow:hidden;max-height:200px;overflow-y:auto}
+.drop-ico{font-size:24px;margin-bottom:6px}
+.drop-lbl{font-size:12px;color:var(--mid);line-height:1.6}
+.drop-lbl b{color:var(--ink);font-weight:700}.drop-lbl small{font-size:10px;color:var(--dim)}
+.paste-lbl{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.paste-area{width:100%;min-height:70px;max-height:120px;border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;resize:vertical;outline:none;transition:border .15s;background:var(--bg)}
+.paste-area:focus{border-color:var(--y);background:var(--bg2)}
+.parse-btn{width:100%;margin-top:12px;height:38px;border-radius:8px;border:none;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.parse-btn.auto{background:var(--blue);color:#fff}.parse-btn.hero{background:var(--orange);color:#fff}
+.parse-btn:hover{opacity:.88}.parse-btn:disabled{opacity:.4;cursor:not-allowed}
+.pcnt{font-size:12px;color:var(--mid);padding:6px 0;display:none;gap:8px;align-items:center;font-weight:500}
+.pcnt strong{color:var(--ink)}.pcnt .pw{color:var(--orange)}
+.prev-wrap{margin-top:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden;max-height:200px;overflow-y:auto}
 .ptbl{width:100%;border-collapse:collapse;font-size:11px}
-.ptbl thead th{background:var(--ink3);font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);padding:6px 10px;text-align:left;border-bottom:1px solid var(--wire);position:sticky;top:0}
-.ptbl tbody tr{border-bottom:1px solid var(--wire)}.ptbl tbody tr:hover{background:rgba(255,255,255,.02)}
+.ptbl thead th{background:var(--bg3);font-size:10px;font-weight:700;color:var(--mid);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);position:sticky;top:0;letter-spacing:.4px;text-transform:uppercase}
+.ptbl tbody tr{border-bottom:1px solid var(--border)}.ptbl tbody tr:hover{background:var(--bg3)}
 .ptbl td{padding:5px 10px;font-family:'IBM Plex Mono',monospace}
-.p-n{color:var(--dim);text-align:center;width:30px}.p-nm{color:var(--text);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.p-am{color:var(--lime);text-align:right}.p-dy{color:var(--amber);text-align:center}.p-fl{text-align:center}
-tr.pw td{background:rgba(255,184,48,.04)}
-.up-btn{width:100%;margin-top:10px;height:38px;border-radius:7px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:2px solid;transition:filter .15s;display:flex;align-items:center;justify-content:center;gap:8px}
-.up-btn.auto{border-color:var(--sky);color:var(--sky);background:var(--sky-dim)}
-.up-btn.hero{border-color:var(--amber);color:var(--amber);background:var(--amber-dim)}
-.up-btn:hover:not(:disabled){filter:brightness(1.2)}.up-btn:disabled{opacity:.35;cursor:not-allowed}
-.prog-wrap{margin-top:8px;background:var(--ink3);border-radius:6px;overflow:hidden;height:3px;display:none}
-.prog-wrap.on{display:block}.prog-bar{height:100%;border-radius:6px;transition:width .3s}
-.prog-bar.auto{background:var(--sky)}.prog-bar.hero{background:var(--amber)}
-.up-log{margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);max-height:50px;overflow-y:auto;line-height:1.8}
-.up-log .lg-ok{color:var(--lime)}.up-log .lg-err{color:var(--red)}
+.p-n{color:var(--dim);text-align:center;width:30px}.p-nm{color:var(--ink);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.p-am{color:var(--green);text-align:right;font-weight:600}.p-dy{color:var(--orange);text-align:center}.p-fl{text-align:center}
+tr.pw td{background:rgba(229,122,26,.04)}
+.up-btn{width:100%;margin-top:10px;height:40px;border-radius:8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border:2px solid;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.up-btn.auto{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+.up-btn.hero{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
+.up-btn:hover:not(:disabled){opacity:.8}.up-btn:disabled{opacity:.3;cursor:not-allowed}
+.prog-wrap{margin-top:8px;background:var(--bg3);border-radius:4px;height:3px;display:none}
+.prog-wrap.on{display:block}.prog-bar{height:100%;border-radius:4px;transition:width .3s}
+.prog-bar.auto{background:var(--blue)}.prog-bar.hero{background:var(--orange)}
+.up-log{margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--dim);max-height:48px;overflow-y:auto;line-height:1.8}
+.up-log .ok{color:var(--green)}.up-log .err{color:var(--red)}
 
-/* TOAST */
-#toasts{position:fixed;bottom:18px;right:18px;z-index:999;display:flex;flex-direction:column;gap:7px;pointer-events:none}
-.toast{background:var(--ink3);border:1px solid var(--wire);border-radius:8px;padding:9px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);max-width:320px;animation:tin .2s ease;display:flex;align-items:center;gap:8px;pointer-events:all}
-.toast.ok{border-color:var(--lime)}.toast.warn{border-color:var(--amber);color:var(--amber)}.toast.err{border-color:var(--red);color:var(--red)}.toast.cb{border-color:var(--green);color:var(--green)}
-@keyframes tin{from{transform:translateX(16px);opacity:0}}
+/* ── NOTIFICATIONS ── */
+#notifStack{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;max-width:360px}
+.notif{background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow-md);animation:slideIn .3s ease;pointer-events:all;display:flex;gap:12px;align-items:flex-start}
+.notif.cb-notif{border-left:4px solid var(--y)}
+.notif-ico{font-size:22px;flex-shrink:0}
+.notif-body{flex:1;min-width:0}
+.notif-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.notif-msg{font-size:12px;color:var(--mid);line-height:1.4}
+.notif-close{background:none;border:none;color:var(--dim);cursor:pointer;font-size:16px;padding:0;flex-shrink:0;line-height:1}.notif-close:hover{color:var(--red)}
+@keyframes slideIn{from{transform:translateX(16px);opacity:0}}
+
+/* ── TOAST (quick) ── */
+#toasts{position:fixed;top:72px;right:20px;z-index:9998;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--ink);color:var(--bg2);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:500;max-width:280px;animation:tin .2s ease;pointer-events:all;display:flex;align-items:center;gap:8px}
+.toast.ok{background:var(--green)}.toast.warn{background:var(--orange)}.toast.err{background:var(--red)}
+@keyframes tin{from{transform:translateX(12px);opacity:0}}
 </style>
 </head>
 <body>
 
-<div id="setupOverlay">
-  <div class="sbox">
-    <div class="slogo">Calling<em>Tracker</em></div>
-    <div class="ssub">// Yantrayug — Google Sheets backend, saved once, works forever</div>
-    <div class="slabel">Google Sheet ID</div>
-    <input class="sinput" id="cfgSheetId" placeholder="From the URL after /d/…">
-    <div class="slabel">Google API Key</div>
-    <input class="sinput" id="cfgApiKey" placeholder="AIzaSy…">
-    <div class="shint">
-      <b>One-time setup — credentials saved in your browser permanently.</b><br>
-      Sheet ID → from your Google Sheets URL between <code>/d/</code> and <code>/edit</code><br>
-      API Key → console.cloud.google.com → APIs &amp; Services → Credentials → Create API Key<br>
-      Also enable <b>Google Sheets API</b> in Enabled APIs &amp; Services
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="login-logo-mark">Y</div>
+      <div class="login-logo-text">Call<span>Tracker</span></div>
     </div>
-    <div class="serr" id="setupErr"></div>
-    <button class="sgo" onclick="doConnect()">CONNECT &amp; SAVE →</button>
-    <div class="ssaved" id="setupSaved"></div>
-  </div>
-</div>
-
-<div id="dayBanner">
-  <span id="dayBannerMsg">⚠ Today's columns not found in sheet.</span>
-  <button class="create-day-btn" id="createDayBtn" onclick="createTodayColumns()">＋ CREATE TODAY'S COLUMNS</button>
-</div>
-
-<div id="topbar">
-  <div class="brand">Calling<em>Tracker</em></div>
-  <div class="tabs">
-    <button class="tab active" data-t="O" onclick="sw('O')">🏢 OFFICE</button>
-    <button class="tab" data-t="S" onclick="sw('S')">👤 SALESMAN</button>
-    <button class="tab" data-t="A" onclick="sw('A')">📅 ALL DATA</button>
-    <button class="tab" data-t="L" onclick="sw('L');renderLB()">🏆 LEADERBOARD</button>
-    <button class="tab" data-t="C" onclick="sw('C');renderCB()">📞 CALLBACKS <span class="notif-count" id="cbCount"></span></button>
-    <button class="tab" data-t="D" onclick="sw('D')">⬆ UPLOAD</button>
-  </div>
-  <div class="topbar-right">
-    <div id="dateLbl"></div>
-    <button class="tbtn lime" onclick="loadAll()">↻ REFRESH</button>
-    <div id="syncDot"></div>
-    <button class="tbtn" onclick="showSetup()">⚙</button>
-  </div>
-</div>
-
-<div id="app" class="hidden">
-
-  <div class="pane active" id="pO">
-    <div class="fbar">
-      <div class="srch"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="srchO" placeholder="Search party…" oninput="render('O')"></div>
-      <select class="fsel" id="routeO" onchange="render('O')"><option value="">All Routes</option></select>
-      <select class="fsel" id="beatO" onchange="render('O')"><option value="">All Beats</option></select>
-      <div class="drange-wrap"><label>MIN DAYS</label><input type="range" min="0" max="365" value="0" id="drO" oninput="onDr('O',this.value)"><span class="drange-lbl" id="drLO">0+</span></div>
-      <button class="chip" id="ovO" onclick="togOv('O')">⚠ OVERDUE ONLY</button>
-      <button class="chip clear" onclick="clrF('O')">✕ CLEAR</button>
-      <div class="stats"><div class="sbadge">Showing <strong id="cntO">—</strong></div><div class="sbadge money">AUTO ₹<strong id="tAO">—</strong></div><div class="sbadge money">HERO ₹<strong id="tHO">—</strong></div></div>
-    </div>
-    <div class="mbar" id="mbarO"><span class="mbar-label">Filter by office:</span></div>
-    <div class="twrap" id="twO"><div class="nodata"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="pane" id="pS">
-    <div class="fbar">
-      <div class="srch"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="srchS" placeholder="Search party…" oninput="render('S')"></div>
-      <select class="fsel" id="routeS" onchange="render('S')"><option value="">All Routes</option></select>
-      <select class="fsel" id="beatS" onchange="render('S')"><option value="">All Beats</option></select>
-      <div class="drange-wrap"><label>MIN DAYS</label><input type="range" min="0" max="365" value="0" id="drS" oninput="onDr('S',this.value)"><span class="drange-lbl" id="drLS">0+</span></div>
-      <button class="chip" id="ovS" onclick="togOv('S')">⚠ OVERDUE ONLY</button>
-      <button class="chip clear" onclick="clrF('S')">✕ CLEAR</button>
-      <div class="stats"><div class="sbadge">Showing <strong id="cntS">—</strong></div><div class="sbadge money">AUTO ₹<strong id="tAS">—</strong></div><div class="sbadge money">HERO ₹<strong id="tHS">—</strong></div></div>
-    </div>
-    <div class="mbar" id="mbarS"><span class="mbar-label">Filter by salesman:</span></div>
-    <div class="twrap" id="twS"><div class="nodata"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="pane" id="pA">
-    <div class="fbar">
-      <div class="srch"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input id="srchA" placeholder="Search party…" oninput="render('A')"></div>
-      <select class="fsel" id="routeA" onchange="render('A')"><option value="">All Routes</option></select>
-      <select class="fsel" id="beatA" onchange="render('A')"><option value="">All Beats</option></select>
-      <div class="stats"><div class="sbadge">Showing <strong id="cntA">—</strong></div><div class="sbadge money">AUTO ₹<strong id="tAA">—</strong></div><div class="sbadge money">HERO ₹<strong id="tHA">—</strong></div></div>
-    </div>
-    <div class="datebar" id="datebarA"></div>
-    <div class="twrap" id="twA"><div class="nodata"><div class="spin"></div></div></div>
-  </div>
-
-  <div class="pane" id="pL">
-    <div class="lb-inner">
-      <div class="lb-title">🏆 Leaderboard</div>
-      <div class="lb-sub">Ranked by number of calls logged. Select date range to analyse any period.</div>
-      <div class="lb-date-row">
-        <label>FROM</label><input type="date" id="lbFrom">
-        <label>TO</label><input type="date" id="lbTo">
-        <button class="lb-go" onclick="renderLB()">UPDATE</button>
+    <div class="login-card">
+      <div class="login-title">Welcome back</div>
+      <div class="login-sub">Sign in to your role to continue</div>
+      <div class="login-label">Your Name</div>
+      <input class="login-input" id="loginName" placeholder="e.g. GEETA, RAUFF…" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="login-label">Select Role</div>
+      <div class="login-role-row">
+        <div class="role-btn" data-r="OFFICE" onclick="pickRole(this)"><div class="role-btn-icon">🏢</div><div class="role-btn-label">OFFICE</div></div>
+        <div class="role-btn" data-r="SALESMAN" onclick="pickRole(this)"><div class="role-btn-icon">👤</div><div class="role-btn-label">SALESMAN</div></div>
+        <div class="role-btn" data-r="ADMIN" onclick="pickRole(this)"><div class="role-btn-icon">🔑</div><div class="role-btn-label">ADMIN</div></div>
       </div>
-      <div class="lb-grid" id="lbGrid"><div class="nodata"><div class="spin"></div></div></div>
+      <div class="login-err" id="loginErr"></div>
+      <button class="login-btn" onclick="doLogin()">Sign In →</button>
+      <div class="login-cfg" onclick="showCfgModal()">⚙ Configure Google Sheet connection</div>
+    </div>
+  </div>
+</div>
+
+<!-- SHEET CONFIG MODAL -->
+<div id="cfgModal">
+  <div class="cfg-card">
+    <div class="cfg-title">Google Sheet Connection</div>
+    <div class="cfg-sub">Saved permanently in your browser — enter once, never again.<br>Sheet must be shared as <b>Anyone with link → Editor</b>.</div>
+    <div class="cfg-label">Sheet ID</div>
+    <input class="cfg-input" id="cfgSheetId" placeholder="From URL: /d/xxxxxxx/edit">
+    <div class="cfg-label">API Key</div>
+    <input class="cfg-input" id="cfgApiKey" placeholder="AIzaSy…">
+    <div class="cfg-hint">
+      Sheet ID is the long string between <code>/d/</code> and <code>/edit</code> in your Google Sheets URL.<br>
+      API Key → console.cloud.google.com → APIs & Services → Credentials → Create API Key → also enable Google Sheets API.
+    </div>
+    <div class="cfg-err" id="cfgErr"></div>
+    <div class="cfg-ok" id="cfgOk"></div>
+    <div class="cfg-actions">
+      <button class="cfg-cancel" onclick="hideCfgModal()">Cancel</button>
+      <button class="cfg-save" onclick="saveCfg()">Test & Save →</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div id="shell">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-mark">Y</div>
+      <div class="sb-logo-name">CallTracker</div>
+      <div class="sb-logo-sub">Yantrayug Outstanding</div>
+    </div>
+    <div class="sb-date">
+      <div class="sb-date-label">Today</div>
+      <div class="sb-date-val" id="sbDate">—</div>
+    </div>
+    <div class="sb-nav" id="sbNav"></div>
+    <div class="sb-user">
+      <div class="sb-user-role" id="sbRole">—</div>
+      <div class="sb-user-name" id="sbName">—</div>
+      <button class="sb-logout" onclick="logout()">Sign Out</button>
     </div>
   </div>
 
-  <div class="pane" id="pC">
-    <div class="cb-inner">
-      <div class="cb-title">📞 Callbacks</div>
-      <div class="cb-sub">Parties who committed to pay — follow up on time. Set callbacks from the Office or Salesman tab.</div>
-      <div id="cbSections"><div class="nodata"><span>No callbacks yet.</span></div></div>
-    </div>
-  </div>
-
-  <div class="pane" id="pD">
-    <div class="dump-inner">
-      <div class="dump-title">⬆ Daily Dump Upload</div>
-      <div class="dump-desc">Drop Marg .txt export or paste raw text → Parse → Push to sheet. Balances refresh automatically after upload.</div>
-      <div class="dump-grid">
-        <div class="dcard">
-          <div class="dcard-head"><div class="dcard-title auto">DUMP AUTO</div><div class="dsheet-tag auto">→ DUMP_AUTO</div></div>
-          <div class="dcard-body">
-            <div class="dropz" id="dropAuto" ondragover="onDragOver(event,'auto')" ondragleave="onDragLeave('auto')" ondrop="onDrop(event,'auto')"><input type="file" accept=".txt,.csv" onchange="onFileSelect(event,'auto')"><div class="drop-icon">📂</div><div class="drop-lbl"><b>Drop AUTO dump here</b><br>or click to browse<br><small>.txt Marg export</small></div></div>
-            <div class="paste-lbl">— or paste raw text —</div>
-            <textarea class="paste-area" id="pasteAuto" placeholder="A H S AUTOMOBILES (LONAWALA)937851&#10;AALAM TYRE KHED726633…"></textarea>
-            <button class="parse-btn auto" onclick="parseP('auto')">⚡ PARSE &amp; PREVIEW</button>
-            <div class="pcnt" id="cntAuto"></div>
-            <div class="prev-wrap" id="prevAuto"></div>
-            <button class="up-btn auto" id="upAuto" onclick="uploadDump('auto')" disabled>⬆ PUSH TO DUMP_AUTO</button>
-            <div class="prog-wrap" id="progAuto"><div class="prog-bar auto" id="barAuto" style="width:0"></div></div>
-            <div class="up-log" id="logAuto"></div>
-          </div>
-        </div>
-        <div class="dcard">
-          <div class="dcard-head"><div class="dcard-title hero">DUMP HERO</div><div class="dsheet-tag hero">→ HERO</div></div>
-          <div class="dcard-body">
-            <div class="dropz" id="dropHero" ondragover="onDragOver(event,'hero')" ondragleave="onDragLeave('hero')" ondrop="onDrop(event,'hero')"><input type="file" accept=".txt,.csv" onchange="onFileSelect(event,'hero')"><div class="drop-icon">📂</div><div class="drop-lbl"><b>Drop HERO dump here</b><br>or click to browse<br><small>.txt Marg export</small></div></div>
-            <div class="paste-lbl">— or paste raw text —</div>
-            <textarea class="paste-area" id="pasteHero" placeholder="A H S AUTOMOBILES (LONAWALA)8678654&#10;…"></textarea>
-            <button class="parse-btn hero" onclick="parseP('hero')">⚡ PARSE &amp; PREVIEW</button>
-            <div class="pcnt" id="cntHero"></div>
-            <div class="prev-wrap" id="prevHero"></div>
-            <button class="up-btn hero" id="upHero" onclick="uploadDump('hero')" disabled>⬆ PUSH TO HERO</button>
-            <div class="prog-wrap" id="progHero"><div class="prog-bar hero" id="barHero" style="width:0"></div></div>
-            <div class="up-log" id="logHero"></div>
-          </div>
-        </div>
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <div>
+        <div class="tb-title" id="tbTitle">—</div>
+        <div class="tb-sub" id="tbSub"></div>
+      </div>
+      <div class="tb-right">
+        <div class="sync-dot" id="syncDot"></div>
+        <button class="tb-btn primary" onclick="loadAll()">↻ Refresh</button>
       </div>
     </div>
-  </div>
+    <div id="dayBanner">
+      <span>⚠ No column for today found in the sheet.</span>
+      <button class="create-btn" id="createBtn" onclick="createTodayColumns()">＋ Create Today's Columns</button>
+    </div>
+    <div id="content">
 
-</div>
+      <!-- OFFICE PANE -->
+      <div class="pane" id="pO">
+        <div class="fbar">
+          <div class="srch"><span class="srch-icon">🔍</span><input id="srchO" placeholder="Search party name…" oninput="render('O')"></div>
+          <select class="fsel" id="routeO" onchange="render('O')"><option value="">All Routes</option></select>
+          <select class="fsel" id="beatO" onchange="render('O')"><option value="">All Beats</option></select>
+          <div class="dr-wrap"><label>Min Days</label><input type="range" min="0" max="365" value="0" id="drO" oninput="onDr('O',this.value)"><span class="dr-lbl" id="drLO">0+</span></div>
+          <button class="fchip" id="ovO" onclick="togOv('O')">⚠ Overdue Only</button>
+          <button class="fchip clr" onclick="clrF('O')">✕ Clear</button>
+          <div class="fstats"><div class="fstat">Showing <strong id="cntO">—</strong></div><div class="fstat money">AUTO ₹<strong id="tAO">—</strong></div><div class="fstat money">HERO ₹<strong id="tHO">—</strong></div></div>
+        </div>
+        <div class="mbar" id="mbarO"><span class="mbar-lbl">Office person:</span></div>
+        <div class="twrap" id="twO"><div class="nodata"><div class="spin"></div></div></div>
+      </div>
+
+      <!-- SALESMAN PANE -->
+      <div class="pane" id="pS">
+        <div class="fbar">
+          <div class="srch"><span class="srch-icon">🔍</span><input id="srchS" placeholder="Search party name…" oninput="render('S')"></div>
+          <select class="fsel" id="routeS" onchange="render('S')"><option value="">All Routes</option></select>
+          <select class="fsel" id="beatS" onchange="render('S')"><option value="">All Beats</option></select>
+          <div class="dr-wrap"><label>Min Days</label><input type="range" min="0" max="365" value="0" id="drS" oninput="onDr('S',this.value)"><span class="dr-lbl" id="drLS">0+</span></div>
+          <button class="fchip" id="ovS" onclick="togOv('S')">⚠ Overdue Only</button>
+          <button class="fchip clr" onclick="clrF('S')">✕ Clear</button>
+          <div class="fstats"><div class="fstat">Showing <strong id="cntS">—</strong></div><div class="fstat money">AUTO ₹<strong id="tAS">—</strong></div><div class="fstat money">HERO ₹<strong id="tHS">—</strong></div></div>
+        </div>
+        <div class="mbar" id="mbarS"><span class="mbar-lbl">Salesman:</span></div>
+        <div class="twrap" id="twS"><div class="nodata"><div class="spin"></div></div></div>
+      </div>
+
+      <!-- ADMIN: ALL DATA -->
+      <div class="pane" id="pA">
+        <div class="fbar">
+          <div class="srch"><span class="srch-icon">🔍</span><input id="srchA" placeholder="Search party name…" oninput="render('A')"></div>
+          <select class="fsel" id="routeA" onchange="render('A')"><option value="">All Routes</option></select>
+          <select class="fsel" id="beatA" onchange="render('A')"><option value="">All Beats</option></select>
+          <div class="fstats"><div class="fstat">Showing <strong id="cntA">—</strong></div><div class="fstat money">AUTO ₹<strong id="tAA">—</strong></div><div class="fstat money">HERO ₹<strong id="tHA">—</strong></div></div>
+        </div>
+        <div class="datebar" id="datebarA"></div>
+        <div class="twrap" id="twA"><div class="nodata"><div class="spin"></div></div></div>
+      </div>
+
+      <!-- ADMIN: DASHBOARD -->
+      <div class="pane" id="pDash">
+        <div class="dash-inner">
+          <div class="dash-title">Sales Performance Dashboard</div>
+          <div class="dash-sub">Real-time insights from today's outstanding data</div>
+          <div class="kpi-grid" id="kpiGrid">
+            <div class="kpi"><div class="kpi-label">Total Parties</div><div class="kpi-val blue" id="kpiParties">—</div><div class="kpi-meta">with outstanding balance</div></div>
+            <div class="kpi"><div class="kpi-label">Total Auto Outstanding</div><div class="kpi-val orange" id="kpiAutoTotal">—</div><div class="kpi-meta">₹ across all parties</div></div>
+            <div class="kpi"><div class="kpi-label">Total Hero Outstanding</div><div class="kpi-val orange" id="kpiHeroTotal">—</div><div class="kpi-meta">₹ across all parties</div></div>
+            <div class="kpi"><div class="kpi-label">Overdue (60+ days)</div><div class="kpi-val red" id="kpiOverdue">—</div><div class="kpi-meta">parties need immediate call</div></div>
+          </div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-label">Called Today</div><div class="kpi-val green" id="kpiCalled">—</div><div class="kpi-meta">parties with remark logged</div></div>
+            <div class="kpi"><div class="kpi-label">Not Called</div><div class="kpi-val red" id="kpiNotCalled">—</div><div class="kpi-meta">outstanding, no remark yet</div></div>
+            <div class="kpi"><div class="kpi-label">Callbacks Pending</div><div class="kpi-val orange" id="kpiCBPending">—</div><div class="kpi-meta">scheduled follow-ups</div></div>
+            <div class="kpi"><div class="kpi-label">Callbacks Overdue</div><div class="kpi-val red" id="kpiCBOverdue">—</div><div class="kpi-meta">missed callback dates</div></div>
+          </div>
+          <div class="dash-row">
+            <div class="dash-card">
+              <div class="dash-card-head"><div class="dash-card-title">🏢 Office Team — Calls Today</div></div>
+              <div class="dash-card-body" id="dashOfficeBoard"></div>
+            </div>
+            <div class="dash-card">
+              <div class="dash-card-head"><div class="dash-card-title">👤 Salesman Team — Calls Today</div></div>
+              <div class="dash-card-body" id="dashSalesBoard"></div>
+            </div>
+          </div>
+          <div class="dash-card-full">
+            <div class="dash-card-head"><div class="dash-card-title">🔴 Top Overdue Parties (60+ days, highest balance first)</div></div>
+            <div style="overflow-x:auto"><table class="ov-table" id="dashOverdueTable"><tr><td class="lb-empty">Loading…</td></tr></table></div>
+          </div>
+          <div class="dash-card-full">
+            <div class="dash-card-head"><div class="dash-card-title">📍 Outstanding by Route</div></div>
+            <div style="overflow-x:auto"><table class="ov-table" id="dashRouteTable"><tr><td class="lb-empty">Loading…</td></tr></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN: LEADERBOARD -->
+      <div class="pane" id="pLB">
+        <div class="lb-inner">
+          <div class="lb-title">🏆 Leaderboard</div>
+          <div class="lb-sub">Who is calling the most? Ranked by remarks logged per date range.</div>
+          <div class="lb-date-row">
+            <label>FROM</label><input type="date" id="lbFrom">
+            <label>TO</label><input type="date" id="lbTo">
+            <button class="lb-go" onclick="renderLB()">Update</button>
+          </div>
+          <div class="lb-grid" id="lbGrid"><div class="nodata"><div class="spin"></div></div></div>
+        </div>
+      </div>
+
+      <!-- CALLBACKS (all roles) -->
+      <div class="pane" id="pCB">
+        <div class="cb-inner">
+          <div class="cb-title">📞 Callbacks</div>
+          <div class="cb-page-sub">Parties who committed to pay. Follow up on time.</div>
+          <div id="cbSections"><div class="nodata"><span class="nodata-txt">No callbacks scheduled yet.</span></div></div>
+        </div>
+      </div>
+
+      <!-- UPLOAD (admin or any role who uploads) -->
+      <div class="pane" id="pUP">
+        <div class="up-inner">
+          <div class="up-title">⬆ Daily Dump Upload</div>
+          <div class="up-sub">Upload Marg exports to refresh outstanding balances across all parties. Parse first to verify, then push to sheet.</div>
+          <div class="up-grid">
+            <div class="up-card">
+              <div class="up-card-head"><div class="up-card-title auto">DUMP AUTO</div><div class="up-sheet-tag auto">→ DUMP_AUTO sheet</div></div>
+              <div class="up-card-body">
+                <div class="dropz" id="dropAuto" ondragover="onDragOver(event,'auto')" ondragleave="onDragLeave('auto')" ondrop="onDrop(event,'auto')"><input type="file" accept=".txt,.csv" onchange="onFileSelect(event,'auto')"><div class="drop-ico">📂</div><div class="drop-lbl"><b>Drop AUTO dump here</b><br>or click to browse<br><small>.txt Marg export</small></div></div>
+                <div class="paste-lbl">— or paste raw text —</div>
+                <textarea class="paste-area" id="pasteAuto" placeholder="A H S AUTOMOBILES (LONAWALA)937851&#10;AALAM TYRE KHED726633…"></textarea>
+                <button class="parse-btn auto" onclick="parseP('auto')">⚡ Parse & Preview</button>
+                <div class="pcnt" id="cntAuto"></div>
+                <div class="prev-wrap" id="prevAuto"></div>
+                <button class="up-btn auto" id="upAuto" onclick="uploadDump('auto')" disabled>⬆ Push to DUMP_AUTO</button>
+                <div class="prog-wrap" id="progAuto"><div class="prog-bar auto" id="barAuto" style="width:0"></div></div>
+                <div class="up-log" id="logAuto"></div>
+              </div>
+            </div>
+            <div class="up-card">
+              <div class="up-card-head"><div class="up-card-title hero">DUMP HERO</div><div class="up-sheet-tag hero">→ HERO sheet</div></div>
+              <div class="up-card-body">
+                <div class="dropz" id="dropHero" ondragover="onDragOver(event,'hero')" ondragleave="onDragLeave('hero')" ondrop="onDrop(event,'hero')"><input type="file" accept=".txt,.csv" onchange="onFileSelect(event,'hero')"><div class="drop-ico">📂</div><div class="drop-lbl"><b>Drop HERO dump here</b><br>or click to browse<br><small>.txt Marg export</small></div></div>
+                <div class="paste-lbl">— or paste raw text —</div>
+                <textarea class="paste-area" id="pasteHero" placeholder="A H S AUTOMOBILES (LONAWALA)8678654&#10;…"></textarea>
+                <button class="parse-btn hero" onclick="parseP('hero')">⚡ Parse & Preview</button>
+                <div class="pcnt" id="cntHero"></div>
+                <div class="prev-wrap" id="prevHero"></div>
+                <button class="up-btn hero" id="upHero" onclick="uploadDump('hero')" disabled>⬆ Push to HERO</button>
+                <div class="prog-wrap" id="progHero"><div class="prog-bar hero" id="barHero" style="width:0"></div></div>
+                <div class="up-log" id="logHero"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div id="notifStack"></div>
 <div id="toasts"></div>
 
 <script>
-/* ═══════ CONSTANTS ═══════ */
-// Unified caller list — anyone from either team can log a call on any party
+/* ═══ CONSTANTS ═══ */
 const ALL_CALLERS = ['ABHIJEET','BHAKARE','ESHWAR','GAJENDRA','GEETA','MORESHWAR','PRATIK','RAUFF','ROHIT','SACHIN','SUDHIR','TANAJI','TUSHAR'];
 const DUMP_SHEETS = {auto:'DUMP_AUTO', hero:'HERO'};
-// MASTER sheet structure per date group (8 cols, 0-indexed from group start):
-// +0 AUTO BAL (formula), +1 AUTO DAYS (formula), +2 REMARK(A), +3 NAME(A)
-// +4 HERO BAL (formula), +5 HERO DAYS (formula), +6 REMARK(H), +7 NAME(H)
+const ADMIN_PASS  = 'yantrayug2024'; // simple admin password
 
-/* ═══════ STATE ═══════ */
+// Nav config per role
+const NAV_OFFICE = [
+  {t:'O', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
+  {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
+  {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
+];
+const NAV_SALESMAN = [
+  {t:'S', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
+  {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
+  {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
+];
+const NAV_ADMIN = [
+  {t:'Dash', icon:'📊', label:'Dashboard', sub:'Performance overview'},
+  {t:'O', icon:'🏢', label:'Office View', sub:'Office team parties'},
+  {t:'S', icon:'👤', label:'Salesman View', sub:'Salesman parties'},
+  {t:'A', icon:'📅', label:'All Data', sub:'Full history, read-only'},
+  {t:'LB', icon:'🏆', label:'Leaderboard', sub:'Who called the most'},
+  {t:'CB', icon:'📞', label:'Callbacks', sub:'All follow-ups'},
+  {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
+];
+
+/* ═══ STATE ═══ */
 let CFG = {sheetId:'', apiKey:''};
-let allParties = [];      // [{sr,name,mobile,area,route,office,salesman,beat}]
-let autoMap = {}, heroMap = {};
-let allDateGroups = [];   // [{label,colIdx,isoDate}] newest first
-let dateData = {};        // colIdx → {sr → {autoBal,autoDays,heroBal,heroDays,remA,nameA,remH,nameH}}
-let rowMap = {};          // sr → 1-indexed sheet row
-let totalPartyRows = 0;   // total parties count (for formula generation)
-let nextFreeCol = -1;     // next available column index (0-based) for new day
-let todayColIdx = -1;     // colIdx of today in MASTER (-1 = not yet created)
-let adminDateCol = -1;
-let parsedDump = {auto:[], hero:[]};
-let callbacks = [];
-
-let curTab = 'O';
-let ovOnly = {O:false, S:false};
-let minDays = {O:0, S:0};
-let memberSel = {O:'ALL', S:'ALL'};
+let USER = {name:'', role:''};  // role: OFFICE | SALESMAN | ADMIN
+let allParties=[], autoMap={}, heroMap={};
+let allDateGroups=[], dateData={}, rowMap={};
+let totalPartyRows=0, nextFreeCol=8, todayColIdx=-1, adminDateCol=-1;
+let parsedDump={auto:[],hero:[]};
+let callbacks=[];
+let ovOnly={O:false,S:false}, minDays={O:0,S:0}, memberSel={O:'ALL',S:'ALL'};
 let routes=[], beats=[], officeMembers=[], salesMembers=[];
+let curPane='';
+let notifInterval=null;
 
-const TODAY = new Date();
-const TODAYISO = isoDate(TODAY);
-const TODAYSTR = fmtDisp(TODAY);
+const TODAY=new Date(), TODAYISO=isoDate(TODAY), TODAYSTR=fmtDisp(TODAY);
 
-/* ═══════ BOOT ═══════ */
+/* ═══ BOOT ═══ */
 (function(){
-  CFG.sheetId = localStorage.getItem('ct_sid')||'';
-  CFG.apiKey  = localStorage.getItem('ct_key')||'';
-  document.getElementById('cfgSheetId').value = CFG.sheetId;
-  document.getElementById('cfgApiKey').value  = CFG.apiKey;
-  document.getElementById('dateLbl').textContent = TODAYSTR;
-  // Leaderboard default: last 30 days
-  const lbTo = new Date(), lbFrom = new Date();
-  lbFrom.setDate(lbFrom.getDate()-30);
-  document.getElementById('lbFrom').value = isoDate(lbFrom);
-  document.getElementById('lbTo').value = isoDate(lbTo);
-  callbacks = JSON.parse(localStorage.getItem('ct_callbacks')||'[]');
-  updateCBBadge();
-  if(CFG.sheetId && CFG.apiKey){ hideSetup(); loadAll(); }
+  CFG.sheetId=localStorage.getItem('ct_sid')||'';
+  CFG.apiKey=localStorage.getItem('ct_key')||'';
+  document.getElementById('cfgSheetId').value=CFG.sheetId;
+  document.getElementById('cfgApiKey').value=CFG.apiKey;
+  callbacks=JSON.parse(localStorage.getItem('ct_callbacks')||'[]');
+  const lbTo=new Date(),lbFrom=new Date(); lbFrom.setDate(lbFrom.getDate()-30);
+  document.getElementById('lbFrom').value=isoDate(lbFrom);
+  document.getElementById('lbTo').value=isoDate(lbTo);
+  // Auto-login from session
+  const sess=JSON.parse(sessionStorage.getItem('ct_user')||'null');
+  if(sess && CFG.sheetId && CFG.apiKey){ USER=sess; startApp(); }
 })();
 
-/* ═══════ SETUP ═══════ */
-function showSetup(){ document.getElementById('setupOverlay').classList.remove('hidden'); }
-function hideSetup(){ document.getElementById('setupOverlay').classList.add('hidden'); }
-async function doConnect(){
-  const sid = document.getElementById('cfgSheetId').value.trim();
-  const key = document.getElementById('cfgApiKey').value.trim();
-  const err = document.getElementById('setupErr');
-  err.textContent = '';
-  if(!sid||!key){ err.textContent='Both fields required.'; return; }
-  err.textContent = 'Testing…';
-  try{
-    const r = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}?key=${key}&fields=spreadsheetId`);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    CFG = {sheetId:sid, apiKey:key};
-    localStorage.setItem('ct_sid',sid);
-    localStorage.setItem('ct_key',key);
-    document.getElementById('setupSaved').textContent = '✓ Saved permanently — you will never need to enter this again';
-    err.textContent = '';
-    hideSetup();
-    document.getElementById('app').classList.remove('hidden');
-    loadAll();
-  }catch(e){ err.textContent = '✗ '+e.message; }
+/* ═══ LOGIN ═══ */
+let selectedRole='';
+function pickRole(el){
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedRole=el.dataset.r;
+}
+async function doLogin(){
+  const name=document.getElementById('loginName').value.trim().toUpperCase();
+  const err=document.getElementById('loginErr');
+  err.textContent='';
+  if(!name){ err.textContent='Enter your name.'; return; }
+  if(!selectedRole){ err.textContent='Select a role.'; return; }
+  if(!CFG.sheetId||!CFG.apiKey){ err.textContent='Configure Google Sheet connection first (link below).'; return; }
+  if(selectedRole==='ADMIN'){
+    const pass=prompt('Admin password:');
+    if(pass!==ADMIN_PASS){ err.textContent='Incorrect admin password.'; return; }
+  }
+  USER={name,role:selectedRole};
+  sessionStorage.setItem('ct_user',JSON.stringify(USER));
+  startApp();
+}
+function logout(){
+  sessionStorage.removeItem('ct_user');
+  USER={name:'',role:''};
+  if(notifInterval) clearInterval(notifInterval);
+  document.getElementById('shell').classList.remove('show');
+  document.getElementById('loginScreen').classList.remove('hidden');
 }
 
-/* ═══════ PANE SWITCH ═══════ */
+/* ═══ START APP ═══ */
+function startApp(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('shell').classList.add('show');
+  document.getElementById('sbDate').textContent=TODAYSTR;
+  document.getElementById('sbRole').textContent=USER.role;
+  document.getElementById('sbName').textContent=USER.name;
+  buildNav();
+  // Start first default pane
+  const defaultPanes={OFFICE:'O', SALESMAN:'S', ADMIN:'Dash'};
+  sw(defaultPanes[USER.role]||'O');
+  loadAll();
+  // Check callbacks every 5 minutes
+  checkCallbackNotifs();
+  notifInterval=setInterval(checkCallbackNotifs, 5*60*1000);
+}
+
+/* ═══ NAV ═══ */
+function buildNav(){
+  const navDef=USER.role==='ADMIN'?NAV_ADMIN:USER.role==='SALESMAN'?NAV_SALESMAN:NAV_OFFICE;
+  const nav=document.getElementById('sbNav');
+  nav.innerHTML='';
+  navDef.forEach(item=>{
+    const btn=document.createElement('button');
+    btn.className='nav-item';
+    btn.dataset.t=item.t;
+    btn.innerHTML=`<span class="ni-icon">${item.icon}</span><span>${item.label}</span>${item.t==='CB'?'<span class="ni-badge" id="navCBBadge"></span>':''}`;
+    btn.onclick=()=>sw(item.t);
+    nav.appendChild(btn);
+  });
+  updateCBBadge();
+}
+
 function sw(t){
-  curTab = t;
-  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active',el.dataset.t===t));
+  curPane=t;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.t===t));
   document.querySelectorAll('.pane').forEach(el=>el.classList.remove('active'));
-  document.getElementById('p'+t).classList.add('active');
+  const paneId='p'+t;
+  const pane=document.getElementById(paneId);
+  if(pane) pane.classList.add('active');
+  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump'};
+  const subs={O:'Showing today\'s outstanding for office-assigned parties',S:'Showing today\'s outstanding for salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files'};
+  document.getElementById('tbTitle').textContent=titles[t]||t;
+  document.getElementById('tbSub').textContent=subs[t]||'';
+  if(t==='CB') renderCB();
+  if(t==='LB') renderLB();
+  if(t==='Dash') renderDash();
 }
 
-/* ═══════ SHEETS API ═══════ */
+/* ═══ CFG MODAL ═══ */
+function showCfgModal(){document.getElementById('cfgModal').classList.add('show');}
+function hideCfgModal(){document.getElementById('cfgModal').classList.remove('show');}
+async function saveCfg(){
+  const sid=document.getElementById('cfgSheetId').value.trim();
+  const key=document.getElementById('cfgApiKey').value.trim();
+  const err=document.getElementById('cfgErr'), ok=document.getElementById('cfgOk');
+  err.textContent=''; ok.textContent='';
+  if(!sid||!key){err.textContent='Both fields required.';return;}
+  err.textContent='Testing connection…';
+  try{
+    const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}?key=${key}&fields=spreadsheetId`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    CFG={sheetId:sid,apiKey:key};
+    localStorage.setItem('ct_sid',sid); localStorage.setItem('ct_key',key);
+    err.textContent='';
+    ok.textContent='✓ Connected and saved permanently.';
+  }catch(e){err.textContent='✗ '+e.message;}
+}
+
+/* ═══ SHEETS API ═══ */
 async function fetchSheet(name){
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(name+'!A1:ZZ')}?key=${CFG.apiKey}&valueRenderOption=FORMATTED_VALUE`;
-  const r = await fetch(url);
-  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&j.error.message)||'HTTP '+r.status); }
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(name+'!A1:ZZ')}?key=${CFG.apiKey}&valueRenderOption=FORMATTED_VALUE`;
+  const r=await fetch(url);
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
   return (await r.json()).values||[];
 }
-
 async function writeCell(sheet,row1,col1,value){
-  const range = `${sheet}!${colL(col1)}${row1}`;
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED&key=${CFG.apiKey}`;
-  const r = await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({range,majorDimension:'ROWS',values:[[value]]})});
-  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&j.error.message)||'HTTP '+r.status); }
+  const range=`${sheet}!${colL(col1)}${row1}`;
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED&key=${CFG.apiKey}`;
+  const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({range,majorDimension:'ROWS',values:[[value]]})});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
 }
-
-async function batchWriteRange(sheet,range,values){
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED&key=${CFG.apiKey}`;
-  const r = await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({range,majorDimension:'ROWS',values})});
-  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&j.error.message)||'HTTP '+r.status); }
-}
-
 async function batchWriteMulti(data){
-  // data = [{range, values}]
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values:batchUpdate?key=${CFG.apiKey}`;
-  const body = {valueInputOption:'USER_ENTERED', data: data.map(d=>({range:d.range,majorDimension:'ROWS',values:d.values}))};
-  const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&j.error.message)||'HTTP '+r.status); }
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values:batchUpdate?key=${CFG.apiKey}`;
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'USER_ENTERED',data:data.map(d=>({range:d.range,majorDimension:'ROWS',values:d.values}))})});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
 }
-
-async function batchWriteRows(sheet,startRow,rows){
-  const range = `${sheet}!A${startRow}:C${startRow+rows.length-1}`;
-  await batchWriteRange(sheet+'!A'+startRow+':C'+(startRow+rows.length-1),range,rows);
-}
-
 async function clearRange(sheet,rng){
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(sheet+'!'+rng)}:clear?key=${CFG.apiKey}`;
-  const r = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
-  if(!r.ok){ const j=await r.json().catch(()=>({})); throw new Error((j.error&&j.error.message)||'HTTP '+r.status); }
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(sheet+'!'+rng)}:clear?key=${CFG.apiKey}`;
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
 }
+function colL(n){let s='';while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);}return s;}
 
-function colL(n){ let s=''; while(n>0){const r=(n-1)%26; s=String.fromCharCode(65+r)+s; n=Math.floor((n-1)/26);} return s; }
-
-/* ═══════ LOAD ALL ═══════ */
+/* ═══ LOAD ALL ═══ */
 async function loadAll(){
   if(!CFG.sheetId) return;
-  document.getElementById('app').classList.remove('hidden');
   dot('syncing');
-  setLoad('O'); setLoad('S'); setLoad('A');
-
+  setLoad('O');setLoad('S');setLoad('A');
   try{
-    // Fetch all sheets in parallel
-    // MASTER = party list + read-only combined view (admin)
-    // OFFICE = office team remarks (remA, nameA)
-    // SALESMAN = salesman team remarks (remH, nameH)
-    // DUMP_AUTO + HERO = live balance data
-    const [masterVals, officeVals, salesmanVals, autoVals, heroVals] = await Promise.all([
-      fetchSheet('MASTER'),
-      fetchSheet('OFFICE'),
-      fetchSheet('SALESMAN'),
-      fetchSheet('DUMP_AUTO'),
-      fetchSheet('HERO')
+    const [masterVals,officeVals,salesmanVals,autoVals,heroVals]=await Promise.all([
+      fetchSheet('MASTER'),fetchSheet('OFFICE'),fetchSheet('SALESMAN'),fetchSheet('DUMP_AUTO'),fetchSheet('HERO')
     ]);
-
-    // Balance maps from dump sheets
     autoMap={};
-    for(const row of autoVals){ if(row[0]&&typeof row[0]==='string') autoMap[row[0].trim().toUpperCase()]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0}; }
+    for(const row of autoVals){if(row[0]&&typeof row[0]==='string') autoMap[row[0].trim().toUpperCase()]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0};}
     heroMap={};
-    for(const row of heroVals){ if(row[0]&&typeof row[0]==='string') heroMap[row[0].trim().toUpperCase()]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0}; }
+    for(const row of heroVals){if(row[0]&&typeof row[0]==='string') heroMap[row[0].trim().toUpperCase()]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0};}
 
-    // Parse date groups from OFFICE sheet row 0 (same structure as MASTER/SALESMAN)
-    // We use OFFICE as the source of truth for date columns since it's what the site writes to
-    const row0 = officeVals[0]||[];
-    allDateGroups = [];
-    nextFreeCol = 8;
-
-    for(let c=8; c<row0.length; c+=8){
-      const v = String(row0[c]||'').trim();
-      if(!v) continue;
-      const iso = parseSheetDate(v);
-      if(iso){ allDateGroups.push({label:v, colIdx:c, isoDate:iso}); nextFreeCol = c+8; }
+    const row0=officeVals[0]||[];
+    allDateGroups=[]; nextFreeCol=8;
+    for(let c=8;c<row0.length;c+=8){
+      const v=String(row0[c]||'').trim(); if(!v) continue;
+      const iso=parseSheetDate(v);
+      if(iso){allDateGroups.push({label:v,colIdx:c,isoDate:iso});nextFreeCol=c+8;}
     }
     allDateGroups.sort((a,b)=>b.isoDate.localeCompare(a.isoDate));
+    todayColIdx=-1;
+    const todayG=allDateGroups.find(g=>g.isoDate===TODAYISO);
+    if(todayG) todayColIdx=todayG.colIdx;
 
-    todayColIdx = -1;
-    const todayG = allDateGroups.find(g=>g.isoDate===TODAYISO);
-    if(todayG) todayColIdx = todayG.colIdx;
+    const banner=document.getElementById('dayBanner');
+    if(todayColIdx===-1){banner.classList.add('show');}
+    else{banner.classList.remove('show');}
 
-    // Show/hide day creation banner
-    const banner = document.getElementById('dayBanner');
-    if(todayColIdx === -1){
-      banner.classList.add('show');
-      document.getElementById('app').classList.add('has-banner');
-      document.getElementById('dayBannerMsg').textContent = `⚠ No column for today (${TODAYSTR}) found in sheet.`;
-    } else {
-      banner.classList.remove('show');
-      document.getElementById('app').classList.remove('has-banner');
-    }
-
-    // Build lookup maps: rowIndex → officeRow and salesmanRow (by party name for cross-referencing)
-    // Both sheets have same party order as MASTER
-    // officeData[colIdx][sr] = {remA, nameA}
-    // salesData[colIdx][sr]  = {remH, nameH}
-    const officeData = {}, salesData = {};
-    allDateGroups.forEach(g=>{ officeData[g.colIdx]={}; salesData[g.colIdx]={}; });
-
-    // Parse parties from MASTER (party list is master source)
     allParties=[]; rowMap={}; dateData={};
     const rSet=new Set(),bSet=new Set(),oSet=new Set(),sSet=new Set();
-    allDateGroups.forEach(g=>{ dateData[g.colIdx]={}; });
+    allDateGroups.forEach(g=>{dateData[g.colIdx]={};});
 
-    for(let ri=3; ri<masterVals.length; ri++){
-      const row    = masterVals[ri]||[];
-      const offRow = officeVals[ri]||[];
-      const salRow = salesmanVals[ri]||[];
-      const name = (row[1]||'').toString().trim();
-      if(!name) continue;
-      const sr       = parseInt(row[0])||(ri-2);
-      const mobile   = row[2] ? String(row[2]).replace('.0','') : '';
-      const area     = (row[3]||'').toString().trim();
-      const route    = (row[4]||'').toString().trim();
-      const office   = (row[5]||'').toString().trim();
-      const salesman = (row[6]||'').toString().trim();
-      const beat     = (row[7]||'').toString().trim();
-
-      if(route) rSet.add(route);
-      if(beat)  bSet.add(beat);
-      if(office)   oSet.add(office);
-      if(salesman) sSet.add(salesman);
-      rowMap[sr] = ri+1; // 1-indexed sheet row (same across all 3 sheets)
-
-      const nk = name.toUpperCase();
-      const aD = autoMap[nk]||fuzzy(autoMap,nk);
-      const hD = heroMap[nk]||fuzzy(heroMap,nk);
-
+    for(let ri=3;ri<masterVals.length;ri++){
+      const row=masterVals[ri]||[], offRow=officeVals[ri]||[], salRow=salesmanVals[ri]||[];
+      const name=(row[1]||'').toString().trim(); if(!name) continue;
+      const sr=parseInt(row[0])||(ri-2);
+      const mobile=row[2]?String(row[2]).replace('.0',''):'';
+      const area=(row[3]||'').toString().trim(), route=(row[4]||'').toString().trim();
+      const office=(row[5]||'').toString().trim(), salesman=(row[6]||'').toString().trim();
+      const beat=(row[7]||'').toString().trim();
+      if(route)rSet.add(route); if(beat)bSet.add(beat);
+      if(office)oSet.add(office); if(salesman)sSet.add(salesman);
+      rowMap[sr]=ri+1;
+      const nk=name.toUpperCase();
+      const aD=autoMap[nk]||fuzzy(autoMap,nk);
+      const hD=heroMap[nk]||fuzzy(heroMap,nk);
       allDateGroups.forEach(g=>{
-        const c = g.colIdx;
+        const c=g.colIdx;
         let autoBal,autoDays,heroBal,heroDays;
-        // Today: always use live dump data
         if(g.isoDate===TODAYISO){
           autoBal=aD?aD.amount:0; autoDays=aD?aD.days:0;
           heroBal=hD?hD.amount:0; heroDays=hD?hD.days:0;
         } else {
-          // Past: read balance from OFFICE sheet (has same VLOOKUP formulas, but FORMATTED_VALUE gives the number)
           autoBal=pNum(offRow[c]); autoDays=pNum(offRow[c+1]);
           heroBal=pNum(offRow[c+4]); heroDays=pNum(offRow[c+5]);
         }
-        // Office team writes remA(+2) and nameA(+3) to OFFICE sheet
-        const remA  = (offRow[c+2]||'').toString().trim();
-        const nameA = (offRow[c+3]||'').toString().trim();
-        // Salesman team writes remH(+6) and nameH(+7) to SALESMAN sheet
-        const remH  = (salRow[c+6]||'').toString().trim();
-        const nameH = (salRow[c+7]||'').toString().trim();
-
+        const remA=(offRow[c+2]||'').toString().trim();
+        const nameA=(offRow[c+3]||'').toString().trim();
+        const remH=(salRow[c+6]||'').toString().trim();
+        const nameH=(salRow[c+7]||'').toString().trim();
         dateData[c][sr]={autoBal,autoDays,heroBal,heroDays,remA,nameA,remH,nameH};
       });
-
       allParties.push({sr,name,mobile,area,route,office,salesman,beat});
     }
-    totalPartyRows = allParties.length;
-
-    routes  = Array.from(rSet).sort();
-    beats   = Array.from(bSet).sort();
-    officeMembers  = Array.from(oSet).filter(Boolean).sort();
-    salesMembers   = Array.from(sSet).filter(Boolean).sort();
-
+    totalPartyRows=allParties.length;
+    routes=Array.from(rSet).sort(); beats=Array.from(bSet).sort();
+    officeMembers=Array.from(oSet).filter(Boolean).sort();
+    salesMembers=Array.from(sSet).filter(Boolean).sort();
     buildSelects(); buildMemberBars(); buildDateBar();
-    adminDateCol = todayColIdx>=0 ? todayColIdx : (allDateGroups[0]?allDateGroups[0].colIdx:-1);
-
+    adminDateCol=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
     render('O'); render('S'); render('A');
-    dot('ok');
-    toast(`✓ ${allParties.length} parties · ${allDateGroups.length} date columns`,'ok');
+    if(curPane==='Dash') renderDash();
+    dot('ok'); toast(`✓ ${allParties.length} parties loaded`,'ok');
     checkCallbackNotifs();
-
   }catch(e){
     dot('err'); toast('✗ '+e.message,'err');
-    setErr('O',e.message); setErr('S',e.message); setErr('A',e.message);
+    setErr('O',e.message);setErr('S',e.message);setErr('A',e.message);
   }
 }
 
-function pNum(v){
-  if(typeof v==='number') return v;
-  const s=String(v||'').trim();
-  if(!s||s.startsWith('=')) return 0;
-  return parseFloat(s)||0;
-}
+function pNum(v){if(typeof v==='number')return v; const s=String(v||'').trim(); if(!s||s.startsWith('='))return 0; return parseFloat(s)||0;}
 function fuzzy(map,key){
-  if(map[key]) return map[key];
-  const s=key.replace(/COD\s*$/,'').trim();
-  if(map[s]) return map[s];
-  for(const k of Object.keys(map)){ if(k.startsWith(s.substring(0,16))) return map[k]; }
+  if(map[key])return map[key];
+  const s=key.replace(/COD\s*$/,'').trim(); if(map[s])return map[s];
+  for(const k of Object.keys(map)){if(k.startsWith(s.substring(0,16)))return map[k];}
   return null;
 }
 function parseSheetDate(v){
   let m=v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(m){ const[,a,b,y]=m; return parseInt(a)<=31&&parseInt(b)<=12?`${y}-${b}-${a}`:`${y}-${a}-${b}`; }
-  m=v.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if(m) return `${m[1]}-${m[2]}-${m[3]}`;
+  if(m){const[,a,b,y]=m; return parseInt(a)<=31&&parseInt(b)<=12?`${y}-${b}-${a}`:`${y}-${a}-${b}`;}
+  m=v.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m)return `${m[1]}-${m[2]}-${m[3]}`;
   return null;
 }
 
-/* ═══════ AUTO-CREATE TODAY'S COLUMNS ═══════ */
+/* ═══ CREATE TODAY'S COLUMNS ═══ */
 async function createTodayColumns(){
-  const btn = document.getElementById('createDayBtn');
-  btn.disabled = true; btn.textContent = 'Creating…';
-  document.getElementById('dayBannerMsg').innerHTML = '<span class="creating-msg">⏳ Writing to MASTER, OFFICE and SALESMAN sheets…</span>';
-  dot('syncing');
-
+  const btn=document.getElementById('createBtn');
+  btn.disabled=true; btn.textContent='Creating…'; dot('syncing');
   try{
-    const c    = nextFreeCol;  // 0-indexed start col for new day group
-    const col1 = c + 1;        // 1-indexed
-    const startDataRow = 4;
-    const endDataRow   = startDataRow + totalPartyRows - 1;
-
-    // Build formula rows
-    // MASTER + OFFICE + SALESMAN all get the same VLOOKUP formulas for BAL/DAYS cols
-    // Remark/Name cols stay blank — filled by the team via the site
-    const formulaRows = [];
-    for(let row=startDataRow; row<=endDataRow; row++){
-      const ref     = `$B${row}`;
-      const destini = `IF(ISNUMBER(SEARCH("DESTINI",${ref})),"DESTINY",${ref})`;
-      const autoB   = `=IFERROR(VLOOKUP(${destini},DUMP_AUTO!$A:$C,2,0),0)`;
-      const autoD   = `=IFERROR(VLOOKUP(${destini},DUMP_AUTO!$A:$C,3,0),0)`;
-      const heroB   = `=IFERROR(VLOOKUP(${destini},HERO !$A:$C,2,0),0)`;
-      const heroD   = `=IFERROR(VLOOKUP(${destini},HERO !$A:$C,3,0),0)`;
-      // 8 cols: autoBal, autoDays, remA, nameA, heroBal, heroDays, remH, nameH
-      formulaRows.push([autoB, autoD, '', '', heroB, heroD, '', '']);
+    const c=nextFreeCol, col1=c+1, sr=4, er=sr+totalPartyRows-1;
+    const fRows=[];
+    for(let row=sr;row<=er;row++){
+      const ref=`$B${row}`, di=`IF(ISNUMBER(SEARCH("DESTINI",${ref})),"DESTINY",${ref})`;
+      fRows.push([`=IFERROR(VLOOKUP(${di},DUMP_AUTO!$A:$C,2,0),0)`,`=IFERROR(VLOOKUP(${di},DUMP_AUTO!$A:$C,3,0),0)`,'','',`=IFERROR(VLOOKUP(${di},HERO!$A:$C,2,0),0)`,`=IFERROR(VLOOKUP(${di},HERO!$A:$C,3,0),0)`,'','']);
     }
-
-    // Build the updates for ONE sheet, then replicate to all three
-    const buildSheetUpdates = (sheetName) => {
-      const updates = [];
-      // Row 1: date
-      updates.push({ range:`${sheetName}!${colL(col1)}1`, values:[[TODAYISO]] });
-      // Row 2: AUTO / HERO labels
-      updates.push({ range:`${sheetName}!${colL(col1)}2`,   values:[['AUTO']] });
-      updates.push({ range:`${sheetName}!${colL(col1+4)}2`, values:[['HERO']] });
-      // Row 3: headers
-      updates.push({ range:`${sheetName}!${colL(col1)}3:${colL(col1+7)}3`,
-        values:[['AUTO BAL','AUTO DAYS','REMARK (A)','NAME','HERO BAL','HERO DAYS','REMARK','NAME']] });
-      // Rows 4..N: formulas in chunks of 500
-      const CHUNK = 500;
-      for(let i=0; i<formulaRows.length; i+=CHUNK){
-        const sl = formulaRows.slice(i,i+CHUNK);
-        const r1 = startDataRow+i, r2 = r1+sl.length-1;
-        updates.push({ range:`${sheetName}!${colL(col1)}${r1}:${colL(col1+7)}${r2}`, values:sl });
+    const buildSheet=(sn)=>{
+      const u=[];
+      u.push({range:`${sn}!${colL(col1)}1`,values:[[TODAYISO]]});
+      u.push({range:`${sn}!${colL(col1)}2`,values:[['AUTO']]});
+      u.push({range:`${sn}!${colL(col1+4)}2`,values:[['HERO']]});
+      u.push({range:`${sn}!${colL(col1)}3:${colL(col1+7)}3`,values:[['AUTO BAL','AUTO DAYS','REMARK (A)','NAME','HERO BAL','HERO DAYS','REMARK','NAME']]});
+      const CHUNK=500;
+      for(let i=0;i<fRows.length;i+=CHUNK){
+        const sl=fRows.slice(i,i+CHUNK),r1=sr+i,r2=r1+sl.length-1;
+        u.push({range:`${sn}!${colL(col1)}${r1}:${colL(col1+7)}${r2}`,values:sl});
       }
-      return updates;
+      return u;
     };
-
-    // Write to all three sheets — MASTER is read-only for team but needs formulas too
-    // so admin can see everything consolidated
-    const allUpdates = [
-      ...buildSheetUpdates('MASTER'),
-      ...buildSheetUpdates('OFFICE'),
-      ...buildSheetUpdates('SALESMAN')
-    ];
-
-    // Send in batches of 100 ranges
-    const BATCH = 100;
-    for(let i=0; i<allUpdates.length; i+=BATCH){
-      await batchWriteMulti(allUpdates.slice(i,i+BATCH));
-    }
-
-    toast(`✓ Today's columns created across MASTER, OFFICE & SALESMAN (${totalPartyRows} rows each)`,'ok');
-    dot('ok');
+    const all=[...buildSheet('MASTER'),...buildSheet('OFFICE'),...buildSheet('SALESMAN')];
+    for(let i=0;i<all.length;i+=100) await batchWriteMulti(all.slice(i,i+100));
+    toast(`✓ Columns created for ${TODAYSTR}`,'ok'); dot('ok');
     await loadAll();
-
   }catch(e){
     toast('✗ '+e.message,'err'); dot('err');
-    document.getElementById('createDayBtn').disabled = false;
-    document.getElementById('createDayBtn').textContent = '＋ CREATE TODAY\'S COLUMNS';
-    document.getElementById('dayBannerMsg').textContent = `⚠ Failed: ${e.message}`;
+    btn.disabled=false; btn.textContent='＋ Create Today\'s Columns';
   }
 }
 
-/* ═══════ SELECTS & MEMBER BARS ═══════ */
+/* ═══ SELECTS / MEMBER BARS / DATE BAR ═══ */
 function buildSelects(){
   ['O','S','A'].forEach(t=>{
-    const re=document.getElementById('route'+t), be=document.getElementById('beat'+t);
-    if(!re||!be) return;
-    const pR=re.value, pB=be.value;
+    const re=document.getElementById('route'+t),be=document.getElementById('beat'+t);
+    if(!re||!be)return; const pR=re.value,pB=be.value;
     re.innerHTML='<option value="">All Routes</option>'+routes.map(r=>`<option>${r}</option>`).join('');
     be.innerHTML='<option value="">All Beats</option>'+beats.map(b=>`<option>${b}</option>`).join('');
     re.value=pR; be.value=pB;
   });
 }
-function buildMemberBars(){
-  mkBar('O',officeMembers,'Filter by office:');
-  mkBar('S',salesMembers,'Filter by salesman:');
-}
+function buildMemberBars(){mkBar('O',officeMembers,'Office person:');mkBar('S',salesMembers,'Salesman:');}
 function mkBar(t,members,label){
   const bar=document.getElementById('mbar'+t);
-  bar.innerHTML=`<span class="mbar-label">${label}</span>`;
+  bar.innerHTML=`<span class="mbar-lbl">${label}</span>`;
   const all=document.createElement('button');
   all.className='mpill a'+t; all.textContent='ALL'; all.dataset.v='ALL';
-  all.onclick=()=>{memberSel[t]='ALL';hilPills(t);render(t);};
-  bar.appendChild(all);
+  all.onclick=()=>{memberSel[t]='ALL';hilPills(t);render(t);}; bar.appendChild(all);
   members.forEach(m=>{
     const p=document.createElement('button');
     p.className='mpill'; p.textContent=m; p.dataset.v=m;
-    p.onclick=()=>{memberSel[t]=m;hilPills(t);render(t);};
-    bar.appendChild(p);
+    p.onclick=()=>{memberSel[t]=m;hilPills(t);render(t);}; bar.appendChild(p);
   });
 }
 function hilPills(t){
-  const bar=document.getElementById('mbar'+t);
-  const sel=memberSel[t];
-  bar.querySelectorAll('.mpill').forEach(p=>{
-    const v=p.dataset.v;
-    p.className='mpill '+(v===sel?(v==='ALL'?'a'+t:'sel'+t):'');
-  });
+  const bar=document.getElementById('mbar'+t),sel=memberSel[t];
+  bar.querySelectorAll('.mpill').forEach(p=>{const v=p.dataset.v; p.className='mpill '+(v===sel?(v==='ALL'?'a'+t:'sel'+t):'');});
 }
 function buildDateBar(){
-  const bar=document.getElementById('datebarA');
-  bar.innerHTML='';
+  const bar=document.getElementById('datebarA'); bar.innerHTML='';
   allDateGroups.forEach(g=>{
     const p=document.createElement('button');
     const isT=g.isoDate===TODAYISO;
     p.className='dpill'+(isT?' today':'')+(g.colIdx===adminDateCol?' sel':'');
     p.textContent=(isT?'TODAY — ':'')+fmtDispISO(g.isoDate);
-    p.onclick=()=>{
-      adminDateCol=g.colIdx;
-      bar.querySelectorAll('.dpill').forEach(el=>el.classList.remove('sel'));
-      p.classList.add('sel');
-      render('A');
-    };
+    p.onclick=()=>{adminDateCol=g.colIdx;bar.querySelectorAll('.dpill').forEach(el=>el.classList.remove('sel'));p.classList.add('sel');render('A');};
     bar.appendChild(p);
   });
 }
 
-/* ═══════ FILTERS ═══════ */
-function onDr(t,v){ minDays[t]=+v; document.getElementById('drL'+t).textContent=v+'+'; render(t); }
-function togOv(t){ ovOnly[t]=!ovOnly[t]; document.getElementById('ov'+t).classList.toggle('on',ovOnly[t]); render(t); }
+/* ═══ FILTERS ═══ */
+function onDr(t,v){minDays[t]=+v;document.getElementById('drL'+t).textContent=v+'+';render(t);}
+function togOv(t){ovOnly[t]=!ovOnly[t];document.getElementById('ov'+t).classList.toggle('on',ovOnly[t]);render(t);}
 function clrF(t){
-  ovOnly[t]=false; minDays[t]=0; memberSel[t]='ALL';
+  ovOnly[t]=false;minDays[t]=0;memberSel[t]='ALL';
   document.getElementById('ov'+t).classList.remove('on');
   document.getElementById('dr'+t).value=0;
   document.getElementById('drL'+t).textContent='0+';
   document.getElementById('route'+t).value='';
   document.getElementById('beat'+t).value='';
   document.getElementById('srch'+t).value='';
-  hilPills(t); render(t);
+  hilPills(t);render(t);
 }
-
-function getColIdx(t){ return t==='A' ? adminDateCol : todayColIdx; }
-
+function getCI(t){return t==='A'?adminDateCol:todayColIdx;}
 function filterParties(t){
-  const srch  = (document.getElementById('srch'+t)||{value:''}).value.trim().toLowerCase();
-  const route = (document.getElementById('route'+t)||{value:''}).value;
-  const beat  = (document.getElementById('beat'+t)||{value:''}).value;
-  const mem   = memberSel[t]||'ALL';
-  const ov    = ovOnly[t]||false;
-  const mnd   = minDays[t]||0;
-  const field = t==='O'?'office':'salesman';
-  const ci    = getColIdx(t);
-
+  const srch=(document.getElementById('srch'+t)||{value:''}).value.trim().toLowerCase();
+  const route=(document.getElementById('route'+t)||{value:''}).value;
+  const beat=(document.getElementById('beat'+t)||{value:''}).value;
+  const mem=memberSel[t]||'ALL', ov=ovOnly[t]||false, mnd=minDays[t]||0;
+  const field=t==='O'?'office':'salesman';
+  const ci=getCI(t);
   return allParties.filter(p=>{
-    const d = ci>=0 ? (dateData[ci]||{})[p.sr]||{} : {};
-    const ab=d.autoBal||0, hb=d.heroBal||0, ad=d.autoDays||0, hd=d.heroDays||0;
-    if(ab===0&&hb===0) return false;            // skip zero balance
+    const d=ci>=0?(dateData[ci]||{})[p.sr]||{}:{};
+    const ab=d.autoBal||0,hb=d.heroBal||0,ad=d.autoDays||0,hd=d.heroDays||0;
+    if(ab===0&&hb===0) return false;
     if(srch&&!p.name.toLowerCase().includes(srch)) return false;
     if(route&&p.route!==route) return false;
-    if(beat&&p.beat!==beat)   return false;
+    if(beat&&p.beat!==beat) return false;
     if(t!=='A'&&mem!=='ALL'&&p[field]!==mem) return false;
     const maxD=Math.max(ad,hd);
     if(mnd>0&&maxD<mnd) return false;
@@ -876,63 +990,53 @@ function filterParties(t){
   });
 }
 
-/* ═══════ RENDER ═══════ */
+/* ═══ RENDER ═══ */
 function render(t){
-  const parties = filterParties(t);
-  const ci = getColIdx(t);
-  const isAdmin    = t==='A';
-  // Office can write remA+nameA (→ OFFICE sheet)
-  // Salesman can write remH+nameH (→ SALESMAN sheet)
-  // Admin sees both but can write nothing
-  const canWriteA  = t==='O' && ci>=0 && ci===todayColIdx; // office writes AUTO cols
-  const canWriteH  = t==='S' && ci>=0 && ci===todayColIdx; // salesman writes HERO cols
-
+  const parties=filterParties(t);
+  const ci=getCI(t);
+  const isAdmin=t==='A';
+  const canWriteA=t==='O'&&ci>=0&&ci===todayColIdx;
+  const canWriteH=t==='S'&&ci>=0&&ci===todayColIdx;
   let tA=0,tH=0;
-  parties.forEach(p=>{ const d=(dateData[ci]||{})[p.sr]||{}; tA+=d.autoBal||0; tH+=d.heroBal||0; });
-  document.getElementById('cnt'+t).textContent = parties.length;
-  document.getElementById('tA'+t).textContent  = fmtN(tA);
-  document.getElementById('tH'+t).textContent  = fmtN(tH);
-
-  const wrap = document.getElementById('tw'+t);
-  if(!parties.length){ wrap.innerHTML=`<div class="nodata"><span>${ci===-1?'No column for today — click CREATE TODAY\'S COLUMNS above':'No parties match filters'}</span></div>`; return; }
-
-  let h=`<table class="mt"><thead><tr>
-    <th>#</th><th>PARTY NAME</th><th>ROUTE</th><th>BEAT</th><th>MOBILE</th>
-    <th class="h-auto">AUTO BAL</th><th class="h-auto">DAYS</th>
-    <th class="h-sep"></th>
-    <th class="h-hero">HERO BAL</th><th class="h-hero">DAYS</th>
-    <th class="h-sep"></th>
-    <th class="h-write">AUTO REMARK</th><th class="h-write">CALLER (OFFICE)</th>
-    <th class="h-sep"></th>
-    <th class="h-write">HERO REMARK</th><th class="h-write">CALLER (SALESMAN)</th>
-    ${!isAdmin?'<th class="h-write">CALLBACK</th>':''}
+  parties.forEach(p=>{const d=(dateData[ci]||{})[p.sr]||{};tA+=d.autoBal||0;tH+=d.heroBal||0;});
+  document.getElementById('cnt'+t).textContent=parties.length;
+  document.getElementById('tA'+t).textContent=fmtN(tA);
+  document.getElementById('tH'+t).textContent=fmtN(tH);
+  const wrap=document.getElementById('tw'+t);
+  if(!parties.length){wrap.innerHTML=`<div class="nodata"><div class="nodata-icon">📭</div><div class="nodata-txt">${ci===-1?'Create today\'s columns first':'No parties match filters'}</div></div>`;return;}
+  let h=`<table class="dt"><thead><tr>
+    <th>#</th><th>Party Name</th><th>Route</th><th>Beat</th><th>Mobile</th>
+    <th class="th-auto">Auto Bal</th><th class="th-auto">Days</th>
+    <th class="th-sep"></th>
+    <th class="th-hero">Hero Bal</th><th class="th-hero">Days</th>
+    <th class="th-sep"></th>
+    <th class="th-write">Auto Remark</th><th class="th-write">Caller (Office)</th>
+    <th class="th-sep"></th>
+    <th class="th-write">Hero Remark</th><th class="th-write">Caller (Salesman)</th>
+    ${!isAdmin?'<th class="th-write">Callback</th>':''}
   </tr></thead><tbody>`;
-
   parties.forEach((p,i)=>{
-    const d    = (ci>=0?(dateData[ci]||{})[p.sr]:{})||{};
-    const ab=d.autoBal||0, ad=d.autoDays||0, hb=d.heroBal||0, hd=d.heroDays||0;
-    const remA=d.remA||'', nameA=d.nameA||'', remH=d.remH||'', nameH=d.nameH||'';
-    // Both teams see the full caller list — anyone can put their name
-    const optsA = ALL_CALLERS.map(c=>`<option value="${c}"${c===nameA?' selected':''}>${c}</option>`).join('');
-    const optsH = ALL_CALLERS.map(c=>`<option value="${c}"${c===nameH?' selected':''}>${c}</option>`).join('');
-    const aDC=dc(ad), hDC=dc(hd);
-    const aBalH = ab>0?`<span class="c-bal auto">₹${fmtN(ab)}</span>`:`<span class="c-bal zero">—</span>`;
-    const hBalH = hb>0?`<span class="c-bal hero">₹${fmtN(hb)}</span>`:`<span class="c-bal zero">—</span>`;
-    const existCB = callbacks.find(cb=>cb.sr===p.sr&&!cb.dismissed);
-    const cbCell = !isAdmin ? (existCB
-      ? `<td class="c-cb"><div class="cb-active">📅 ${fmtDispISO(existCB.callbackDate)}<button class="cb-dismiss" onclick="dismissCB('${existCB.id}')" title="Mark done">✓</button></div></td>`
-      : `<td class="c-cb"><div class="cb-wrap"><input type="number" class="cb-days-input" min="1" max="90" value="2" id="cbd-${p.sr}"><button class="cb-set-btn" onclick="setCB(${p.sr})">SET</button></div></td>`) : '';
-
+    const d=(ci>=0?(dateData[ci]||{})[p.sr]:{})||{};
+    const ab=d.autoBal||0,ad=d.autoDays||0,hb=d.heroBal||0,hd=d.heroDays||0;
+    const remA=d.remA||'',nameA=d.nameA||'',remH=d.remH||'',nameH=d.nameH||'';
+    const optsA=ALL_CALLERS.map(c=>`<option value="${c}"${c===nameA?' selected':''}>${c}</option>`).join('');
+    const optsH=ALL_CALLERS.map(c=>`<option value="${c}"${c===nameH?' selected':''}>${c}</option>`).join('');
+    const aDC=dc(ad),hDC=dc(hd);
+    const aB=ab>0?`<span class="c-bal auto">₹${fmtN(ab)}</span>`:`<span class="c-bal zero">—</span>`;
+    const hB=hb>0?`<span class="c-bal hero">₹${fmtN(hb)}</span>`:`<span class="c-bal zero">—</span>`;
+    const existCB=callbacks.find(cb=>cb.sr===p.sr&&!cb.dismissed);
+    const cbCell=!isAdmin?(existCB
+      ?`<td class="c-cb"><div class="cb-live">📅 ${fmtDispISO(existCB.callbackDate)}<button class="cb-x" onclick="dismissCB('${existCB.id}')" title="Done">✓</button></div></td>`
+      :`<td class="c-cb"><div class="cbwrap"><input type="number" class="cb-n" min="1" max="90" value="2" id="cbd-${p.sr}"><button class="cb-set" onclick="setCB(${p.sr})">SET</button></div></td>`):'';
     h+=`<tr>
       <td class="c-num">${i+1}</td>
-      <td class="c-name"><div class="c-name-main" title="${esc(p.name)}">${esc(p.name)}</div><div class="c-name-sub">${esc(p.area)} · off:${esc(p.office)} / sm:${esc(p.salesman)}</div></td>
-      <td class="c-route">${esc(p.route)}</td>
-      <td class="c-beat">${esc(p.beat)}</td>
+      <td class="c-name"><div class="c-nm" title="${esc(p.name)}">${esc(p.name)}</div><div class="c-ns">${esc(p.area)} · ${esc(p.office)} / ${esc(p.salesman)}</div></td>
+      <td class="c-route">${esc(p.route)}</td><td class="c-beat">${esc(p.beat)}</td>
       <td class="c-mob">${p.mobile?`<a href="tel:${p.mobile}">${p.mobile}</a>`:'—'}</td>
-      <td style="text-align:right;padding:0 10px">${aBalH}</td>
+      <td style="text-align:right;padding:0 12px">${aB}</td>
       <td class="c-days">${badge(ad,aDC)}</td>
       <td class="sep"></td>
-      <td style="text-align:right;padding:0 10px">${hBalH}</td>
+      <td style="text-align:right;padding:0 12px">${hB}</td>
       <td class="c-days">${badge(hd,hDC)}</td>
       <td class="sep"></td>
       <td class="c-rem"><textarea class="cinput" rows="1" placeholder="Auto remark…" ${canWriteA?'':'readonly'} data-sr="${p.sr}" data-col="remA" data-ci="${ci}" oninput="aRz(this)" onblur="saveCell(this)">${esc(remA)}</textarea></td>
@@ -947,94 +1051,145 @@ function render(t){
   wrap.innerHTML=h;
 }
 
-function dc(d){ if(!d||d===0)return 'nil'; if(d>60)return 'over'; if(d>30)return 'warn'; return 'ok'; }
-function badge(d,cls){ if(!d||d===0)return `<span class="dbg nil">—</span>`; return `<span class="dbg ${cls}">${d}d</span>`; }
-function aRz(el){ el.style.height='auto'; el.style.height=Math.max(el.scrollHeight,42)+'px'; }
+function dc(d){if(!d||d===0)return 'nil';if(d>60)return 'over';if(d>30)return 'warn';return 'ok';}
+function badge(d,cls){if(!d||d===0)return `<span class="dbg nil">—</span>`;return `<span class="dbg ${cls}">${d}d</span>`;}
+function aRz(el){el.style.height='auto';el.style.height=Math.max(el.scrollHeight,44)+'px';}
 
-/* ═══════ SAVE CELL ═══════ */
-// OFFICE sheet owns: remA (+2) and nameA (+3) — office team's remark & caller
-// SALESMAN sheet owns: remH (+6) and nameH (+7) — salesman team's remark & caller
-// col offsets are 0-indexed from group start, sheet col = ci + offset + 1 (1-indexed)
-const COL_OFF = {remA:3, nameA:4, remH:7, nameH:8};
-const COL_SHEET = {remA:'OFFICE', nameA:'OFFICE', remH:'SALESMAN', nameH:'SALESMAN'};
-
+/* ═══ SAVE CELL ═══ */
+const COL_OFF={remA:3,nameA:4,remH:7,nameH:8};
+const COL_SHEET={remA:'OFFICE',nameA:'OFFICE',remH:'SALESMAN',nameH:'SALESMAN'};
 async function saveCell(el){
-  const sr=+el.dataset.sr, col=el.dataset.col, ci=+el.dataset.ci, val=el.value;
+  const sr=+el.dataset.sr,col=el.dataset.col,ci=+el.dataset.ci,val=el.value;
   const sheetRow=rowMap[sr];
-  if(!sheetRow||ci<0){ toast("Can't save — row not found",'err'); return; }
-  const targetSheet = COL_SHEET[col];
-  const sheetCol    = ci + COL_OFF[col] + 1;
-  if(!dateData[ci]) dateData[ci]={};
-  if(!dateData[ci][sr]) dateData[ci][sr]={};
+  if(!sheetRow||ci<0){toast("Can't save",'err');return;}
+  const sheetCol=ci+COL_OFF[col]+1;
+  if(!dateData[ci])dateData[ci]={};
+  if(!dateData[ci][sr])dateData[ci][sr]={};
   dateData[ci][sr][col]=val;
   dot('syncing');
-  try{
-    await writeCell(targetSheet, sheetRow, sheetCol, val);
-    dot('ok'); toast('✓ Saved','ok');
-  }catch(e){ dot('err'); toast('✗ '+e.message,'err'); }
+  try{await writeCell(COL_SHEET[col],sheetRow,sheetCol,val);dot('ok');toast('✓ Saved','ok');}
+  catch(e){dot('err');toast('✗ '+e.message,'err');}
 }
 
-/* ═══════ LEADERBOARD ═══════ */
+/* ═══ DASHBOARD ═══ */
+function renderDash(){
+  if(!allParties.length) return;
+  const ci=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
+  const todayData=ci>=0?dateData[ci]||{}:{};
+  let totalParties=0,totalAuto=0,totalHero=0,overdue=0,called=0,notCalled=0;
+  const offCount={},salCount={},routeMap={};
+  allParties.forEach(p=>{
+    const d=todayData[p.sr]||{};
+    const ab=d.autoBal||0,hb=d.heroBal||0,ad=d.autoDays||0,hd=d.heroDays||0;
+    if(ab===0&&hb===0) return;
+    totalParties++; totalAuto+=ab; totalHero+=hb;
+    const maxD=Math.max(ad,hd);
+    if(maxD>60) overdue++;
+    const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
+    if(hasCalled) called++; else notCalled++;
+    if(d.nameA) offCount[d.nameA]=(offCount[d.nameA]||0)+1;
+    if(d.nameH) salCount[d.nameH]=(salCount[d.nameH]||0)+1;
+    if(!routeMap[p.route]) routeMap[p.route]={auto:0,hero:0,count:0};
+    routeMap[p.route].auto+=ab; routeMap[p.route].hero+=hb; routeMap[p.route].count++;
+  });
+  const cbPending=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate>TODAYISO).length;
+  const cbOverdue=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO).length;
+  document.getElementById('kpiParties').textContent=totalParties;
+  document.getElementById('kpiAutoTotal').textContent='₹'+fmtN(totalAuto);
+  document.getElementById('kpiHeroTotal').textContent='₹'+fmtN(totalHero);
+  document.getElementById('kpiOverdue').textContent=overdue;
+  document.getElementById('kpiCalled').textContent=called;
+  document.getElementById('kpiNotCalled').textContent=notCalled;
+  document.getElementById('kpiCBPending').textContent=cbPending;
+  document.getElementById('kpiCBOverdue').textContent=cbOverdue;
+  const mkLBRows=(obj,cls)=>{
+    const rows=Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+    if(!rows.length) return `<div class="lb-empty">No calls logged yet today.</div>`;
+    const max=rows[0][1];
+    const rank=(i)=>i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+    const rCls=(i)=>i===0?'g':i===1?'s':i===2?'b':'';
+    return rows.map(([n,c],i)=>`<div class="lb-row"><div class="lb-rank ${rCls(i)}">${rank(i)}</div><div class="lb-name">${esc(n)}</div><div class="lb-bar-bg"><div class="lb-bar-fill ${cls}" style="width:${Math.round(c/max*100)}%"></div></div><div class="lb-cnt ${cls}">${c}</div></div>`).join('');
+  };
+  document.getElementById('dashOfficeBoard').innerHTML=mkLBRows(offCount,'blue');
+  document.getElementById('dashSalesBoard').innerHTML=mkLBRows(salCount,'orange');
+  // Overdue top parties
+  const overdueParties=allParties.map(p=>{
+    const d=todayData[p.sr]||{};
+    return {...p,autoBal:d.autoBal||0,heroBal:d.heroBal||0,autoDays:d.autoDays||0,heroDays:d.heroDays||0,maxD:Math.max(d.autoDays||0,d.heroDays||0),total:(d.autoBal||0)+(d.heroBal||0)};
+  }).filter(p=>p.maxD>60&&p.total>0).sort((a,b)=>b.total-a.total).slice(0,15);
+  document.getElementById('dashOverdueTable').innerHTML=overdueParties.length
+    ?`<tr><th>Party</th><th>Route</th><th>Days</th><th style="text-align:right">Auto ₹</th><th style="text-align:right">Hero ₹</th><th style="text-align:right">Total ₹</th></tr>`+
+      overdueParties.map(p=>`<tr><td><b>${esc(p.name)}</b><br><small style="color:var(--dim)">${esc(p.area)}</small></td><td>${esc(p.route)}</td><td><span class="dbg over">${p.maxD}d</span></td><td class="money-cell blue">₹${fmtN(p.autoBal)}</td><td class="money-cell orange">₹${fmtN(p.heroBal)}</td><td class="money-cell red">₹${fmtN(p.total)}</td></tr>`).join('')
+    :`<tr><td class="lb-empty">No overdue parties (60+ days).</td></tr>`;
+  // By route
+  const routeRows=Object.entries(routeMap).sort((a,b)=>(b[1].auto+b[1].hero)-(a[1].auto+a[1].hero));
+  document.getElementById('dashRouteTable').innerHTML=routeRows.length
+    ?`<tr><th>Route</th><th>Parties</th><th style="text-align:right">Auto ₹</th><th style="text-align:right">Hero ₹</th><th style="text-align:right">Total ₹</th></tr>`+
+      routeRows.map(([r,v])=>`<tr><td><b>${esc(r)}</b></td><td>${v.count}</td><td class="money-cell blue">₹${fmtN(v.auto)}</td><td class="money-cell orange">₹${fmtN(v.hero)}</td><td class="money-cell red">₹${fmtN(v.auto+v.hero)}</td></tr>`).join('')
+    :`<tr><td class="lb-empty">No data.</td></tr>`;
+}
+
+/* ═══ LEADERBOARD (admin only) ═══ */
 function renderLB(){
   const fromISO=document.getElementById('lbFrom').value;
   const toISO=document.getElementById('lbTo').value;
   const grid=document.getElementById('lbGrid');
   grid.innerHTML='<div class="nodata"><div class="spin"></div></div>';
-  const offC={}, salC={};
+  const offC={},salC={};
   allDateGroups.forEach(g=>{
     if(g.isoDate<fromISO||g.isoDate>toISO) return;
     Object.values(dateData[g.colIdx]||{}).forEach(d=>{
-      if(d.nameA){offC[d.nameA]=(offC[d.nameA]||0)+1;}
-      if(d.nameH){salC[d.nameH]=(salC[d.nameH]||0)+1;}
+      if(d.nameA)offC[d.nameA]=(offC[d.nameA]||0)+1;
+      if(d.nameH)salC[d.nameH]=(salC[d.nameH]||0)+1;
     });
   });
   const srt=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]);
-  const oR=srt(offC), sR=srt(salC), maxO=oR[0]?oR[0][1]:1, maxS=sR[0]?sR[0][1]:1;
-  const medal=i=>i===0?'gold':i===1?'silver':i===2?'bronze':'';
-  const rank=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+  const oR=srt(offC),sR=srt(salC),maxO=oR[0]?oR[0][1]:1,maxS=sR[0]?sR[0][1]:1;
+  const medal=(i)=>i===0?'g':i===1?'s':i===2?'b':'';
+  const rank=(i)=>i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
   const mkCard=(title,cls,rows,max)=>{
-    if(!rows.length) return `<div class="lb-card"><div class="lb-card-head ${cls}">${title}</div><div class="lb-empty">No calls in this period.</div></div>`;
-    return `<div class="lb-card"><div class="lb-card-head ${cls}">${title}</div>`+
-      rows.map(([n,c],i)=>`<div class="lb-row"><div class="lb-rank ${medal(i)}">${rank(i)}</div><div class="lb-name">${esc(n)}</div><div class="lb-bar-wrap"><div class="lb-bar-bg"><div class="lb-bar-fill ${cls}" style="width:${Math.round(c/max*100)}%"></div></div></div><div class="lb-count ${cls}">${c}</div></div>`).join('')+`</div>`;
+    const body=!rows.length?`<div class="lb-empty">No calls in this period.</div>`:rows.map(([n,c],i)=>`<div class="lb-row"><div class="lb-rank ${medal(i)}">${rank(i)}</div><div class="lb-name">${esc(n)}</div><div class="lb-bar-bg"><div class="lb-bar-fill ${cls}" style="width:${Math.round(c/max*100)}%"></div></div><div class="lb-cnt ${cls}">${c}</div></div>`).join('');
+    return `<div class="dash-card"><div class="dash-card-head"><div class="dash-card-title">${title}</div></div><div class="dash-card-body">${body}</div></div>`;
   };
-  grid.innerHTML=mkCard('🏢 Auto Remarks (Office)','office',oR,maxO)+mkCard('👤 Hero Remarks (Salesman)','salesman',sR,maxS);
+  grid.innerHTML=mkCard('🏢 Office Team (Auto Remarks)','blue',oR,maxO)+mkCard('👤 Salesman Team (Hero Remarks)','orange',sR,maxS);
 }
 
-/* ═══════ CALLBACKS ═══════ */
+/* ═══ CALLBACKS ═══ */
 function setCB(sr){
   const inp=document.getElementById('cbd-'+sr);
   const days=parseInt(inp?inp.value:2)||2;
-  const party=allParties.find(p=>p.sr===sr);
-  if(!party) return;
+  const party=allParties.find(p=>p.sr===sr); if(!party) return;
   const dt=new Date(); dt.setDate(dt.getDate()+days);
-  const ci=todayColIdx;
-  const d=ci>=0?(dateData[ci]||{})[sr]||{}:{};
-  const cb={id:Date.now()+'-'+sr, sr, partyName:party.name,
-    caller:d.nameA||d.nameH||'', remark:d.remA||d.remH||'',
-    callbackDate:isoDate(dt), createdAt:TODAYISO, dismissed:false};
-  callbacks=callbacks.filter(c=>c.sr!==sr);
-  callbacks.push(cb);
+  const ci=todayColIdx; const d=ci>=0?(dateData[ci]||{})[sr]||{}:{};
+  const cb={id:Date.now()+'-'+sr,sr,partyName:party.name,caller:d.nameA||d.nameH||USER.name,remark:d.remA||d.remH||'',callbackDate:isoDate(dt),createdAt:TODAYISO,dismissed:false};
+  callbacks=callbacks.filter(c=>c.sr!==sr); callbacks.push(cb);
   saveCallbacks(); updateCBBadge();
   render('O'); render('S');
-  toast(`📅 Callback set for ${fmtDispISO(cb.callbackDate)}`,'cb');
+  toast(`📅 Callback in ${days} days (${fmtDispISO(cb.callbackDate)})`,'ok');
 }
 function dismissCB(id){
-  const cb=callbacks.find(c=>c.id===id);
-  if(cb) cb.dismissed=true;
-  saveCallbacks(); updateCBBadge();
-  render('O'); render('S'); renderCB();
+  const cb=callbacks.find(c=>c.id===id); if(cb) cb.dismissed=true;
+  saveCallbacks(); updateCBBadge(); render('O'); render('S');
+  if(curPane==='CB') renderCB();
   toast('✓ Callback marked done','ok');
 }
-function saveCallbacks(){ localStorage.setItem('ct_callbacks',JSON.stringify(callbacks)); }
+function saveCallbacks(){localStorage.setItem('ct_callbacks',JSON.stringify(callbacks));}
 function updateCBBadge(){
   const due=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO);
-  const cnt=document.getElementById('cbCount');
-  if(due.length>0){cnt.textContent=due.length;cnt.classList.add('show');}
-  else cnt.classList.remove('show');
+  const el=document.getElementById('navCBBadge');
+  if(el){if(due.length>0){el.textContent=due.length;el.classList.add('show');}else el.classList.remove('show');}
 }
 function checkCallbackNotifs(){
   const due=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO);
-  if(due.length) toast(`📞 ${due.length} callback${due.length>1?'s':''} due today!`,'cb');
+  if(!due.length) return;
+  // Show persistent side notification
+  const stack=document.getElementById('notifStack');
+  // Remove existing cb notif if present
+  document.querySelectorAll('.cb-notif').forEach(el=>el.remove());
+  const notif=document.createElement('div');
+  notif.className='notif cb-notif';
+  notif.innerHTML=`<div class="notif-ico">📞</div><div class="notif-body"><div class="notif-title">${due.length} Callback${due.length>1?'s':''} Due</div><div class="notif-msg">${due.map(cb=>`Call <b>${esc(cb.partyName)}</b>`).slice(0,3).join(', ')}${due.length>3?` +${due.length-3} more`:''}</div></div><button class="notif-close" onclick="this.parentElement.remove()">✕</button>`;
+  stack.appendChild(notif);
 }
 function renderCB(){
   const now=TODAYISO;
@@ -1043,28 +1198,28 @@ function renderCB(){
   const up=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate>now).sort((a,b)=>a.callbackDate.localeCompare(b.callbackDate));
   const mkSec=(title,cls,icon,items)=>{
     if(!items.length) return '';
-    return `<div style="margin-bottom:28px"><div class="cb-sec-title ${cls}">${title} (${items.length})</div>`+
+    return `<div style="margin-bottom:28px"><div class="cb-section-hd ${cls}">${title} (${items.length})</div>`+
       items.map(cb=>{
-        const dA=Math.round((new Date(now)-new Date(cb.callbackDate))/(864e5));
-        const dU=Math.round((new Date(cb.callbackDate)-new Date(now))/(864e5));
-        const dateLbl=cls==='overdue'?(dA===0?'Today':dA===1?'Yesterday':`${dA} days ago`):cls==='today'?'TODAY':(dU===1?'Tomorrow':`In ${dU} days`);
-        return `<div class="cbcard ${cls}">
-          <div class="cbcard-icon">${icon}</div>
-          <div class="cbcard-body">
-            <div class="cbcard-name">${esc(cb.partyName)}</div>
-            <div class="cbcard-who">Caller: <b>${esc(cb.caller||'—')}</b> · Set on: ${fmtDispISO(cb.createdAt)}</div>
-            <div class="cbcard-rem">${esc(cb.remark||'No remark recorded')}</div>
-            <button class="cbcard-done" onclick="dismissCB('${cb.id}')">✓ Mark Done</button>
+        const dA=Math.round((new Date(now)-new Date(cb.callbackDate))/864e5);
+        const dU=Math.round((new Date(cb.callbackDate)-new Date(now))/864e5);
+        const dl=cls==='overdue'?(dA===0?'Today':dA===1?'Yesterday':`${dA}d ago`):cls==='today'?'TODAY':(dU===1?'Tomorrow':`In ${dU}d`);
+        return `<div class="cb-card ${cls}">
+          <div class="cb-card-ico">${icon}</div>
+          <div class="cb-card-body">
+            <div class="cb-card-name">${esc(cb.partyName)}</div>
+            <div class="cb-card-meta">Caller: <b>${esc(cb.caller||'—')}</b> &nbsp;·&nbsp; Set on: ${fmtDispISO(cb.createdAt)}</div>
+            <div class="cb-card-rem">${esc(cb.remark||'No remark recorded')}</div>
+            <button class="cb-done" onclick="dismissCB('${cb.id}')">✓ Mark Done</button>
           </div>
-          <div class="cbcard-date ${cls}">${dateLbl}<br><small style="color:var(--dim);font-size:9px">${fmtDispISO(cb.callbackDate)}</small></div>
+          <div class="cb-card-date"><div class="cb-card-date-main ${cls}">${dl}</div><div class="cb-card-date-sub">${fmtDispISO(cb.callbackDate)}</div></div>
         </div>`;
       }).join('')+'</div>';
   };
-  const html=mkSec('🔴 OVERDUE — Call immediately','overdue','🚨',ov)+mkSec('🟡 DUE TODAY','today','📞',td)+mkSec('🟢 UPCOMING','upcoming','📅',up);
-  document.getElementById('cbSections').innerHTML=html||`<div class="cb-empty-msg">No callbacks scheduled. Use the SET button on any party row to schedule a follow-up.</div>`;
+  const html=mkSec('🔴 Overdue — Call Immediately','overdue','🚨',ov)+mkSec('🟡 Due Today','today','📞',td)+mkSec('🟢 Upcoming','upcoming','📅',up);
+  document.getElementById('cbSections').innerHTML=html||`<div class="cb-empty">No callbacks scheduled. Use the SET button on any party row.</div>`;
 }
 
-/* ═══════ MARG PARSER ═══════ */
+/* ═══ MARG PARSER ═══ */
 function parseMarg(raw){
   const txt=raw.replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
   const chunks=txt.split(/(?<=\d)(?=[A-Z])/).map(s=>s.trim()).filter(Boolean);
@@ -1073,8 +1228,8 @@ function parseMarg(raw){
     const m=chunk.match(/^(.*?)(\d+)$/s); if(!m) continue;
     let name=m[1].replace(/\s+/g,' ').trim(); const ns=m[2]; if(!name) continue;
     let amount='',days='',flag=''; const n=ns.length;
-    if(n<=3){ const dv=parseInt(ns); if(dv>0&&dv<=365){days=ns;amount='0';}else{days=ns.slice(-2)||'0';amount=ns.slice(0,-2)||'0';flag='⚠';} }
-    else{ let found=false; for(const dl of[3,2,1]){ if(n<=dl)continue; const dc2=parseInt(ns.slice(-dl)),ac=ns.slice(0,n-dl); if(dc2>0&&dc2<=999&&(ac==='0'||ac===''||!ac.startsWith('0'))){days=String(dc2);amount=ac||'0';found=true;break;} } if(!found){days=ns.slice(-2);amount=ns.slice(0,-2)||'0';flag='⚠';} }
+    if(n<=3){const dv=parseInt(ns);if(dv>0&&dv<=365){days=ns;amount='0';}else{days=ns.slice(-2)||'0';amount=ns.slice(0,-2)||'0';flag='⚠';}}
+    else{let found=false;for(const dl of[3,2,1]){if(n<=dl)continue;const dc2=parseInt(ns.slice(-dl)),ac=ns.slice(0,n-dl);if(dc2>0&&dc2<=999&&(ac==='0'||ac===''||!ac.startsWith('0'))){days=String(dc2);amount=ac||'0';found=true;break;}}if(!found){days=ns.slice(-2);amount=ns.slice(0,-2)||'0';flag='⚠';}}
     out.push({name,amount,days,flag});
   }
   return out;
@@ -1088,18 +1243,18 @@ function readF(file,t){const r=new FileReader();r.onload=ev=>{document.getElemen
 function parseP(t){
   const raw=document.getElementById('paste'+cap(t)).value.trim();
   if(!raw){toast('Nothing to parse','warn');return;}
-  const rows=parseMarg(raw); parsedDump[t]=rows;
+  const rows=parseMarg(raw);parsedDump[t]=rows;
   const warns=rows.filter(r=>r.flag).length;
-  const cnt=document.getElementById('cnt'+cap(t)); cnt.style.display='flex';
-  cnt.innerHTML=`Parsed: <span>${rows.length}</span> records &nbsp;|&nbsp; <span class="pw">⚠ ${warns} flagged</span>`;
+  const cnt=document.getElementById('cnt'+cap(t));cnt.style.display='flex';
+  cnt.innerHTML=`Parsed: <strong>${rows.length}</strong> records &nbsp;|&nbsp; <span class="pw">⚠ ${warns} flagged</span>`;
   const wrap=document.getElementById('prev'+cap(t));
-  if(!rows.length){wrap.innerHTML=`<div style="padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--dim)">No records found.</div>`;document.getElementById('up'+cap(t)).disabled=true;return;}
-  wrap.innerHTML=`<table class="ptbl"><thead><tr><th>#</th><th>PARTY NAME</th><th>AMOUNT</th><th>DAYS</th><th></th></tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${r.flag?'pw':''}"><td class="p-n">${i+1}</td><td class="p-nm" title="${esc(r.name)}">${esc(r.name)}</td><td class="p-am">₹${fmtN(r.amount)}</td><td class="p-dy">${r.days}d</td><td class="p-fl">${r.flag||'✓'}</td></tr>`).join('')+`</tbody></table>`;
+  if(!rows.length){wrap.innerHTML=`<div style="padding:12px;font-size:12px;color:var(--dim)">No records found.</div>`;document.getElementById('up'+cap(t)).disabled=true;return;}
+  wrap.innerHTML=`<table class="ptbl"><thead><tr><th>#</th><th>Party Name</th><th>Amount</th><th>Days</th><th></th></tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${r.flag?'pw':''}"><td class="p-n">${i+1}</td><td class="p-nm" title="${esc(r.name)}">${esc(r.name)}</td><td class="p-am">₹${fmtN(r.amount)}</td><td class="p-dy">${r.days}d</td><td class="p-fl">${r.flag||'✓'}</td></tr>`).join('')+`</tbody></table>`;
   document.getElementById('up'+cap(t)).disabled=false;
   toast(`✓ ${rows.length} records parsed`,'ok');
 }
 async function uploadDump(t){
-  const rows=parsedDump[t]; if(!rows||!rows.length){toast('Nothing to upload','warn');return;}
+  const rows=parsedDump[t];if(!rows||!rows.length){toast('Nothing to upload','warn');return;}
   const sn=DUMP_SHEETS[t];
   const btn=document.getElementById('up'+cap(t)),prog=document.getElementById('prog'+cap(t)),bar=document.getElementById('bar'+cap(t)),log=document.getElementById('log'+cap(t));
   btn.disabled=true;prog.classList.add('on');bar.style.width='5%';log.innerHTML='';
@@ -1109,34 +1264,34 @@ async function uploadDump(t){
     lg('→ Writing header…');bar.style.width='15%';
     await batchWriteMulti([{range:`${sn}!A1:C1`,values:[['PARTY NAME','AMOUNT','DAYS']]}]);
     lg('→ Clearing old data…');bar.style.width='28%';
-    await clearRange(sn,'A2:C9999'); lg('<span class="lg-ok">✓ Cleared</span>');
-    bar.style.width='40%'; lg(`→ Writing ${rows.length} rows to ${sn.trim()}…`);
+    await clearRange(sn,'A2:C9999');lg('<span class="ok">✓ Cleared</span>');
+    bar.style.width='40%';lg(`→ Writing ${rows.length} rows…`);
     const CHUNK=500;
     for(let i=0;i<rows.length;i+=CHUNK){
       const sl=rows.slice(i,i+CHUNK);
       await batchWriteMulti([{range:`${sn}!A${i+2}:C${i+1+sl.length}`,values:sl.map(r=>[r.name,r.amount,r.days])}]);
       bar.style.width=Math.round(40+((i+sl.length)/rows.length)*55)+'%';
     }
-    bar.style.width='100%'; lg(`<span class="lg-ok">✓ ${rows.length} records → ${sn.trim()}</span>`);
-    toast(`✓ ${rows.length} rows pushed`,'ok'); dot('ok');
+    bar.style.width='100%';lg(`<span class="ok">✓ ${rows.length} records pushed</span>`);
+    toast(`✓ ${rows.length} rows → ${sn.trim()}`,'ok');dot('ok');
     setTimeout(()=>loadAll(),800);
-  }catch(e){lg(`<span class="lg-err">✗ ${e.message}</span>`);toast('✗ '+e.message,'err');dot('err');}
+  }catch(e){lg(`<span class="err">✗ ${e.message}</span>`);toast('✗ '+e.message,'err');dot('err');}
   finally{btn.disabled=false;setTimeout(()=>{prog.classList.remove('on');bar.style.width='0';},2000);}
 }
 
-/* ═══════ UTILS ═══════ */
+/* ═══ UTILS ═══ */
 function isoDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function fmtDisp(d){return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
+function fmtDisp(d){const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;}
 function fmtDispISO(iso){if(!iso)return '';const[y,m,dd]=iso.split('-');return `${dd}/${m}/${y}`;}
 function fmtN(n){return Number(n).toLocaleString('en-IN');}
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function dot(s){document.getElementById('syncDot').className=s;}
-function setLoad(t){const w=document.getElementById('tw'+t);if(w)w.innerHTML=`<div class="nodata"><div class="spin"></div><span style="margin-top:8px">Loading…</span></div>`;}
-function setErr(t,m){const w=document.getElementById('tw'+t);if(w)w.innerHTML=`<div class="nodata"><span style="color:var(--red)">✗ ${esc(m)}</span></div>`;}
+function dot(s){document.getElementById('syncDot').className='sync-dot '+s;}
+function setLoad(t){const w=document.getElementById('tw'+t);if(w)w.innerHTML=`<div class="nodata"><div class="spin"></div><div class="nodata-txt" style="margin-top:8px">Loading…</div></div>`;}
+function setErr(t,m){const w=document.getElementById('tw'+t);if(w)w.innerHTML=`<div class="nodata"><div class="nodata-icon">⚠️</div><div class="nodata-txt" style="color:var(--red)">${esc(m)}</div></div>`;}
 function toast(msg,type='ok'){
   const a=document.getElementById('toasts'),el=document.createElement('div');
   el.className='toast '+type;el.textContent=msg;a.appendChild(el);
-  setTimeout(()=>el.remove(),4000);
+  setTimeout(()=>el.remove(),3500);
 }
 </script>
 </body>
