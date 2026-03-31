@@ -399,14 +399,14 @@ tr.pw td{background:rgba(229,122,26,.04)}
 <div id="cfgModal">
   <div class="cfg-card">
     <div class="cfg-title">Google Sheet Connection</div>
-    <div class="cfg-sub">Saved permanently in your browser — enter once, never again.<br>Sheet must be shared as <b>Anyone with link → Editor</b>.</div>
+    <div class="cfg-sub">Saved permanently in your browser — enter once, never again.<br>Share your sheet with the service account email as <b>Editor</b>.</div>
     <div class="cfg-label">Sheet ID</div>
     <input class="cfg-input" id="cfgSheetId" placeholder="From URL: /d/xxxxxxx/edit">
-    <div class="cfg-label">API Key</div>
-    <input class="cfg-input" id="cfgApiKey" placeholder="AIzaSy…">
+    <div class="cfg-label">Service Account JSON</div>
+    <textarea class="cfg-input" id="cfgSAJson" rows="6" placeholder="Paste the entire contents of your downloaded .json key file here…" style="resize:vertical;font-size:11px;line-height:1.5;font-family:'IBM Plex Mono',monospace"></textarea>
     <div class="cfg-hint">
-      Sheet ID is the long string between <code>/d/</code> and <code>/edit</code> in your Google Sheets URL.<br>
-      API Key → console.cloud.google.com → APIs & Services → Credentials → Create API Key → also enable Google Sheets API.
+      Sheet ID → long string between <code>/d/</code> and <code>/edit</code> in your Sheets URL.<br>
+      JSON → Google Cloud Console → Credentials → Service Account → Keys → Add Key → JSON → paste file contents above.
     </div>
     <div class="cfg-err" id="cfgErr"></div>
     <div class="cfg-ok" id="cfgOk"></div>
@@ -632,8 +632,9 @@ const NAV_ADMIN = [
 ];
 
 /* ═══ STATE ═══ */
-let CFG = {sheetId:'', apiKey:''};
-let USER = {name:'', role:''};  // role: OFFICE | SALESMAN | ADMIN
+let CFG = {sheetId:'', sa:null}; // sa = parsed service account JSON
+let SA_TOKEN = null;   // {token, expires}
+let USER = {name:'', role:''};
 let allParties=[], autoMap={}, heroMap={};
 let allDateGroups=[], dateData={}, rowMap={};
 let totalPartyRows=0, nextFreeCol=8, todayColIdx=-1, adminDateCol=-1;
@@ -649,16 +650,16 @@ const TODAY=new Date(), TODAYISO=isoDate(TODAY), TODAYSTR=fmtDisp(TODAY);
 /* ═══ BOOT ═══ */
 (function(){
   CFG.sheetId=localStorage.getItem('ct_sid')||'';
-  CFG.apiKey=localStorage.getItem('ct_key')||'';
+  const saRaw=localStorage.getItem('ct_sa')||'';
+  try{ if(saRaw) CFG.sa=JSON.parse(saRaw); }catch(e){}
   document.getElementById('cfgSheetId').value=CFG.sheetId;
-  document.getElementById('cfgApiKey').value=CFG.apiKey;
+  if(CFG.sa) document.getElementById('cfgSAJson').value=saRaw;
   callbacks=JSON.parse(localStorage.getItem('ct_callbacks')||'[]');
   const lbTo=new Date(),lbFrom=new Date(); lbFrom.setDate(lbFrom.getDate()-30);
   document.getElementById('lbFrom').value=isoDate(lbFrom);
   document.getElementById('lbTo').value=isoDate(lbTo);
-  // Auto-login from session
   const sess=JSON.parse(sessionStorage.getItem('ct_user')||'null');
-  if(sess && CFG.sheetId && CFG.apiKey){ USER=sess; startApp(); }
+  if(sess && CFG.sheetId && CFG.sa){ USER=sess; startApp(); }
 })();
 
 /* ═══ LOGIN ═══ */
@@ -674,7 +675,7 @@ async function doLogin(){
   err.textContent='';
   if(!name){ err.textContent='Enter your name.'; return; }
   if(!selectedRole){ err.textContent='Select a role.'; return; }
-  if(!CFG.sheetId||!CFG.apiKey){ err.textContent='Configure Google Sheet connection first (link below).'; return; }
+  if(!CFG.sheetId||!CFG.sa){ err.textContent='Configure Google Sheet connection first (link below).'; return; }
   if(selectedRole==='ADMIN'){
     const pass=prompt('Admin password:');
     if(pass!==ADMIN_PASS){ err.textContent='Incorrect admin password.'; return; }
@@ -745,42 +746,109 @@ function showCfgModal(){document.getElementById('cfgModal').classList.add('show'
 function hideCfgModal(){document.getElementById('cfgModal').classList.remove('show');}
 async function saveCfg(){
   const sid=document.getElementById('cfgSheetId').value.trim();
-  const key=document.getElementById('cfgApiKey').value.trim();
+  const saRaw=document.getElementById('cfgSAJson').value.trim();
   const err=document.getElementById('cfgErr'), ok=document.getElementById('cfgOk');
   err.textContent=''; ok.textContent='';
-  if(!sid||!key){err.textContent='Both fields required.';return;}
+  if(!sid||!saRaw){err.textContent='Both fields required.';return;}
+  let sa;
+  try{ sa=JSON.parse(saRaw); }catch(e){err.textContent='Invalid JSON — paste the full .json file contents.';return;}
+  if(!sa.client_email||!sa.private_key){err.textContent='JSON missing client_email or private_key.';return;}
   err.textContent='Testing connection…';
   try{
-    const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}?key=${key}&fields=spreadsheetId`);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    CFG={sheetId:sid,apiKey:key};
-    localStorage.setItem('ct_sid',sid); localStorage.setItem('ct_key',key);
+    CFG={sheetId:sid,sa};
+    SA_TOKEN=null; // force fresh token
+    const token=await getAccessToken();
+    const r=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sid}?fields=spreadsheetId`,
+      {headers:{Authorization:'Bearer '+token}});
+    if(!r.ok) throw new Error('HTTP '+r.status+' — check Sheet ID and that sheet is shared with '+sa.client_email);
+    localStorage.setItem('ct_sid',sid);
+    localStorage.setItem('ct_sa',saRaw);
     err.textContent='';
-    ok.textContent='✓ Connected and saved permanently.';
-  }catch(e){err.textContent='✗ '+e.message;}
+    ok.textContent='✓ Connected! Saved permanently — never need to enter again.';
+  }catch(e){err.textContent='✗ '+e.message; CFG={sheetId:'',sa:null}; SA_TOKEN=null;}
 }
 
-/* ═══ SHEETS API ═══ */
+/* ═══ SERVICE ACCOUNT JWT AUTH ═══ */
+async function getAccessToken(){
+  // Return cached token if still valid (expires with 60s buffer)
+  if(SA_TOKEN && SA_TOKEN.expires > Date.now()+60000) return SA_TOKEN.token;
+
+  const sa=CFG.sa;
+  if(!sa) throw new Error('No service account configured');
+
+  // Build JWT
+  const now=Math.floor(Date.now()/1000);
+  const header=b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
+  const claim=b64url(JSON.stringify({
+    iss:sa.client_email,
+    scope:'https://www.googleapis.com/auth/spreadsheets',
+    aud:'https://oauth2.googleapis.com/token',
+    iat:now, exp:now+3600
+  }));
+  const sigInput=header+'.'+claim;
+  const signature=await rsaSign(sigInput, sa.private_key);
+  const jwt=sigInput+'.'+signature;
+
+  // Exchange JWT for access token
+  const resp=await fetch('https://oauth2.googleapis.com/token',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
+  });
+  if(!resp.ok){const j=await resp.json().catch(()=>({}));throw new Error(j.error_description||j.error||'Token error');}
+  const j=await resp.json();
+  SA_TOKEN={token:j.access_token, expires:Date.now()+(j.expires_in-60)*1000};
+  return SA_TOKEN.token;
+}
+
+function b64url(str){
+  return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+async function rsaSign(data, pemKey){
+  // Parse PEM private key
+  const b64=pemKey.replace(/-----[^-]+-----/g,'').replace(/\s/g,'');
+  const binary=atob(b64);
+  const buf=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) buf[i]=binary.charCodeAt(i);
+
+  const key=await crypto.subtle.importKey('pkcs8',buf.buffer,
+    {name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
+
+  const encoder=new TextEncoder();
+  const sig=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,encoder.encode(data));
+  const sigArr=new Uint8Array(sig);
+  let sigStr='';
+  for(let i=0;i<sigArr.length;i++) sigStr+=String.fromCharCode(sigArr[i]);
+  return btoa(sigStr).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+/* ═══ SHEETS API (all calls use Bearer token now) ═══ */
+async function authHeader(){
+  const token=await getAccessToken();
+  return {Authorization:'Bearer '+token,'Content-Type':'application/json'};
+}
+
 async function fetchSheet(name){
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(name+'!A1:ZZ')}?key=${CFG.apiKey}&valueRenderOption=FORMATTED_VALUE`;
-  const r=await fetch(url);
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(name+'!A1:ZZ')}?valueRenderOption=FORMATTED_VALUE`;
+  const r=await fetch(url,{headers:await authHeader()});
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
   return (await r.json()).values||[];
 }
 async function writeCell(sheet,row1,col1,value){
   const range=`${sheet}!${colL(col1)}${row1}`;
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED&key=${CFG.apiKey}`;
-  const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({range,majorDimension:'ROWS',values:[[value]]})});
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
+  const r=await fetch(url,{method:'PUT',headers:await authHeader(),body:JSON.stringify({range,majorDimension:'ROWS',values:[[value]]})});
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
 }
 async function batchWriteMulti(data){
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values:batchUpdate?key=${CFG.apiKey}`;
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({valueInputOption:'USER_ENTERED',data:data.map(d=>({range:d.range,majorDimension:'ROWS',values:d.values}))})});
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values:batchUpdate`;
+  const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({valueInputOption:'USER_ENTERED',data:data.map(d=>({range:d.range,majorDimension:'ROWS',values:d.values}))})});
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
 }
 async function clearRange(sheet,rng){
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(sheet+'!'+rng)}:clear?key=${CFG.apiKey}`;
-  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(sheet+'!'+rng)}:clear`;
+  const r=await fetch(url,{method:'POST',headers:await authHeader(),body:'{}'});
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
 }
 function colL(n){let s='';while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);}return s;}
