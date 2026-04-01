@@ -1063,8 +1063,8 @@ function render(t){
   const parties=filterParties(t);
   const ci=getCI(t);
   const isAdmin=t==='A';
-  const canWriteA=t==='O'&&ci>=0&&ci===todayColIdx;
-  const canWriteH=t==='S'&&ci>=0&&ci===todayColIdx;
+  const canWriteA=(t==='O'||t==='S')&&ci>=0&&ci===todayColIdx;
+  const canWriteH=(t==='O'||t==='S')&&ci>=0&&ci===todayColIdx;
   let tA=0,tH=0;
   parties.forEach(p=>{const d=(dateData[ci]||{})[p.sr]||{};tA+=d.autoBal||0;tH+=d.heroBal||0;});
   document.getElementById('cnt'+t).textContent=parties.length;
