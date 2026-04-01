@@ -1135,7 +1135,7 @@ async function saveCell(el){
   if(!dateData[ci][sr])dateData[ci][sr]={};
   dateData[ci][sr][col]=val;
   dot('syncing');
-  try{await writeCell(COL_SHEET[col],sheetRow,sheetCol,val);dot('ok');toast('✓ Saved','ok');}
+  try{await writeCell(COL_SHEET[col],sheetRow,sheetCol,val);dot('ok');}
   catch(e){dot('err');toast('✗ '+e.message,'err');}
 }
 
