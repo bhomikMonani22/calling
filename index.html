@@ -29,8 +29,9 @@
   --blue-dim:rgba(26,106,229,.10);
   --orange:#E57A1A;
   --orange-dim:rgba(229,122,26,.10);
-  --TOP:60px;
-  --SIDE:220px;
+  --TOP:56px;
+  --SIDE:60px;
+  --SIDE-OPEN:220px;
   --radius:10px;
   --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
   --shadow-md:0 4px 12px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
@@ -85,37 +86,54 @@ body{color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px}
 #shell.show{display:flex}
 
 /* ── SIDEBAR ── */
-#sidebar{width:var(--SIDE);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:100}
-.sb-logo{padding:18px 20px 14px;border-bottom:1px solid var(--border)}
-.sb-logo-mark{width:36px;height:36px;background:var(--y);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--ink);margin-bottom:8px}
-.sb-logo-name{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.3px;line-height:1.2}
-.sb-logo-sub{font-size:11px;color:var(--mid);font-weight:400}
-.sb-date{padding:10px 20px;background:var(--y-dim);border-bottom:1px solid var(--border)}
-.sb-date-label{font-size:10px;font-weight:600;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
-.sb-date-val{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
-.sb-nav{flex:1;overflow-y:auto;padding:12px 10px}
-.sb-section{font-size:10px;font-weight:700;color:var(--dim);letter-spacing:.8px;text-transform:uppercase;padding:8px 10px 4px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--mid);position:relative}
+#sidebar{width:var(--SIDE);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;z-index:200;transition:width .22s cubic-bezier(.4,0,.2,1);overflow:hidden;position:relative}
+#sidebar.open{width:var(--SIDE-OPEN)}
+/* Toggle */
+#sbToggle{width:100%;height:56px;border:none;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;gap:0;cursor:pointer;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:-.2px;overflow:hidden;transition:background .15s;padding:0 18px}
+#sbToggle:hover{background:#222}
+.sb-t-mark{width:28px;height:28px;background:var(--y);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--ink);flex-shrink:0}
+.sb-t-name{margin-left:10px;white-space:nowrap;overflow:hidden;opacity:0;transition:opacity .15s;font-size:13px;font-weight:700;color:#fff}
+#sidebar.open .sb-t-name{opacity:1}
+.sb-t-arrow{margin-left:auto;font-size:12px;color:rgba(255,255,255,.4);transition:transform .22s;flex-shrink:0;opacity:0}
+#sidebar.open .sb-t-arrow{opacity:1;transform:rotate(180deg)}
+/* Date */
+.sb-date{padding:8px 0;background:var(--y-dim);border-bottom:1px solid var(--border);text-align:center;flex-shrink:0;overflow:hidden}
+.sb-date-label{font-size:9px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;display:block}
+.sb-date-val{font-size:10px;font-weight:700;color:var(--ink);white-space:nowrap;display:block;padding:0 4px}
+/* Nav */
+.sb-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:6px 5px}
+.sb-nav::-webkit-scrollbar{width:2px}.sb-nav::-webkit-scrollbar-thumb{background:var(--border2)}
+.nav-item{display:flex;align-items:center;gap:0;padding:10px 0;border-radius:8px;cursor:pointer;transition:all .15s;border:none;background:none;width:100%;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--mid);white-space:nowrap;overflow:hidden;justify-content:center}
+#sidebar.open .nav-item{justify-content:flex-start;padding:10px 10px}
 .nav-item:hover{background:var(--bg3);color:var(--ink)}
 .nav-item.active{background:var(--y);color:var(--ink);font-weight:700}
-.nav-item .ni-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
-.nav-item .ni-badge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700;display:none}
+.nav-item .ni-icon{font-size:20px;flex-shrink:0;width:24px;text-align:center}
+#sidebar.open .nav-item .ni-icon{margin-right:8px}
+.nav-item .ni-label{opacity:0;max-width:0;transition:opacity .15s;overflow:hidden;flex:1}
+#sidebar.open .nav-item .ni-label{opacity:1;max-width:200px}
+.nav-item .ni-badge{background:var(--red);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700;display:none;flex-shrink:0;margin-left:auto}
 .nav-item .ni-badge.show{display:inline-block}
-.sb-user{padding:14px 20px;border-top:1px solid var(--border)}
-.sb-user-role{font-size:10px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:3px}
-.sb-user-name{font-size:14px;font-weight:700;color:var(--ink)}
-.sb-logout{margin-top:8px;width:100%;padding:7px 0;border-radius:6px;border:1.5px solid var(--border);background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s}
-.sb-logout:hover{border-color:var(--red);color:var(--red)}
+/* User */
+.sb-user{padding:6px 5px;border-top:1px solid var(--border);flex-shrink:0;overflow:hidden}
+.sb-user-inner{display:flex;align-items:center;gap:0;padding:8px 0;border-radius:8px;background:var(--bg3);justify-content:center;overflow:hidden}
+#sidebar.open .sb-user-inner{padding:8px 10px;justify-content:flex-start;gap:8px}
+.sb-user-avatar{width:30px;height:30px;border-radius:6px;background:var(--y);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--ink);flex-shrink:0}
+.sb-user-info{opacity:0;max-width:0;transition:opacity .15s;overflow:hidden;min-width:0}
+#sidebar.open .sb-user-info{opacity:1;max-width:160px}
+.sb-user-role{font-size:9px;font-weight:700;color:var(--mid);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+.sb-user-name{font-size:11px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-logout-btn{margin-top:4px;width:100%;padding:7px 0;border-radius:6px;border:1.5px solid var(--border);background:transparent;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .15s;white-space:nowrap;overflow:hidden}
+.sb-logout-btn:hover{border-color:var(--red);color:var(--red)}
 
 /* ── MAIN AREA ── */
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
 
 /* TOPBAR */
-#topbar{height:var(--TOP);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
-.tb-title{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
-.tb-sub{font-size:12px;color:var(--mid)}
-.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
-.tb-btn{height:34px;padding:0 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
+#topbar{height:var(--TOP);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.tb-title{font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.3px}
+.tb-sub{font-size:11px;color:var(--mid)}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.tb-btn{height:34px;padding:0 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg2);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .tb-btn:hover{border-color:var(--border2);color:var(--ink)}
 .tb-btn.primary{background:var(--y);border-color:var(--y);color:var(--ink)}.tb-btn.primary:hover{background:var(--y-deep);border-color:var(--y-deep)}
 .sync-dot{width:8px;height:8px;border-radius:50%;background:var(--dim);transition:background .4s;flex-shrink:0}
@@ -176,8 +194,14 @@ body{color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px}
 .dpill.today.sel{border-color:var(--y);color:var(--ink);background:var(--y)}
 
 /* TABLE */
-.twrap{flex:1;overflow:auto}
-.twrap::-webkit-scrollbar{width:6px;height:6px}.twrap::-webkit-scrollbar-track{background:var(--bg)}.twrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.twrap{flex:1;overflow:auto;position:relative}
+/* Scroll hint bar */
+.scroll-hint{background:var(--y-dim);border-top:1px solid var(--border);padding:5px 16px;font-size:11px;font-weight:600;color:var(--mid);text-align:center;flex-shrink:0;letter-spacing:.2px}
+.twrap::-webkit-scrollbar{width:10px;height:14px}
+.twrap::-webkit-scrollbar-track{background:var(--bg3);border-radius:4px}
+.twrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:6px;border:2px solid var(--bg3)}
+.twrap::-webkit-scrollbar-thumb:hover{background:var(--mid)}
+.twrap::-webkit-scrollbar-corner{background:var(--bg3)}
 table.dt{border-collapse:collapse;font-size:12px;width:100%;min-width:1000px}
 table.dt thead th{position:sticky;top:0;z-index:50;background:var(--bg3);font-size:10px;font-weight:700;color:var(--mid);padding:9px 12px;text-align:left;border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;letter-spacing:.5px;text-transform:uppercase}
 table.dt thead th.th-auto{color:var(--blue)}
@@ -266,6 +290,60 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .money-cell{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;text-align:right}
 .money-cell.red{color:var(--red)}.money-cell.blue{color:var(--blue)}.money-cell.orange{color:var(--orange)}
 .dash-card-full{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px}
+
+/* STAFF SUMMARY PANE */
+#pSumO,#pSumS{overflow-y:auto}
+.sum-inner{padding:24px 28px;max-width:900px}
+.sum-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.sum-sub{font-size:13px;color:var(--mid);margin-bottom:22px}
+.sum-kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+@media(max-width:700px){.sum-kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.sum-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.sum-kpi-label{font-size:11px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.sum-kpi-val{font-size:30px;font-weight:800;color:var(--ink);letter-spacing:-.5px;line-height:1}
+.sum-kpi-val.red{color:var(--red)}.sum-kpi-val.orange{color:var(--orange)}.sum-kpi-val.green{color:var(--green)}.sum-kpi-val.blue{color:var(--blue)}
+.sum-kpi-meta{font-size:11px;color:var(--dim);margin-top:5px;font-weight:500}
+.sum-section-title{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mid);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.sum-section-title.red{color:var(--red)}.sum-section-title.orange{color:var(--orange)}
+.sum-party-list{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:22px;box-shadow:var(--shadow)}
+.sum-party-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);gap:12px}
+.sum-party-row:last-child{border-bottom:none}
+.sum-party-row:hover{background:var(--bg3)}
+.sum-party-name{flex:1;font-size:13px;font-weight:600;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sum-party-sub{font-size:10px;color:var(--dim);font-weight:500;margin-top:2px;white-space:nowrap}
+.sum-party-bal{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;flex-shrink:0}
+.sum-party-bal.auto{color:var(--blue)}.sum-party-bal.hero{color:var(--orange)}.sum-party-bal.total{color:var(--ink)}
+.sum-empty{font-size:13px;color:var(--dim);padding:20px 0;text-align:center}
+
+/* ADMIN PARTY HISTORY PANE */
+#pPH{overflow-y:auto}
+.ph-inner{padding:24px 28px;max-width:900px}
+.ph-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.ph-sub{font-size:13px;color:var(--mid);margin-bottom:22px}
+.ph-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:22px}
+.ph-controls label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+.ph-party-sel{flex:1;min-width:220px;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg)}
+.ph-party-sel:focus{border-color:var(--y)}
+.ph-srch{flex:1;min-width:220px;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg)}
+.ph-srch:focus{border-color:var(--y)}.ph-srch::placeholder{color:var(--dim)}
+.ph-result{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+.ph-result-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.ph-result-name{font-size:16px;font-weight:800;color:var(--ink)}
+.ph-result-meta{font-size:11px;color:var(--dim);font-weight:500}
+.ph-timeline{width:100%;border-collapse:collapse}
+.ph-timeline th{background:var(--bg3);font-size:10px;font-weight:700;color:var(--mid);padding:9px 16px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.5px;text-transform:uppercase;position:sticky;top:0}
+.ph-timeline td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+.ph-timeline tr:last-child td{border-bottom:none}
+.ph-timeline tr:hover td{background:var(--bg3)}
+.ph-timeline tr.today-row td{background:var(--y-dim)}
+.ph-timeline tr.today-row td:first-child{font-weight:700;color:var(--ink)}
+.ph-bal{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600}
+.ph-bal.auto{color:var(--blue)}.ph-bal.hero{color:var(--orange)}.ph-bal.zero{color:var(--dim);font-weight:400}
+.ph-remark{font-size:12px;color:var(--mid);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph-empty{padding:40px;text-align:center;font-size:13px;color:var(--dim)}
+.ph-no-party{padding:60px;text-align:center}
+.ph-no-party-icon{font-size:40px;margin-bottom:10px;opacity:.3}
+.ph-no-party-txt{font-size:14px;color:var(--dim);font-weight:500}
 
 /* LEADERBOARD (admin only) */
 #pLB{overflow-y:auto}
@@ -367,6 +445,7 @@ tr.pw td{background:rgba(229,122,26,.04)}
 .toast.ok{background:var(--green)}.toast.warn{background:var(--orange)}.toast.err{background:var(--red)}
 @keyframes tin{from{transform:translateX(12px);opacity:0}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -421,20 +500,29 @@ tr.pw td{background:rgba(229,122,26,.04)}
 <div id="shell">
   <!-- SIDEBAR -->
   <div id="sidebar">
-    <div class="sb-logo">
-      <div class="sb-logo-mark">Y</div>
-      <div class="sb-logo-name">CallTracker</div>
-      <div class="sb-logo-sub">Yantrayug Outstanding</div>
-    </div>
+    <!-- Toggle button — click to expand/collapse -->
+    <button id="sbToggle" onclick="toggleSidebar()">
+      <div class="sb-t-mark">Y</div>
+      <span class="sb-t-name">CallTracker</span>
+      <span class="sb-t-arrow">▾</span>
+    </button>
+    <!-- Date strip -->
     <div class="sb-date">
-      <div class="sb-date-label">Today</div>
-      <div class="sb-date-val" id="sbDate">—</div>
+      <span class="sb-date-label">Today</span>
+      <span class="sb-date-val" id="sbDate">—</span>
     </div>
+    <!-- Nav items -->
     <div class="sb-nav" id="sbNav"></div>
+    <!-- User -->
     <div class="sb-user">
-      <div class="sb-user-role" id="sbRole">—</div>
-      <div class="sb-user-name" id="sbName">—</div>
-      <button class="sb-logout" onclick="logout()">Sign Out</button>
+      <div class="sb-user-inner">
+        <div class="sb-user-avatar" id="sbAvatar">?</div>
+        <div class="sb-user-info">
+          <div class="sb-user-role" id="sbRole">—</div>
+          <div class="sb-user-name" id="sbName">—</div>
+        </div>
+      </div>
+      <button class="sb-logout-btn" onclick="logout()">↩ Sign Out</button>
     </div>
   </div>
 
@@ -469,6 +557,7 @@ tr.pw td{background:rgba(229,122,26,.04)}
         </div>
         <div class="mbar" id="mbarO"><span class="mbar-lbl">Office person:</span></div>
         <div class="twrap" id="twO"><div class="nodata"><div class="spin"></div></div></div>
+        <div class="scroll-hint">← Scroll right to see remarks and caller columns →</div>
       </div>
 
       <!-- SALESMAN PANE -->
@@ -484,6 +573,51 @@ tr.pw td{background:rgba(229,122,26,.04)}
         </div>
         <div class="mbar" id="mbarS"><span class="mbar-lbl">Salesman:</span></div>
         <div class="twrap" id="twS"><div class="nodata"><div class="spin"></div></div></div>
+        <div class="scroll-hint">← Scroll right to see remarks and caller columns →</div>
+      </div>
+
+      <!-- OFFICE SUMMARY -->
+      <div class="pane" id="pSumO">
+        <div class="sum-inner">
+          <div class="sum-title">📊 My Summary</div>
+          <div class="sum-sub" id="sumSubO">Today's overview for your assigned parties</div>
+          <div class="sum-kpi-grid" id="sumKpiO"></div>
+          <div class="sum-section-title red" id="sumImmTitle">🔴 Call Immediately (60+ days)</div>
+          <div class="sum-party-list" id="sumImmO"><div class="sum-empty">Loading…</div></div>
+          <div class="sum-section-title orange" id="sumWarnTitle">🟡 Overdue (30–60 days)</div>
+          <div class="sum-party-list" id="sumWarnO"><div class="sum-empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- SALESMAN SUMMARY -->
+      <div class="pane" id="pSumS">
+        <div class="sum-inner">
+          <div class="sum-title">📊 My Summary</div>
+          <div class="sum-sub" id="sumSubS">Today's overview for your assigned parties</div>
+          <div class="sum-kpi-grid" id="sumKpiS"></div>
+          <div class="sum-section-title red">🔴 Call Immediately (60+ days)</div>
+          <div class="sum-party-list" id="sumImmS"><div class="sum-empty">Loading…</div></div>
+          <div class="sum-section-title orange">🟡 Overdue (30–60 days)</div>
+          <div class="sum-party-list" id="sumWarnS"><div class="sum-empty">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- ADMIN: PARTY HISTORY -->
+      <div class="pane" id="pPH">
+        <div class="ph-inner">
+          <div class="ph-title">🔍 Party Balance History</div>
+          <div class="ph-sub">Select a party to see their balance on every recorded date</div>
+          <div class="ph-controls">
+            <label>Party</label>
+            <input class="ph-srch" id="phSearch" placeholder="Type party name to search…" oninput="phFilter()" autocomplete="off">
+            <select class="ph-party-sel" id="phSel" onchange="renderPH()" size="1">
+              <option value="">— select a party —</option>
+            </select>
+          </div>
+          <div id="phResult">
+            <div class="ph-no-party"><div class="ph-no-party-icon">🏪</div><div class="ph-no-party-txt">Select a party above to see their balance history</div></div>
+          </div>
+        </div>
       </div>
 
       <!-- ADMIN: ALL DATA -->
@@ -568,7 +702,7 @@ tr.pw td{background:rgba(229,122,26,.04)}
             <div class="up-card">
               <div class="up-card-head"><div class="up-card-title auto">DUMP AUTO</div><div class="up-sheet-tag auto">→ DUMP_AUTO sheet</div></div>
               <div class="up-card-body">
-                <div class="dropz" id="dropAuto" ondragover="onDragOver(event,'auto')" ondragleave="onDragLeave('auto')" ondrop="onDrop(event,'auto')"><input type="file" accept=".txt,.csv" onchange="onFileSelect(event,'auto')"><div class="drop-ico">📂</div><div class="drop-lbl"><b>Drop AUTO dump here</b><br>or click to browse<br><small>.txt Marg export</small></div></div>
+                <div class="dropz" id="dropAuto" ondragover="onDragOver(event,'auto')" ondragleave="onDragLeave('auto')" ondrop="onDrop(event,'auto')"><input type="file" accept=".txt,.csv,.xlsx,.xls" onchange="onFileSelect(event,'auto')"><div class="drop-ico">📂</div><div class="drop-lbl"><b>Drop AUTO dump here</b><br>or click to browse<br><small>.txt or .xlsx Marg export</small></div></div>
                 <div class="paste-lbl">— or paste raw text —</div>
                 <textarea class="paste-area" id="pasteAuto" placeholder="A H S AUTOMOBILES (LONAWALA)937851&#10;AALAM TYRE KHED726633…"></textarea>
                 <button class="parse-btn auto" onclick="parseP('auto')">⚡ Parse & Preview</button>
@@ -582,7 +716,7 @@ tr.pw td{background:rgba(229,122,26,.04)}
             <div class="up-card">
               <div class="up-card-head"><div class="up-card-title hero">DUMP HERO</div><div class="up-sheet-tag hero">→ HERO sheet</div></div>
               <div class="up-card-body">
-                <div class="dropz" id="dropHero" ondragover="onDragOver(event,'hero')" ondragleave="onDragLeave('hero')" ondrop="onDrop(event,'hero')"><input type="file" accept=".txt,.csv" onchange="onFileSelect(event,'hero')"><div class="drop-ico">📂</div><div class="drop-lbl"><b>Drop HERO dump here</b><br>or click to browse<br><small>.txt Marg export</small></div></div>
+                <div class="dropz" id="dropHero" ondragover="onDragOver(event,'hero')" ondragleave="onDragLeave('hero')" ondrop="onDrop(event,'hero')"><input type="file" accept=".txt,.csv,.xlsx,.xls" onchange="onFileSelect(event,'hero')"><div class="drop-ico">📂</div><div class="drop-lbl"><b>Drop HERO dump here</b><br>or click to browse<br><small>.txt or .xlsx Marg export</small></div></div>
                 <div class="paste-lbl">— or paste raw text —</div>
                 <textarea class="paste-area" id="pasteHero" placeholder="A H S AUTOMOBILES (LONAWALA)8678654&#10;…"></textarea>
                 <button class="parse-btn hero" onclick="parseP('hero')">⚡ Parse & Preview</button>
@@ -612,11 +746,13 @@ const ADMIN_PASS  = 'yantrayug2024'; // simple admin password
 
 // Nav config per role
 const NAV_OFFICE = [
+  {t:'SumO', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'O', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
   {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
 const NAV_SALESMAN = [
+  {t:'SumS', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'S', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
   {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
@@ -626,6 +762,7 @@ const NAV_ADMIN = [
   {t:'O', icon:'🏢', label:'Office View', sub:'Office team parties'},
   {t:'S', icon:'👤', label:'Salesman View', sub:'Salesman parties'},
   {t:'A', icon:'📅', label:'All Data', sub:'Full history, read-only'},
+  {t:'PH', icon:'🔍', label:'Party History', sub:'Balance by date per party'},
   {t:'LB', icon:'🏆', label:'Leaderboard', sub:'Who called the most'},
   {t:'CB', icon:'📞', label:'Callbacks', sub:'All follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
@@ -693,15 +830,20 @@ function logout(){
 }
 
 /* ═══ START APP ═══ */
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
 function startApp(){
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('shell').classList.add('show');
   document.getElementById('sbDate').textContent=TODAYSTR;
   document.getElementById('sbRole').textContent=USER.role;
   document.getElementById('sbName').textContent=USER.name;
+  document.getElementById('sbAvatar').textContent=USER.name.charAt(0)||'?';
   buildNav();
   // Start first default pane
-  const defaultPanes={OFFICE:'O', SALESMAN:'S', ADMIN:'Dash'};
+  const defaultPanes={OFFICE:'SumO', SALESMAN:'SumS', ADMIN:'Dash'};
   sw(defaultPanes[USER.role]||'O');
   loadAll();
   // Check callbacks every 5 minutes
@@ -718,7 +860,7 @@ function buildNav(){
     const btn=document.createElement('button');
     btn.className='nav-item';
     btn.dataset.t=item.t;
-    btn.innerHTML=`<span class="ni-icon">${item.icon}</span><span>${item.label}</span>${item.t==='CB'?'<span class="ni-badge" id="navCBBadge"></span>':''}`;
+    btn.innerHTML=`<span class="ni-icon">${item.icon}</span><span class="ni-label">${item.label}</span>${item.t==='CB'?'<span class="ni-badge" id="navCBBadge"></span>':''}`;
     btn.onclick=()=>sw(item.t);
     nav.appendChild(btn);
   });
@@ -732,13 +874,16 @@ function sw(t){
   const paneId='p'+t;
   const pane=document.getElementById(paneId);
   if(pane) pane.classList.add('active');
-  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump'};
-  const subs={O:'Showing today\'s outstanding for office-assigned parties',S:'Showing today\'s outstanding for salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files'};
+  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History'};
+  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date'};
   document.getElementById('tbTitle').textContent=titles[t]||t;
   document.getElementById('tbSub').textContent=subs[t]||'';
   if(t==='CB') renderCB();
   if(t==='LB') renderLB();
   if(t==='Dash') renderDash();
+  if(t==='SumO') renderSum('O');
+  if(t==='SumS') renderSum('S');
+  if(t==='PH') renderPHInit();
 }
 
 /* ═══ CFG MODAL ═══ */
@@ -863,9 +1008,9 @@ async function loadAll(){
       fetchSheet('MASTER'),fetchSheet('OFFICE'),fetchSheet('SALESMAN'),fetchSheet('DUMP_AUTO'),fetchSheet('HERO')
     ]);
     autoMap={};
-    for(const row of autoVals){if(row[0]&&typeof row[0]==='string') autoMap[row[0].trim().toUpperCase()]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0};}
+    for(const row of autoVals){if(row[0]&&typeof row[0]==='string'){const k=row[0].trim().toUpperCase(); autoMap[k]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0}; const kn=k.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')'); if(kn!==k) autoMap[kn]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0}; }}
     heroMap={};
-    for(const row of heroVals){if(row[0]&&typeof row[0]==='string') heroMap[row[0].trim().toUpperCase()]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0};}
+    for(const row of heroVals){if(row[0]&&typeof row[0]==='string'){const k=row[0].trim().toUpperCase(); heroMap[k]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0}; const kn=k.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')'); if(kn!==k) heroMap[kn]={amount:parseFloat(row[1])||0,days:parseFloat(row[2])||0}; }}
 
     const row0=officeVals[0]||[];
     allDateGroups=[]; nextFreeCol=8;
@@ -927,6 +1072,9 @@ async function loadAll(){
     adminDateCol=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
     render('O'); render('S'); render('A');
     if(curPane==='Dash') renderDash();
+    if(curPane==='SumO') renderSum('O');
+    if(curPane==='SumS') renderSum('S');
+    if(curPane==='PH') renderPHInit();
     dot('ok'); toast(`✓ ${allParties.length} parties loaded`,'ok');
     checkCallbackNotifs();
   }catch(e){
@@ -937,9 +1085,24 @@ async function loadAll(){
 
 function pNum(v){if(typeof v==='number')return v; const s=String(v||'').trim(); if(!s||s.startsWith('='))return 0; return parseFloat(s)||0;}
 function fuzzy(map,key){
-  if(map[key])return map[key];
-  const s=key.replace(/COD\s*$/,'').trim(); if(map[s])return map[s];
-  for(const k of Object.keys(map)){if(k.startsWith(s.substring(0,16)))return map[k];}
+  if(map[key]) return map[key];
+
+  // 1. Strip trailing COD and try exact match
+  const noCOD = key.replace(/\s*\(?COD\)?\s*$/, '').replace(/\s*COD\s*$/, '').trim();
+  if(map[noCOD]) return map[noCOD];
+
+  // 2. Normalize spacing around brackets and try again
+  const norm = noCOD.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')');
+  if(map[norm]) return map[norm];
+
+  // 3. No-spaces comparison — handles spacing differences only
+  // Both the key AND the map entry must match fully (not just prefix)
+  const nosp = key.replace(/\s/g,'').toUpperCase();
+  for(const k of Object.keys(map)){
+    if(k.replace(/\s/g,'').toUpperCase() === nosp) return map[k];
+  }
+
+  // 4. No match — return null, show zero rather than wrong data
   return null;
 }
 function parseSheetDate(v){
@@ -1197,6 +1360,159 @@ function renderDash(){
     :`<tr><td class="lb-empty">No data.</td></tr>`;
 }
 
+/* ═══ STAFF SUMMARY ═══ */
+function renderSum(t){
+  const field = t==='O' ? 'office' : 'salesman';
+  const ci = todayColIdx;
+  const memberName = USER.name;
+
+  // Get parties assigned to this user
+  const myParties = allParties.filter(p => {
+    const d = ci>=0 ? (dateData[ci]||{})[p.sr]||{} : {};
+    return (d.autoBal||0)>0 || (d.heroBal||0)>0;
+  }).filter(p => t==='O'
+    ? (p.office===memberName || memberSel.O==='ALL')
+    : (p.salesman===memberName || memberSel.S==='ALL')
+  );
+
+  // All parties with outstanding balance — no name filter
+  const allMine = allParties.filter(p => {
+    const d = ci>=0 ? (dateData[ci]||{})[p.sr]||{} : {};
+    const ab = d.autoBal||0, hb = d.heroBal||0;
+    return ab>0 || hb>0;
+  });
+
+  const ci2 = todayColIdx;
+  let totalAuto=0, totalHero=0, imm=[], warn=[], called=0, notCalled=0;
+
+  allMine.forEach(p => {
+    const d = ci2>=0 ? (dateData[ci2]||{})[p.sr]||{} : {};
+    const ab=d.autoBal||0, hb=d.heroBal||0;
+    const ad=d.autoDays||0, hd=d.heroDays||0;
+    const maxD=Math.max(ad,hd);
+    totalAuto+=ab; totalHero+=hb;
+    if(maxD>60) imm.push({...p, autoBal:ab, heroBal:hb, autoDays:ad, heroDays:hd, maxD});
+    else if(maxD>30) warn.push({...p, autoBal:ab, heroBal:hb, autoDays:ad, heroDays:hd, maxD});
+    const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
+    if(hasCalled) called++; else notCalled++;
+  });
+
+  imm.sort((a,b)=>b.maxD-a.maxD);
+  warn.sort((a,b)=>b.maxD-a.maxD);
+
+  // KPIs
+  const kpiEl = document.getElementById('sumKpi'+t);
+  kpiEl.innerHTML = `
+    <div class="sum-kpi"><div class="sum-kpi-label">My Parties</div><div class="sum-kpi-val blue">${allMine.length}</div><div class="sum-kpi-meta">with outstanding balance</div></div>
+    <div class="sum-kpi"><div class="sum-kpi-label">Call Immediately</div><div class="sum-kpi-val red">${imm.length}</div><div class="sum-kpi-meta">60+ days overdue</div></div>
+    <div class="sum-kpi"><div class="sum-kpi-label">Overdue</div><div class="sum-kpi-val orange">${warn.length}</div><div class="sum-kpi-meta">30–60 days overdue</div></div>
+    <div class="sum-kpi"><div class="sum-kpi-label">Called Today</div><div class="sum-kpi-val green">${called}</div><div class="sum-kpi-meta">remarks logged today</div></div>
+    <div class="sum-kpi"><div class="sum-kpi-label">Not Called Yet</div><div class="sum-kpi-val red">${notCalled}</div><div class="sum-kpi-meta">still outstanding today</div></div>
+    <div class="sum-kpi"><div class="sum-kpi-label">Total Outstanding</div><div class="sum-kpi-val orange">₹${fmtN(totalAuto+totalHero)}</div><div class="sum-kpi-meta">Auto + Hero combined</div></div>
+  `;
+
+  const mkList = (parties, listId) => {
+    const el = document.getElementById(listId);
+    if(!parties.length){ el.innerHTML=`<div class="sum-empty">None 🎉</div>`; return; }
+    el.innerHTML = parties.slice(0,30).map(p=>`
+      <div class="sum-party-row">
+        <div style="flex:1;min-width:0">
+          <div class="sum-party-name" title="${esc(p.name)}">${esc(p.name)}</div>
+          <div class="sum-party-sub">${esc(p.area)} · ${esc(p.route)} · ${p.beat}</div>
+        </div>
+        <span class="dbg ${p.maxD>60?'over':'warn'}" style="flex-shrink:0">${p.maxD}d</span>
+        <div style="text-align:right;flex-shrink:0">
+          ${p.autoBal>0?`<div class="sum-party-bal auto">AUTO ₹${fmtN(p.autoBal)}</div>`:''}
+          ${p.heroBal>0?`<div class="sum-party-bal hero">HERO ₹${fmtN(p.heroBal)}</div>`:''}
+        </div>
+      </div>`).join('');
+  };
+
+  mkList(imm, 'sumImm'+t);
+  mkList(warn, 'sumWarn'+t);
+}
+
+/* ═══ PARTY HISTORY ═══ */
+function renderPHInit(){
+  // Populate party dropdown
+  const sel = document.getElementById('phSel');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— select a party —</option>' +
+    allParties.map(p=>`<option value="${p.sr}">${esc(p.name)}</option>`).join('');
+  sel.value = prev;
+  if(prev) renderPH();
+}
+
+function phFilter(){
+  const q = document.getElementById('phSearch').value.trim().toLowerCase();
+  const sel = document.getElementById('phSel');
+  sel.innerHTML = '<option value="">— select a party —</option>' +
+    allParties.filter(p=>!q||p.name.toLowerCase().includes(q))
+      .map(p=>`<option value="${p.sr}">${esc(p.name)}</option>`).join('');
+  // Auto-select if exactly one match
+  const opts = sel.querySelectorAll('option[value]:not([value=""])');
+  if(opts.length===1){ sel.value=opts[0].value; renderPH(); }
+}
+
+function renderPH(){
+  const sr = +document.getElementById('phSel').value;
+  const result = document.getElementById('phResult');
+  if(!sr){ result.innerHTML=`<div class="ph-no-party"><div class="ph-no-party-icon">🏪</div><div class="ph-no-party-txt">Select a party above to see their balance history</div></div>`; return; }
+
+  const party = allParties.find(p=>p.sr===sr);
+  if(!party){ result.innerHTML=`<div class="ph-empty">Party not found.</div>`; return; }
+
+  // Build rows from all date groups newest first
+  const rows = allDateGroups.map(g=>{
+    const d = (dateData[g.colIdx]||{})[sr]||{};
+    return { iso:g.isoDate, autoBal:d.autoBal||0, autoDays:d.autoDays||0, heroBal:d.heroBal||0, heroDays:d.heroDays||0, remA:d.remA||'', nameA:d.nameA||'', remH:d.remH||'', nameH:d.nameH||'' };
+  });
+
+  const totalDays = allDateGroups.length;
+  const daysWithData = rows.filter(r=>r.autoBal>0||r.heroBal>0).length;
+  const maxAuto = Math.max(...rows.map(r=>r.autoBal),0);
+  const maxHero = Math.max(...rows.map(r=>r.heroBal),0);
+
+  result.innerHTML = `
+    <div class="ph-result">
+      <div class="ph-result-head">
+        <div>
+          <div class="ph-result-name">${esc(party.name)}</div>
+          <div class="ph-result-meta">${esc(party.area)} · ${esc(party.route)} · Office: ${esc(party.office)} · Salesman: ${esc(party.salesman)}</div>
+        </div>
+        <div style="font-size:11px;color:var(--mid);font-weight:600">${totalDays} dates recorded · ${daysWithData} with balance</div>
+      </div>
+      <div style="overflow-x:auto;max-height:500px;overflow-y:auto">
+        <table class="ph-timeline">
+          <thead><tr>
+            <th>Date</th>
+            <th>Auto Bal</th><th>Days</th>
+            <th>Hero Bal</th><th>Days</th>
+            <th>Auto Remark</th><th>Caller (Off)</th>
+            <th>Hero Remark</th><th>Caller (SM)</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(r=>{
+              const isToday = r.iso===TODAYISO;
+              const aDC=dc(r.autoDays), hDC=dc(r.heroDays);
+              return `<tr class="${isToday?'today-row':''}">
+                <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap;font-weight:${isToday?'700':'400'}">${fmtDispISO(r.iso)}${isToday?' ✦':''}</td>
+                <td><span class="ph-bal ${r.autoBal>0?'auto':'zero'}">${r.autoBal>0?'₹'+fmtN(r.autoBal):'—'}</span></td>
+                <td>${r.autoDays>0?`<span class="dbg ${aDC}">${r.autoDays}d</span>`:'<span style="color:var(--dim)">—</span>'}</td>
+                <td><span class="ph-bal ${r.heroBal>0?'hero':'zero'}">${r.heroBal>0?'₹'+fmtN(r.heroBal):'—'}</span></td>
+                <td>${r.heroDays>0?`<span class="dbg ${hDC}">${r.heroDays}d</span>`:'<span style="color:var(--dim)">—</span>'}</td>
+                <td class="ph-remark" title="${esc(r.remA)}">${esc(r.remA)||'<span style="color:var(--border2)">—</span>'}</td>
+                <td style="font-size:11px;color:var(--mid);white-space:nowrap">${esc(r.nameA)||'—'}</td>
+                <td class="ph-remark" title="${esc(r.remH)}">${esc(r.remH)||'<span style="color:var(--border2)">—</span>'}</td>
+                <td style="font-size:11px;color:var(--mid);white-space:nowrap">${esc(r.nameH)||'—'}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
 /* ═══ LEADERBOARD (admin only) ═══ */
 function renderLB(){
   const fromISO=document.getElementById('lbFrom').value;
@@ -1289,15 +1605,60 @@ function renderCB(){
 
 /* ═══ MARG PARSER ═══ */
 function parseMarg(raw){
-  const txt=raw.replace(/\r/g,'').replace(/[ \t]+/g,' ').trim();
-  const chunks=txt.split(/(?<=\d)(?=[A-Z])/).map(s=>s.trim()).filter(Boolean);
+  const txt = raw.replace(/\r/g,'').trim();
+  const lines = txt.split('\n').map(l=>l.trim()).filter(Boolean);
+
+  // ── Detect format ──
+  // CSV: each line has commas → "PARTY NAME,11032,60"
+  // Concatenated: one big blob or lines like "A H S AUTOMOBILES(LONAWALA)1103260"
+  const firstDataLine = lines.find(l=>!/^(PARTY|party|Party)/i.test(l)) || lines[0] || '';
+  const isCSV = firstDataLine.split(',').length >= 3;
+
+  if(isCSV) return parseCSV(lines);
+  return parseConcatenated(txt);
+}
+
+/* CSV format: PARTY NAME,AMOUNT,DAYS (with optional header row) */
+function parseCSV(lines){
+  const out=[];
+  for(const line of lines){
+    const parts = line.split(',');
+    if(parts.length < 2) continue;
+    const name = parts[0].trim();
+    // Skip header row
+    if(!name || /^party\s*name/i.test(name) || /^amt/i.test(name)) continue;
+    const amount = parseFloat(parts[1])||0;
+    const days   = parseFloat(parts[2])||0;
+    if(!name) continue;
+    out.push({name, amount:String(Math.round(amount)), days:String(Math.round(days)), flag:''});
+  }
+  return out;
+}
+
+/* Concatenated format: PARTYNAME1103260 (original Marg format) */
+function parseConcatenated(txt){
+  const normalized = txt.replace(/[ \t]+/g,' ').trim();
+  const chunks = normalized.split(/(?<=\d)(?=[A-Z])/).map(s=>s.trim()).filter(Boolean);
   const out=[];
   for(const chunk of chunks){
     const m=chunk.match(/^(.*?)(\d+)$/s); if(!m) continue;
     let name=m[1].replace(/\s+/g,' ').trim(); const ns=m[2]; if(!name) continue;
     let amount='',days='',flag=''; const n=ns.length;
-    if(n<=3){const dv=parseInt(ns);if(dv>0&&dv<=365){days=ns;amount='0';}else{days=ns.slice(-2)||'0';amount=ns.slice(0,-2)||'0';flag='⚠';}}
-    else{let found=false;for(const dl of[3,2,1]){if(n<=dl)continue;const dc2=parseInt(ns.slice(-dl)),ac=ns.slice(0,n-dl);if(dc2>0&&dc2<=999&&(ac==='0'||ac===''||!ac.startsWith('0'))){days=String(dc2);amount=ac||'0';found=true;break;}}if(!found){days=ns.slice(-2);amount=ns.slice(0,-2)||'0';flag='⚠';}}
+    if(n<=3){
+      const dv=parseInt(ns);
+      if(dv>0&&dv<=365){days=ns;amount='0';}
+      else{days=ns.slice(-2)||'0';amount=ns.slice(0,-2)||'0';flag='⚠';}
+    } else {
+      let found=false;
+      for(const dl of[3,2,1]){
+        if(n<=dl)continue;
+        const dc2=parseInt(ns.slice(-dl)),ac=ns.slice(0,n-dl);
+        if(dc2>0&&dc2<=999&&(ac==='0'||ac===''||!ac.startsWith('0'))){
+          days=String(dc2);amount=ac||'0';found=true;break;
+        }
+      }
+      if(!found){days=ns.slice(-2);amount=ns.slice(0,-2)||'0';flag='⚠';}
+    }
     out.push({name,amount,days,flag});
   }
   return out;
@@ -1307,7 +1668,47 @@ function onDragLeave(t){document.getElementById('drop'+cap(t)).classList.remove(
 function onDrop(e,t){e.preventDefault();onDragLeave(t);const f=e.dataTransfer.files[0];if(f)readF(f,t);}
 function onFileSelect(e,t){const f=e.target.files[0];if(f)readF(f,t);}
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function readF(file,t){const r=new FileReader();r.onload=ev=>{document.getElementById('paste'+cap(t)).value=ev.target.result;parseP(t);};r.readAsText(file);}
+function readF(file,t){
+  const isExcel = /\.(xlsx|xls)$/i.test(file.name);
+  const r = new FileReader();
+
+  if(isExcel){
+    r.onload = ev => {
+      try{
+        const wb = XLSX.read(ev.target.result, {type:'array'});
+        // Try first sheet
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        // Convert to CSV text — each row becomes one line
+        const csv = XLSX.utils.sheet_to_csv(ws, {strip:true});
+        // Excel format: each row should be PARTY NAME, AMOUNT, DAYS in separate cols
+        // Convert columnar Excel to the concatenated text format the parser expects
+        const lines = csv.split('\n').map(l=>l.trim()).filter(Boolean);
+        let rawText = '';
+        lines.forEach(line => {
+          const cols = line.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+          const name = cols[0]||'';
+          const amt  = (cols[1]||'0').replace(/[^0-9]/g,'');
+          const days = (cols[2]||'0').replace(/[^0-9]/g,'');
+          if(name && name.toUpperCase()!=='PARTY NAME') {
+            // Reconstruct as the concatenated format: NAME+AMOUNT+DAYS
+            rawText += name + amt + days + '\n';
+          }
+        });
+        document.getElementById('paste'+cap(t)).value = rawText.trim();
+        parseP(t);
+      }catch(e){
+        toast('✗ Could not read Excel file: '+e.message,'err');
+      }
+    };
+    r.readAsArrayBuffer(file);
+  } else {
+    r.onload = ev => {
+      document.getElementById('paste'+cap(t)).value = ev.target.result;
+      parseP(t);
+    };
+    r.readAsText(file);
+  }
+}
 function parseP(t){
   const raw=document.getElementById('paste'+cap(t)).value.trim();
   if(!raw){toast('Nothing to parse','warn');return;}
