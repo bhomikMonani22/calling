@@ -791,7 +791,6 @@ const TODAY=new Date(), TODAYISO=isoDate(TODAY), TODAYSTR=fmtDisp(TODAY);
   try{ if(saRaw) CFG.sa=JSON.parse(saRaw); }catch(e){}
   document.getElementById('cfgSheetId').value=CFG.sheetId;
   if(CFG.sa) document.getElementById('cfgSAJson').value=saRaw;
-  callbacks=JSON.parse(localStorage.getItem('ct_callbacks')||'[]');
   const lbTo=new Date(),lbFrom=new Date(); lbFrom.setDate(lbFrom.getDate()-30);
   document.getElementById('lbFrom').value=isoDate(lbFrom);
   document.getElementById('lbTo').value=isoDate(lbTo);
@@ -1075,8 +1074,10 @@ async function loadAll(){
     if(curPane==='SumO') renderSum('O');
     if(curPane==='SumS') renderSum('S');
     if(curPane==='PH') renderPHInit();
-    dot('ok'); toast(`✓ ${allParties.length} parties loaded`,'ok');
+    // Load callbacks from sheet (shared across all users)
+    await loadCallbacks();
     checkCallbackNotifs();
+    dot('ok'); toast(`✓ ${allParties.length} parties loaded`,'ok');
   }catch(e){
     dot('err'); toast('✗ '+e.message,'err');
     setErr('O',e.message);setErr('S',e.message);setErr('A',e.message);
@@ -1539,42 +1540,115 @@ function renderLB(){
 }
 
 /* ═══ CALLBACKS ═══ */
-function setCB(sr){
+/* ═══ CALLBACKS — stored in CALLBACKS sheet, shared across all users ═══
+   Sheet columns: A=id, B=sr, C=partyName, D=caller, E=remark,
+                  F=callbackDate, G=createdAt, H=createdBy, I=dismissed(TRUE/FALSE)
+════════════════════════════════════════════════════════════════════════ */
+const CB_SHEET = 'CALLBACKS';
+const CB_HEADERS = ['id','sr','partyName','caller','remark','callbackDate','createdAt','createdBy','dismissed'];
+
+async function loadCallbacks(){
+  try{
+    const vals = await fetchSheet(CB_SHEET);
+    if(!vals||vals.length<1){
+      // Sheet empty — write headers
+      await batchWriteMulti([{range:`${CB_SHEET}!A1:I1`, values:[CB_HEADERS]}]);
+      callbacks=[];
+    } else {
+      // Parse rows (skip header row 0)
+      callbacks=[];
+      for(let i=1;i<vals.length;i++){
+        const r=vals[i];
+        if(!r||!r[0]) continue;
+        callbacks.push({
+          id:r[0]||'', sr:+r[1]||0, partyName:r[2]||'',
+          caller:r[3]||'', remark:r[4]||'',
+          callbackDate:r[5]||'', createdAt:r[6]||'',
+          createdBy:r[7]||'',
+          dismissed:String(r[8]||'').toUpperCase()==='TRUE',
+          _row: i+1 // 1-indexed sheet row for updates
+        });
+      }
+    }
+    updateCBBadge();
+  }catch(e){
+    // CALLBACKS sheet may not exist yet — silently use empty array
+    callbacks=[];
+    updateCBBadge();
+  }
+}
+
+async function setCB(sr){
   const inp=document.getElementById('cbd-'+sr);
   const days=parseInt(inp?inp.value:2)||2;
   const party=allParties.find(p=>p.sr===sr); if(!party) return;
   const dt=new Date(); dt.setDate(dt.getDate()+days);
   const ci=todayColIdx; const d=ci>=0?(dateData[ci]||{})[sr]||{}:{};
-  const cb={id:Date.now()+'-'+sr,sr,partyName:party.name,caller:d.nameA||d.nameH||USER.name,remark:d.remA||d.remH||'',callbackDate:isoDate(dt),createdAt:TODAYISO,dismissed:false};
-  callbacks=callbacks.filter(c=>c.sr!==sr); callbacks.push(cb);
-  saveCallbacks(); updateCBBadge();
-  render('O'); render('S');
-  toast(`📅 Callback in ${days} days (${fmtDispISO(cb.callbackDate)})`,'ok');
+  const cb={
+    id:Date.now()+'-'+sr, sr,
+    partyName:party.name,
+    caller:d.nameA||d.nameH||USER.name,
+    remark:d.remA||d.remH||'',
+    callbackDate:isoDate(dt),
+    createdAt:TODAYISO,
+    createdBy:USER.name,
+    dismissed:false
+  };
+  // Remove existing open CB for same party from sheet first
+  const existing=callbacks.find(c=>c.sr===sr&&!c.dismissed);
+  if(existing) await dismissCBRow(existing);
+
+  dot('syncing');
+  try{
+    // Append to sheet
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(CB_SHEET+'!A:I')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    const row=[[cb.id,cb.sr,cb.partyName,cb.caller,cb.remark,cb.callbackDate,cb.createdAt,cb.createdBy,'FALSE']];
+    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:row})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+    dot('ok');
+    await loadCallbacks();
+    render('O'); render('S');
+    toast(`📅 Callback set for ${fmtDispISO(cb.callbackDate)}`,'ok');
+  }catch(e){dot('err');toast('✗ '+e.message,'err');}
 }
-function dismissCB(id){
-  const cb=callbacks.find(c=>c.id===id); if(cb) cb.dismissed=true;
-  saveCallbacks(); updateCBBadge(); render('O'); render('S');
-  if(curPane==='CB') renderCB();
-  toast('✓ Callback marked done','ok');
+
+async function dismissCBRow(cb){
+  // Mark dismissed=TRUE in the sheet row
+  if(!cb._row) return;
+  try{
+    await writeCell(CB_SHEET, cb._row, 9, 'TRUE'); // col I = dismissed
+  }catch(e){ /* silent */ }
 }
-function saveCallbacks(){localStorage.setItem('ct_callbacks',JSON.stringify(callbacks));}
+
+async function dismissCB(id){
+  const cb=callbacks.find(c=>c.id===id); if(!cb) return;
+  dot('syncing');
+  try{
+    await dismissCBRow(cb);
+    dot('ok');
+    await loadCallbacks();
+    render('O'); render('S');
+    if(curPane==='CB') renderCB();
+    toast('✓ Callback marked done','ok');
+  }catch(e){dot('err');toast('✗ '+e.message,'err');}
+}
+
 function updateCBBadge(){
   const due=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO);
   const el=document.getElementById('navCBBadge');
   if(el){if(due.length>0){el.textContent=due.length;el.classList.add('show');}else el.classList.remove('show');}
 }
+
 function checkCallbackNotifs(){
   const due=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO);
   if(!due.length) return;
-  // Show persistent side notification
-  const stack=document.getElementById('notifStack');
-  // Remove existing cb notif if present
   document.querySelectorAll('.cb-notif').forEach(el=>el.remove());
   const notif=document.createElement('div');
   notif.className='notif cb-notif';
   notif.innerHTML=`<div class="notif-ico">📞</div><div class="notif-body"><div class="notif-title">${due.length} Callback${due.length>1?'s':''} Due</div><div class="notif-msg">${due.map(cb=>`Call <b>${esc(cb.partyName)}</b>`).slice(0,3).join(', ')}${due.length>3?` +${due.length-3} more`:''}</div></div><button class="notif-close" onclick="this.parentElement.remove()">✕</button>`;
-  stack.appendChild(notif);
+  document.getElementById('notifStack').appendChild(notif);
 }
+
 function renderCB(){
   const now=TODAYISO;
   const ov=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<now).sort((a,b)=>a.callbackDate.localeCompare(b.callbackDate));
@@ -1591,7 +1665,7 @@ function renderCB(){
           <div class="cb-card-ico">${icon}</div>
           <div class="cb-card-body">
             <div class="cb-card-name">${esc(cb.partyName)}</div>
-            <div class="cb-card-meta">Caller: <b>${esc(cb.caller||'—')}</b> &nbsp;·&nbsp; Set on: ${fmtDispISO(cb.createdAt)}</div>
+            <div class="cb-card-meta">Set by: <b>${esc(cb.createdBy||cb.caller||'—')}</b> &nbsp;·&nbsp; Caller: <b>${esc(cb.caller||'—')}</b> &nbsp;·&nbsp; On: ${fmtDispISO(cb.createdAt)}</div>
             <div class="cb-card-rem">${esc(cb.remark||'No remark recorded')}</div>
             <button class="cb-done" onclick="dismissCB('${cb.id}')">✓ Mark Done</button>
           </div>
