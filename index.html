@@ -1094,8 +1094,24 @@ async function loadAll(){
       if(office)oSet.add(office); if(salesman)sSet.add(salesman);
       rowMap[sr]=ri+1;
       const nk=name.toUpperCase();
-      const aD=autoMap[nk]||fuzzy(autoMap,nk);
-      const hD=heroMap[nk]||fuzzy(heroMap,nk);
+      // For today's balance: EXACT match only from dump maps.
+      // If a party has zero outstanding, Marg won't include them in the dump —
+      // so no match = 0 balance. Never fuzzy-match for today to avoid wrong data.
+      const nkNoCOD=nk.replace(/\s*\(?COD\)?\s*$/, '').replace(/\s*COD\s*$/, '').trim();
+      const nkNorm=nkNoCOD.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')');
+      const nkNoSp=nk.replace(/\s/g,'');
+      const exactLookup=(map)=>{
+        if(map[nk]) return map[nk];
+        if(map[nkNoCOD]) return map[nkNoCOD];
+        if(map[nkNorm]) return map[nkNorm];
+        // No-space exact match only — e.g. "BALAJI AUTO(NIGADI)" vs "BALAJI AUTO (NIGADI)"
+        for(const k of Object.keys(map)){
+          if(k.replace(/\s/g,'')===nkNoSp) return map[k];
+        }
+        return null; // not in dump = zero balance, do NOT fuzzy match
+      };
+      const aD=exactLookup(autoMap);
+      const hD=exactLookup(heroMap);
       allDateGroups.forEach(g=>{
         const c=g.colIdx;
         let autoBal,autoDays,heroBal,heroDays;
