@@ -1821,12 +1821,12 @@ function staffOutstanding(ci){
     if(p.office){
       if(!offMap[p.office]) offMap[p.office]={auto:0,hero:0,total:0,calls:0};
       offMap[p.office].auto+=ab; offMap[p.office].hero+=hb; offMap[p.office].total+=tot;
-      if(pd.nameA) offMap[p.office].calls++;
+      if(pd.nameA && ALL_CALLERS.includes(pd.nameA.toUpperCase())) offMap[p.office].calls++;
     }
     if(p.salesman){
       if(!salMap[p.salesman]) salMap[p.salesman]={auto:0,hero:0,total:0,calls:0};
       salMap[p.salesman].auto+=ab; salMap[p.salesman].hero+=hb; salMap[p.salesman].total+=tot;
-      if(pd.nameH) salMap[p.salesman].calls++;
+      if(pd.nameH && ALL_CALLERS.includes(pd.nameH.toUpperCase())) salMap[p.salesman].calls++;
     }
   });
   return {offMap, salMap};
@@ -1852,14 +1852,17 @@ function aggregateDate(ci, pci){
     const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
     if(hasCalled) called++; else notCalled++;
     if(d.nameA){
-      offCount[d.nameA]=(offCount[d.nameA]||0)+1;
-      if(!offLog[d.nameA]) offLog[d.nameA]=[];
-      offLog[d.nameA].push({partyName:p.name, remark:d.remA||'', autoBal:ab, heroBal:hb});
+      // Validate it's actually a caller name, not a remark accidentally in wrong column
+      const callerA = ALL_CALLERS.includes(d.nameA.toUpperCase()) ? d.nameA : (ALL_CALLERS.includes((d.remA||'').toUpperCase()) ? d.remA : d.nameA);
+      offCount[callerA]=(offCount[callerA]||0)+1;
+      if(!offLog[callerA]) offLog[callerA]=[];
+      offLog[callerA].push({partyName:p.name, remark:d.remA||'', autoBal:ab, heroBal:hb});
     }
     if(d.nameH){
-      salCount[d.nameH]=(salCount[d.nameH]||0)+1;
-      if(!salLog[d.nameH]) salLog[d.nameH]=[];
-      salLog[d.nameH].push({partyName:p.name, remark:d.remH||'', autoBal:ab, heroBal:hb});
+      const callerH = ALL_CALLERS.includes(d.nameH.toUpperCase()) ? d.nameH : (ALL_CALLERS.includes((d.remH||'').toUpperCase()) ? d.remH : d.nameH);
+      salCount[callerH]=(salCount[callerH]||0)+1;
+      if(!salLog[callerH]) salLog[callerH]=[];
+      salLog[callerH].push({partyName:p.name, remark:d.remH||'', autoBal:ab, heroBal:hb});
     }
   });
   return {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,offLog,salLog,selData,prevData};
