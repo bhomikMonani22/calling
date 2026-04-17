@@ -1838,6 +1838,8 @@ function aggregateDate(ci, pci){
   let totalAuto=0,totalHero=0,prevAuto=0,prevHero=0;
   let overdue60=0,overdue30=0,called=0,notCalled=0;
   const offCount={}, salCount={};
+  // Call log: { callerName: [{partyName, remark, bal}] }
+  const offLog={}, salLog={};
 
   allParties.forEach(p=>{
     const d=selData[p.sr]||{}, pd=prevData[p.sr]||{};
@@ -1849,10 +1851,18 @@ function aggregateDate(ci, pci){
     if(maxD>60) overdue60++; else if(maxD>30) overdue30++;
     const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
     if(hasCalled) called++; else notCalled++;
-    if(d.nameA) offCount[d.nameA]=(offCount[d.nameA]||0)+1;
-    if(d.nameH) salCount[d.nameH]=(salCount[d.nameH]||0)+1;
+    if(d.nameA){
+      offCount[d.nameA]=(offCount[d.nameA]||0)+1;
+      if(!offLog[d.nameA]) offLog[d.nameA]=[];
+      offLog[d.nameA].push({partyName:p.name, remark:d.remA||'', autoBal:ab, heroBal:hb});
+    }
+    if(d.nameH){
+      salCount[d.nameH]=(salCount[d.nameH]||0)+1;
+      if(!salLog[d.nameH]) salLog[d.nameH]=[];
+      salLog[d.nameH].push({partyName:p.name, remark:d.remH||'', autoBal:ab, heroBal:hb});
+    }
   });
-  return {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,selData,prevData};
+  return {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,offLog,salLog,selData,prevData};
 }
 
 /* ── Staff outstanding table HTML ── */
@@ -1875,7 +1885,38 @@ function mkStaffTable(curMap, prevMap, label, colorCls){
   }).join('');
 }
 
-/* ── Leaderboard rows HTML ── */
+/* ── Detailed call log table HTML ── */
+function mkCallLog(logMap, countMap, colorCls){
+  const callers=Object.keys(countMap).sort((a,b)=>countMap[b]-countMap[a]);
+  if(!callers.length) return `<div style="padding:16px;color:var(--dim);font-size:12px">No calls logged</div>`;
+
+  return callers.map(caller=>{
+    const entries=logMap[caller]||[];
+    const rows=entries.map(e=>`
+      <tr>
+        <td style="padding:8px 14px 8px 32px;font-size:12px;font-weight:600;color:var(--ink);min-width:180px">${esc(e.partyName)}</td>
+        <td style="padding:8px 14px;font-size:12px;color:var(--mid);max-width:280px">${esc(e.remark)||'<span style="color:var(--border2)">—</span>'}</td>
+        <td style="padding:8px 14px;font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:var(--blue);text-align:right;white-space:nowrap">${e.autoBal>0?'₹'+fmtN(e.autoBal):'—'}</td>
+        <td style="padding:8px 14px;font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:var(--orange);text-align:right;white-space:nowrap">${e.heroBal>0?'₹'+fmtN(e.heroBal):'—'}</td>
+      </tr>`).join('');
+
+    return `<div style="border-bottom:2px solid var(--border)">
+      <div style="padding:10px 14px;background:var(--bg3);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:13px;font-weight:700;color:var(--${colorCls})">${esc(caller)}</span>
+        <span style="font-size:11px;font-weight:600;color:var(--mid);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2px 10px">${entries.length} call${entries.length!==1?'s':''}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--dim);padding:6px 14px 6px 32px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Party Name</th>
+          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--dim);padding:6px 14px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Remark</th>
+          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--blue);padding:6px 14px;text-align:right;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Auto ₹</th>
+          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--orange);padding:6px 14px;text-align:right;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Hero ₹</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
 function mkLeaderRows(rows){
   const rank=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
   const rankCls=i=>i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
@@ -1901,7 +1942,7 @@ function generateEOD(){
   const prevGroup=allDateGroups[selIdx+1]||null;
   const ci=selGroup.colIdx, pci=prevGroup?prevGroup.colIdx:-1;
 
-  const {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,selData,prevData}=aggregateDate(ci,pci);
+  const {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,offLog,salLog,selData,prevData}=aggregateDate(ci,pci);
   const {offMap:curOff, salMap:curSal}=staffOutstanding(ci);
   const {offMap:prevOff, salMap:prevSal}=pci>=0?staffOutstanding(pci):{offMap:{},salMap:{}};
   const totalToday=totalAuto+totalHero, totalPrev=prevAuto+prevHero;
@@ -1943,12 +1984,12 @@ function generateEOD(){
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
       <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Calls Leaderboard <span>${offRows.reduce((s,[,c])=>s+c,0)} total</span></div>
-        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(offRows)}</tbody></table>
+        <div class="eod-section-head">🏢 Office Staff Calls — Detail <span>${Object.values(offCount).reduce((s,c)=>s+c,0)} total calls</span></div>
+        ${mkCallLog(offLog, offCount, 'blue')}
       </div>
       <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman Calls Leaderboard <span>${salRows.reduce((s,[,c])=>s+c,0)} total</span></div>
-        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(salRows)}</tbody></table>
+        <div class="eod-section-head">👤 Salesman Calls — Detail <span>${Object.values(salCount).reduce((s,c)=>s+c,0)} total calls</span></div>
+        ${mkCallLog(salLog, salCount, 'orange')}
       </div>
     </div>
 
@@ -1966,12 +2007,12 @@ function generateEOD(){
   document.getElementById('eodDlBtn').classList.add('show');
   document.getElementById('eodSaveBtn').classList.add('show');
 
-  lastEODData={dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,overdueList,selData,curOff,prevOff,curSal,prevSal};
+  lastEODData={dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,offLog,salLog,overdueList,selData,curOff,prevOff,curSal,prevSal};
   eodReportText=buildEODText(lastEODData);
 }
 
 function buildEODText(d){
-  const {dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,overdueList,selData,curOff,prevOff,curSal,prevSal}=d;
+  const {dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,offLog,salLog,overdueList,selData,curOff,prevOff,curSal,prevSal}=d;
   const sep='─'.repeat(52);
   const total=totalAuto+totalHero,prev=prevAuto+prevHero,diff=total-prev,sign=diff>=0?'+':'';
   let t=`YANTRAYUG — END OF DAY REPORT\n${sep}\nDate     : ${fmtDispISO(dateISO)}\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nOUTSTANDING SUMMARY\n`;
@@ -1988,10 +2029,31 @@ function buildEODText(d){
     const pv=prevSal[n]||{total:0}; const df=v.total-pv.total;
     t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
   });
-  t+=`\n${sep}\nOFFICE CALLS\n`;
-  offRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
-  t+=`\n${sep}\nSALESMAN CALLS\n`;
-  salRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
+  // Detailed call log
+  t+=`\n${sep}\nOFFICE CALLS — DETAIL\n`;
+  offRows.forEach(([caller,cnt])=>{
+    t+=`\n  ${caller} (${cnt} calls)\n`;
+    (offLog[caller]||[]).forEach(e=>{
+      t+=`    • ${e.partyName.substring(0,36).padEnd(37)}`;
+      if(e.autoBal>0) t+=` Auto:₹${fmtN(e.autoBal)}`;
+      if(e.heroBal>0) t+=` Hero:₹${fmtN(e.heroBal)}`;
+      if(e.remark) t+=`\n      Remark: ${e.remark}`;
+      t+='\n';
+    });
+  });
+  if(!offRows.length) t+=`  No calls logged\n`;
+  t+=`\n${sep}\nSALESMAN CALLS — DETAIL\n`;
+  salRows.forEach(([caller,cnt])=>{
+    t+=`\n  ${caller} (${cnt} calls)\n`;
+    (salLog[caller]||[]).forEach(e=>{
+      t+=`    • ${e.partyName.substring(0,36).padEnd(37)}`;
+      if(e.autoBal>0) t+=` Auto:₹${fmtN(e.autoBal)}`;
+      if(e.heroBal>0) t+=` Hero:₹${fmtN(e.heroBal)}`;
+      if(e.remark) t+=`\n      Remark: ${e.remark}`;
+      t+='\n';
+    });
+  });
+  if(!salRows.length) t+=`  No calls logged\n`;
   t+=`\n${sep}\nTOP OVERDUE PARTIES\n`;
   overdueList.forEach((p,i)=>{
     const rd=selData[p.sr]||{};
@@ -2013,11 +2075,42 @@ function downloadEOD(){
 async function saveEODToSheet(){
   if(!lastEODData){toast('Generate report first','warn');return;}
   const d=lastEODData;
-  const payload=JSON.stringify({offCount:d.offRows,salCount:d.salRows,offOuts:d.curOff,salOuts:d.curSal});
-  const row=['EOD',d.dateISO,d.dateISO,USER.name,new Date().toISOString(),
-    d.totalAuto,d.totalHero,d.totalAuto+d.totalHero,d.prevAuto,d.prevHero,d.prevAuto+d.prevHero,
-    d.called,d.notCalled,d.overdue60,d.overdue30,payload];
-  await saveReportRow(row);
+  const rows=[];
+  // Summary row
+  rows.push(['EOD_SUMMARY', d.dateISO, d.dateISO, USER.name, new Date().toISOString(),
+    d.totalAuto, d.totalHero, d.totalAuto+d.totalHero,
+    d.prevAuto, d.prevHero, d.prevAuto+d.prevHero,
+    d.called, d.notCalled, d.overdue60, d.overdue30, '']);
+  // Per office staff outstanding row
+  Object.entries(d.curOff).forEach(([name,v])=>{
+    const pv=d.prevOff[name]||{total:0,auto:0,hero:0};
+    rows.push(['EOD_OFFICE_STAFF', d.dateISO, d.dateISO, name, new Date().toISOString(),
+      v.auto, v.hero, v.total, pv.auto||0, pv.hero||0, pv.total||0,
+      v.calls, '', '', '', `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
+  });
+  // Per salesman outstanding row
+  Object.entries(d.curSal).forEach(([name,v])=>{
+    const pv=d.prevSal[name]||{total:0,auto:0,hero:0};
+    rows.push(['EOD_SALESMAN', d.dateISO, d.dateISO, name, new Date().toISOString(),
+      v.auto, v.hero, v.total, pv.auto||0, pv.hero||0, pv.total||0,
+      v.calls, '', '', '', `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
+  });
+  // Call detail rows
+  d.offRows.forEach(([caller])=>{
+    (d.offLog[caller]||[]).forEach(e=>{
+      rows.push(['EOD_OFFICE_CALL', d.dateISO, d.dateISO, caller, new Date().toISOString(),
+        e.autoBal, e.heroBal, e.autoBal+e.heroBal, '', '', '',
+        1, '', '', '', e.partyName+'|'+e.remark]);
+    });
+  });
+  d.salRows.forEach(([caller])=>{
+    (d.salLog[caller]||[]).forEach(e=>{
+      rows.push(['EOD_SALESMAN_CALL', d.dateISO, d.dateISO, caller, new Date().toISOString(),
+        e.autoBal, e.heroBal, e.autoBal+e.heroBal, '', '', '',
+        1, '', '', '', e.partyName+'|'+e.remark]);
+    });
+  });
+  await saveReportRows(rows);
 }
 
 /* ══════════════════ WEEKLY REPORT ══════════════════ */
@@ -2190,21 +2283,48 @@ async function saveWeeklyToSheet(){
   await saveReportRow(row);
 }
 
-/* ── Save a report row to REPORTS sheet ── */
-async function saveReportRow(row){
+async function saveWeeklyToSheet(){
+  if(!lastWeeklyData){toast('Generate report first','warn');return;}
+  const d=lastWeeklyData;
+  const rows=[];
+  // Summary
+  rows.push(['WEEKLY_SUMMARY',d.fromISO,d.toISO,USER.name,new Date().toISOString(),
+    d.totalAuto,d.totalHero,d.totalAuto+d.totalHero,0,0,d.prevLatest,
+    d.totalCalled,d.totalNotCalled,d.overdue60,d.overdue30,'']);
+  // Day trend rows
+  d.dayRows.forEach(r=>{
+    rows.push(['WEEKLY_DAY',r.iso,r.iso,USER.name,new Date().toISOString(),
+      r.auto,r.hero,r.total,'','','',r.called,r.notCalled,'','','']);
+  });
+  // Staff outstanding
+  Object.entries(d.curOff).forEach(([name,v])=>{
+    const pv=d.prevOff[name]||{total:0,auto:0,hero:0};
+    rows.push(['WEEKLY_OFFICE_STAFF',d.fromISO,d.toISO,name,new Date().toISOString(),
+      v.auto,v.hero,v.total,pv.auto||0,pv.hero||0,pv.total||0,v.calls,'','','',
+      `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
+  });
+  Object.entries(d.curSal).forEach(([name,v])=>{
+    const pv=d.prevSal[name]||{total:0,auto:0,hero:0};
+    rows.push(['WEEKLY_SALESMAN',d.fromISO,d.toISO,name,new Date().toISOString(),
+      v.auto,v.hero,v.total,pv.auto||0,pv.hero||0,pv.total||0,v.calls,'','','',
+      `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
+  });
+  await saveReportRows(rows);
+}
+
+/* ── Save multiple report rows to REPORTS sheet ── */
+async function saveReportRows(rows){
   dot('syncing');
   try{
-    // Ensure headers exist first
     let vals;
     try{ vals=await fetchSheet(REPORTS_SHEET); }catch(e){ vals=[]; }
     if(!vals||vals.length<1){
       await batchWriteMulti([{range:`${REPORTS_SHEET}!A1:P1`,values:[REPORTS_HEADERS]}]);
     }
-    // Append row
     const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(REPORTS_SHEET+'!A:P')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:[row]})});
+    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:rows})});
     if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
-    dot('ok'); toast('✓ Report saved to REPORTS sheet','ok');
+    dot('ok'); toast(`✓ ${rows.length} rows saved to REPORTS sheet`,'ok');
   }catch(e){ dot('err'); toast('✗ Save failed: '+e.message,'err'); }
 }
 
