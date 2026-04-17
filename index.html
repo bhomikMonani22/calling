@@ -382,6 +382,22 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .cb-empty{font-size:13px;color:var(--dim);padding:20px 0}
 
 /* EOD REPORT */
+.eod-tab-btn{height:36px;padding:0 18px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.eod-tab-btn:hover{border-color:var(--border2);color:var(--ink)}
+.eod-tab-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
+.eod-save-btn{height:38px;padding:0 20px;border-radius:8px;border:2px solid var(--blue);background:var(--blue-dim);color:var(--blue);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:none}
+.eod-save-btn.show{display:inline-flex;align-items:center;gap:6px}
+.eod-save-btn:hover{background:var(--blue);color:#fff}
+.eod-staff-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+@media(max-width:700px){.eod-staff-grid{grid-template-columns:1fr}}
+.eod-staff-row{display:flex;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);gap:12px}
+.eod-staff-row:last-child{border-bottom:none}
+.eod-staff-row:hover{background:var(--bg3)}
+.eod-staff-name{flex:1;font-size:13px;font-weight:600;color:var(--ink)}
+.eod-staff-bal{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;text-align:right}
+.eod-staff-chg{font-size:10px;font-weight:600;margin-top:2px;text-align:right}
+.eod-staff-chg.up{color:var(--red)}.eod-staff-chg.down{color:var(--green)}.eod-staff-chg.same{color:var(--dim)}
+.eod-wk-date-col{font-family:'IBM Plex Mono',monospace;font-size:11px;white-space:nowrap}
 #pEOD{overflow-y:auto}
 .eod-inner{padding:24px 28px;max-width:960px}
 .eod-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
@@ -731,15 +747,37 @@ tr.pw td{background:rgba(229,122,26,.04)}
       <!-- EOD REPORT (admin) -->
       <div class="pane" id="pEOD">
         <div class="eod-inner">
-          <div class="eod-title">📄 End of Day Report</div>
-          <div class="eod-sub">Daily outstanding summary, call performance, and comparison vs previous day</div>
-          <div class="eod-controls">
-            <label style="font-size:11px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Report Date</label>
-            <input type="date" class="eod-date-pick" id="eodDate">
-            <button class="eod-gen-btn" onclick="generateEOD()">Generate Report</button>
-            <button class="eod-dl-btn" id="eodDlBtn" onclick="downloadEOD()">⬇ Download as Text</button>
+          <div class="eod-title">📄 Reports</div>
+          <div class="eod-sub">Daily and weekly outstanding summaries with staff performance and trends</div>
+          <!-- Report type tabs -->
+          <div style="display:flex;gap:8px;margin-bottom:18px">
+            <button class="eod-tab-btn active" id="eodTabDaily" onclick="switchEODTab('daily')">📄 Daily EOD</button>
+            <button class="eod-tab-btn" id="eodTabWeekly" onclick="switchEODTab('weekly')">📅 Weekly Report</button>
           </div>
-          <div id="eodResult"><div class="nodata"><div class="nodata-icon">📄</div><div class="nodata-txt">Select a date and click Generate</div></div></div>
+          <!-- DAILY -->
+          <div id="eodDailyPanel">
+            <div class="eod-controls">
+              <label style="font-size:11px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Report Date</label>
+              <input type="date" class="eod-date-pick" id="eodDate">
+              <button class="eod-gen-btn" onclick="generateEOD()">⚡ Generate</button>
+              <button class="eod-dl-btn" id="eodDlBtn" onclick="downloadEOD()">⬇ Download .txt</button>
+              <button class="eod-save-btn" id="eodSaveBtn" onclick="saveEODToSheet()">💾 Save to Sheet</button>
+            </div>
+            <div id="eodResult"><div class="nodata"><div class="nodata-icon">📄</div><div class="nodata-txt">Select a date and click Generate</div></div></div>
+          </div>
+          <!-- WEEKLY -->
+          <div id="eodWeeklyPanel" style="display:none">
+            <div class="eod-controls">
+              <label style="font-size:11px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Week Starting</label>
+              <input type="date" class="eod-date-pick" id="eodWeekFrom">
+              <label style="font-size:11px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">To</label>
+              <input type="date" class="eod-date-pick" id="eodWeekTo">
+              <button class="eod-gen-btn" onclick="generateWeekly()">⚡ Generate</button>
+              <button class="eod-dl-btn" id="eodWkDlBtn" onclick="downloadWeekly()">⬇ Download .txt</button>
+              <button class="eod-save-btn" id="eodWkSaveBtn" onclick="saveWeeklyToSheet()">💾 Save to Sheet</button>
+            </div>
+            <div id="eodWeeklyResult"><div class="nodata"><div class="nodata-icon">📅</div><div class="nodata-txt">Select a date range and click Generate</div></div></div>
+          </div>
         </div>
       </div>
 
@@ -1749,164 +1787,425 @@ function renderCB(){
   document.getElementById('cbSections').innerHTML=html||`<div class="cb-empty">No callbacks scheduled. Use the SET button on any party row.</div>`;
 }
 
-/* ═══ EOD REPORT ═══ */
-let eodReportText = ''; // for download
+/* ═══ EOD / WEEKLY REPORTS ═══ */
+const REPORTS_SHEET = 'REPORTS';
+const REPORTS_HEADERS = ['report_type','date_from','date_to','generated_by','generated_at',
+  'total_auto','total_hero','total_outstanding','prev_auto','prev_hero','prev_outstanding',
+  'called','not_called','overdue_60','overdue_30','payload_json'];
 
-function initEOD(){
-  const el = document.getElementById('eodDate');
-  if(!el.value) el.value = TODAYISO;
+let eodReportText='', weeklyReportText='', lastEODData=null, lastWeeklyData=null;
+
+function switchEODTab(tab){
+  document.getElementById('eodTabDaily').classList.toggle('active', tab==='daily');
+  document.getElementById('eodTabWeekly').classList.toggle('active', tab==='weekly');
+  document.getElementById('eodDailyPanel').style.display  = tab==='daily'  ? '' : 'none';
+  document.getElementById('eodWeeklyPanel').style.display = tab==='weekly' ? '' : 'none';
 }
 
-function generateEOD(){
-  const dateISO = document.getElementById('eodDate').value;
-  if(!dateISO){ toast('Select a date first','warn'); return; }
+function initEOD(){
+  if(!document.getElementById('eodDate').value) document.getElementById('eodDate').value=TODAYISO;
+  // Set weekly default: Mon–Sun of current week
+  const mon=new Date(TODAY); mon.setDate(TODAY.getDate()-((TODAY.getDay()+6)%7));
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  if(!document.getElementById('eodWeekFrom').value) document.getElementById('eodWeekFrom').value=isoDate(mon);
+  if(!document.getElementById('eodWeekTo').value)   document.getElementById('eodWeekTo').value=isoDate(sun);
+}
 
-  const selGroup = allDateGroups.find(g=>g.isoDate===dateISO);
-  if(!selGroup){ toast('No data for this date — columns not created yet','warn'); return; }
+/* ── Helper: compute staff outstanding for a date group ── */
+function staffOutstanding(ci){
+  const d=dateData[ci]||{};
+  const offMap={}, salMap={};
+  allParties.forEach(p=>{
+    const pd=d[p.sr]||{};
+    const ab=pd.autoBal||0, hb=pd.heroBal||0, tot=ab+hb;
+    if(p.office){
+      if(!offMap[p.office]) offMap[p.office]={auto:0,hero:0,total:0,calls:0};
+      offMap[p.office].auto+=ab; offMap[p.office].hero+=hb; offMap[p.office].total+=tot;
+      if(pd.nameA) offMap[p.office].calls++;
+    }
+    if(p.salesman){
+      if(!salMap[p.salesman]) salMap[p.salesman]={auto:0,hero:0,total:0,calls:0};
+      salMap[p.salesman].auto+=ab; salMap[p.salesman].hero+=hb; salMap[p.salesman].total+=tot;
+      if(pd.nameH) salMap[p.salesman].calls++;
+    }
+  });
+  return {offMap, salMap};
+}
 
-  // Find previous date group
-  const selIdx = allDateGroups.findIndex(g=>g.isoDate===dateISO);
-  const prevGroup = allDateGroups[selIdx+1]||null; // allDateGroups sorted newest first
-
-  const ci  = selGroup.colIdx;
-  const pci = prevGroup ? prevGroup.colIdx : -1;
-  const selData  = dateData[ci]||{};
-  const prevData = pci>=0 ? dateData[pci]||{} : {};
-
-  // Aggregate
-  let totalAuto=0, totalHero=0, prevAuto=0, prevHero=0;
-  let overdue60=0, overdue30=0, called=0, notCalled=0;
+/* ── Core data aggregation for a date ── */
+function aggregateDate(ci, pci){
+  const selData=dateData[ci]||{}, prevData=pci>=0?dateData[pci]||{}:{};
+  let totalAuto=0,totalHero=0,prevAuto=0,prevHero=0;
+  let overdue60=0,overdue30=0,called=0,notCalled=0;
   const offCount={}, salCount={};
 
   allParties.forEach(p=>{
-    const d  = selData[p.sr]||{};
-    const pd = prevData[p.sr]||{};
+    const d=selData[p.sr]||{}, pd=prevData[p.sr]||{};
     const ab=d.autoBal||0, hb=d.heroBal||0;
-    const ad=d.autoDays||0, hd=d.heroDays||0;
     if(ab===0&&hb===0) return;
     totalAuto+=ab; totalHero+=hb;
     prevAuto+=pd.autoBal||0; prevHero+=pd.heroBal||0;
-    const maxD=Math.max(ad,hd);
-    if(maxD>60) overdue60++;
-    else if(maxD>30) overdue30++;
+    const maxD=Math.max(d.autoDays||0,d.heroDays||0);
+    if(maxD>60) overdue60++; else if(maxD>30) overdue30++;
     const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
     if(hasCalled) called++; else notCalled++;
     if(d.nameA) offCount[d.nameA]=(offCount[d.nameA]||0)+1;
     if(d.nameH) salCount[d.nameH]=(salCount[d.nameH]||0)+1;
   });
+  return {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,selData,prevData};
+}
 
-  const totalToday  = totalAuto+totalHero;
-  const totalPrev   = prevAuto+prevHero;
-  const totalChange = totalToday-totalPrev;
-  const autoChange  = totalAuto-prevAuto;
-  const heroChange  = totalHero-prevHero;
+/* ── Staff outstanding table HTML ── */
+function mkStaffTable(curMap, prevMap, label, colorCls){
+  const rows=Object.entries(curMap).sort((a,b)=>b[1].total-a[1].total);
+  if(!rows.length) return `<div style="padding:16px;color:var(--dim);font-size:12px">No data</div>`;
+  return rows.map(([name,cur])=>{
+    const prev=prevMap[name]||{total:0,auto:0,hero:0};
+    const diff=cur.total-prev.total;
+    const chgCls=diff===0?'same':diff>0?'up':'down';
+    const chgTxt=diff===0?'→ No change':diff>0?`▲ +₹${fmtN(Math.abs(diff))}`:`▼ -₹${fmtN(Math.abs(diff))}`;
+    return `<div class="eod-staff-row">
+      <div class="eod-staff-name">${esc(name)}</div>
+      <div>
+        <div class="eod-staff-bal" style="color:var(--${colorCls})">₹${fmtN(cur.total)}</div>
+        <div class="eod-staff-chg ${chgCls}">${chgTxt}</div>
+        <div style="font-size:9px;color:var(--dim);margin-top:1px">${cur.calls} calls today</div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  const changeArrow=(v)=> v===0?'→ No change':v>0?`▲ +₹${fmtN(Math.abs(v))} vs prev`:`▼ -₹${fmtN(Math.abs(v))} vs prev`;
-  const changeCls=(v,inverted=false)=>{ if(v===0) return 'same'; const up=v>0; return inverted?(up?'down':'up'):(up?'up':'down'); };
+/* ── Leaderboard rows HTML ── */
+function mkLeaderRows(rows){
+  const rank=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
+  const rankCls=i=>i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
+  if(!rows.length) return `<tr><td colspan="3" style="color:var(--dim);padding:14px">No calls logged</td></tr>`;
+  return rows.map(([n,c],i)=>`<tr>
+    <td style="width:32px;font-size:14px">${rank(i)}</td>
+    <td class="${rankCls(i)}">${esc(n)}</td>
+    <td class="num orange">${c} call${c!==1?'s':''}</td>
+  </tr>`).join('');
+}
 
+/* ── Change arrow helper ── */
+const chgArrow=v=>v===0?'→ No change':v>0?`▲ +₹${fmtN(Math.abs(v))}`:`▼ -₹${fmtN(Math.abs(v))}`;
+const chgCls=(v,inv=false)=>v===0?'same':((v>0)!==inv?'up':'down');
+
+/* ══════════════════ DAILY EOD ══════════════════ */
+function generateEOD(){
+  const dateISO=document.getElementById('eodDate').value;
+  if(!dateISO){toast('Select a date first','warn');return;}
+  const selGroup=allDateGroups.find(g=>g.isoDate===dateISO);
+  if(!selGroup){toast('No data for this date — columns not created yet','warn');return;}
+  const selIdx=allDateGroups.findIndex(g=>g.isoDate===dateISO);
+  const prevGroup=allDateGroups[selIdx+1]||null;
+  const ci=selGroup.colIdx, pci=prevGroup?prevGroup.colIdx:-1;
+
+  const {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,selData,prevData}=aggregateDate(ci,pci);
+  const {offMap:curOff, salMap:curSal}=staffOutstanding(ci);
+  const {offMap:prevOff, salMap:prevSal}=pci>=0?staffOutstanding(pci):{offMap:{},salMap:{}};
+  const totalToday=totalAuto+totalHero, totalPrev=prevAuto+prevHero;
   const srt=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]);
   const offRows=srt(offCount), salRows=srt(salCount);
-  const rank=(i)=>i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':'';
-  const rankCls=(i)=>i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
 
-  const mkLeaderRows=(rows,label)=>{
-    if(!rows.length) return `<tr><td colspan="3" style="color:var(--dim);padding:14px">No calls logged</td></tr>`;
-    return rows.map(([n,c],i)=>`<tr>
-      <td style="width:32px;font-size:14px">${rank(i)}</td>
-      <td class="${rankCls(i)}">${esc(n)}</td>
-      <td class="num orange">${c} call${c>1?'s':''}</td>
-    </tr>`).join('');
-  };
-
-  // Top overdue parties
-  const overdueList = allParties.map(p=>{
+  const overdueList=allParties.map(p=>{
     const d=selData[p.sr]||{};
-    return {...p, ab:d.autoBal||0, hb:d.heroBal||0, maxD:Math.max(d.autoDays||0,d.heroDays||0), total:(d.autoBal||0)+(d.heroBal||0)};
+    return {...p,ab:d.autoBal||0,hb:d.heroBal||0,maxD:Math.max(d.autoDays||0,d.heroDays||0),total:(d.autoBal||0)+(d.heroBal||0)};
   }).filter(p=>p.maxD>30&&p.total>0).sort((a,b)=>b.maxD-a.maxD).slice(0,20);
 
   const html=`
     <div class="eod-section">
-      <div class="eod-section-head">Outstanding Summary — ${fmtDispISO(dateISO)} <span>${prevGroup?`vs ${fmtDispISO(prevGroup.isoDate)}`:'(no previous date to compare)'}</span></div>
+      <div class="eod-section-head">📊 Outstanding Summary — ${fmtDispISO(dateISO)} <span>${prevGroup?`vs ${fmtDispISO(prevGroup.isoDate)}`:'(no previous date)'}</span></div>
       <div class="eod-kpi-row">
-        <div class="eod-kpi"><div class="eod-kpi-label">Total Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalToday)}</div><div class="eod-kpi-change ${changeCls(totalChange,true)}">${changeArrow(totalChange)}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Auto Outstanding</div><div class="eod-kpi-val blue">₹${fmtN(totalAuto)}</div><div class="eod-kpi-change ${changeCls(autoChange,true)}">${changeArrow(autoChange)}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Hero Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalHero)}</div><div class="eod-kpi-change ${changeCls(heroChange,true)}">${changeArrow(heroChange)}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Parties Outstanding</div><div class="eod-kpi-val blue">${allParties.filter(p=>{const d=selData[p.sr]||{};return (d.autoBal||0)+(d.heroBal||0)>0;}).length}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">with balance &gt; 0</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">Total Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalToday)}</div><div class="eod-kpi-change ${chgCls(totalToday-totalPrev,true)}">${chgArrow(totalToday-totalPrev)}</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">Auto Outstanding</div><div class="eod-kpi-val blue">₹${fmtN(totalAuto)}</div><div class="eod-kpi-change ${chgCls(totalAuto-prevAuto,true)}">${chgArrow(totalAuto-prevAuto)}</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">Hero Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalHero)}</div><div class="eod-kpi-change ${chgCls(totalHero-prevHero,true)}">${chgArrow(totalHero-prevHero)}</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">Parties Outstanding</div><div class="eod-kpi-val blue">${allParties.filter(p=>{const d=selData[p.sr]||{};return (d.autoBal||0)+(d.heroBal||0)>0;}).length}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">with balance</div></div>
       </div>
       <div class="eod-kpi-row">
-        <div class="eod-kpi"><div class="eod-kpi-label">Called Today</div><div class="eod-kpi-val green">${called}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">remarks logged</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Not Called</div><div class="eod-kpi-val red">${notCalled}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">no remark yet</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">60+ Days Overdue</div><div class="eod-kpi-val red">${overdue60}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">call immediately</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">30–60 Days Overdue</div><div class="eod-kpi-val orange">${overdue30}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">follow up soon</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">Called Today</div><div class="eod-kpi-val green">${called}</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">Not Called</div><div class="eod-kpi-val red">${notCalled}</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">60+ Days Overdue</div><div class="eod-kpi-val red">${overdue60}</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">30–60 Days Overdue</div><div class="eod-kpi-val orange">${overdue30}</div></div>
+      </div>
+    </div>
+
+    <div class="eod-staff-grid">
+      <div class="eod-section">
+        <div class="eod-section-head">🏢 Office Staff — Outstanding <span>vs prev day</span></div>
+        ${mkStaffTable(curOff,prevOff,'blue','blue')}
+      </div>
+      <div class="eod-section">
+        <div class="eod-section-head">👤 Salesman — Outstanding <span>vs prev day</span></div>
+        ${mkStaffTable(curSal,prevSal,'orange','orange')}
       </div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
       <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Team Calls <span>${offRows.reduce((s,[,c])=>s+c,0)} total</span></div>
-        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(offRows,'office')}</tbody></table>
+        <div class="eod-section-head">🏢 Office Calls Leaderboard <span>${offRows.reduce((s,[,c])=>s+c,0)} total</span></div>
+        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(offRows)}</tbody></table>
       </div>
       <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman Team Calls <span>${salRows.reduce((s,[,c])=>s+c,0)} total</span></div>
-        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(salRows,'salesman')}</tbody></table>
+        <div class="eod-section-head">👤 Salesman Calls Leaderboard <span>${salRows.reduce((s,[,c])=>s+c,0)} total</span></div>
+        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(salRows)}</tbody></table>
       </div>
     </div>
 
     <div class="eod-section">
       <div class="eod-section-head">🔴 Top Overdue Parties (30+ days) <span>${overdueList.length} shown</span></div>
-      <table class="eod-table">
-        <thead><tr><th>#</th><th>Party</th><th>Route</th><th>Days</th><th style="text-align:right">Auto ₹</th><th style="text-align:right">Hero ₹</th><th style="text-align:right">Total ₹</th><th>Remark</th></tr></thead>
-        <tbody>${overdueList.length?overdueList.map((p,i)=>{
-          const d=selData[p.sr]||{};
-          return `<tr><td style="color:var(--dim)">${i+1}</td><td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}</div></td><td style="font-size:11px">${esc(p.route)}</td><td><span class="dbg ${p.maxD>60?'over':'warn'}">${p.maxD}d</span></td><td class="num blue">${p.ab>0?'₹'+fmtN(p.ab):'—'}</td><td class="num orange">${p.hb>0?'₹'+fmtN(p.hb):'—'}</td><td class="num red">₹${fmtN(p.total)}</td><td style="font-size:11px;color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.remA||d.remH||'—')}</td></tr>`;
-        }).join(''):`<tr><td colspan="8" style="color:var(--dim);padding:14px">No overdue parties over 30 days</td></tr>`}
-        </tbody>
-      </table>
+      <table class="eod-table"><thead><tr><th>#</th><th>Party</th><th>Route</th><th>Days</th><th style="text-align:right">Auto ₹</th><th style="text-align:right">Hero ₹</th><th style="text-align:right">Total ₹</th><th>Remark</th></tr></thead>
+      <tbody>${overdueList.length?overdueList.map((p,i)=>{
+        const d=selData[p.sr]||{};
+        return `<tr><td style="color:var(--dim)">${i+1}</td><td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}</div></td><td style="font-size:11px">${esc(p.route)}</td><td><span class="dbg ${p.maxD>60?'over':'warn'}">${p.maxD}d</span></td><td class="num blue">${p.ab>0?'₹'+fmtN(p.ab):'—'}</td><td class="num orange">${p.hb>0?'₹'+fmtN(p.hb):'—'}</td><td class="num red">₹${fmtN(p.total)}</td><td style="font-size:11px;color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.remA||d.remH||'—')}</td></tr>`;
+      }).join(''):`<tr><td colspan="8" style="color:var(--dim);padding:14px">None</td></tr>`}
+      </tbody></table>
     </div>`;
 
   document.getElementById('eodResult').innerHTML=html;
   document.getElementById('eodDlBtn').classList.add('show');
+  document.getElementById('eodSaveBtn').classList.add('show');
 
-  // Build plain text version for download
-  eodReportText = buildEODText(dateISO, prevGroup, totalAuto, totalHero, prevAuto, prevHero, called, notCalled, overdue60, overdue30, offRows, salRows, overdueList, selData);
+  lastEODData={dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,overdueList,selData,curOff,prevOff,curSal,prevSal};
+  eodReportText=buildEODText(lastEODData);
 }
 
-function buildEODText(dateISO, prevGroup, totalAuto, totalHero, prevAuto, prevHero, called, notCalled, overdue60, overdue30, offRows, salRows, overdueList, selData){
-  const sep='─'.repeat(50);
-  const total=totalAuto+totalHero, prev=prevAuto+prevHero;
-  const diff=total-prev, sign=diff>0?'+':'';
-  let txt=`YANTRAYUG — END OF DAY REPORT\n${sep}\nDate: ${fmtDispISO(dateISO)}\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nOUTSTANDING SUMMARY\n`;
-  txt+=`Total Outstanding : ₹${fmtN(total)}\n`;
-  txt+=`Auto Outstanding  : ₹${fmtN(totalAuto)}\n`;
-  txt+=`Hero Outstanding  : ₹${fmtN(totalHero)}\n`;
-  if(prevGroup) txt+=`vs Previous Day   : ${sign}₹${fmtN(Math.abs(diff))} (${diff>0?'▲ Increased':'▼ Reduced'})\n`;
-  txt+=`Called Today      : ${called}\n`;
-  txt+=`Not Called        : ${notCalled}\n`;
-  txt+=`60+ Days Overdue  : ${overdue60}\n`;
-  txt+=`30-60 Days Overdue: ${overdue30}\n`;
-  txt+=`\n${sep}\nOFFICE TEAM CALL COUNT\n`;
-  if(offRows.length) offRows.forEach(([n,c],i)=>{ txt+=`  ${i+1}. ${n.padEnd(18)} ${c} calls\n`; });
-  else txt+=`  No calls logged\n`;
-  txt+=`\n${sep}\nSALESMAN TEAM CALL COUNT\n`;
-  if(salRows.length) salRows.forEach(([n,c],i)=>{ txt+=`  ${i+1}. ${n.padEnd(18)} ${c} calls\n`; });
-  else txt+=`  No calls logged\n`;
-  txt+=`\n${sep}\nTOP OVERDUE PARTIES\n`;
-  overdueList.forEach((p,i)=>{
-    const d=selData[p.sr]||{};
-    txt+=`  ${String(i+1).padStart(2,'0')}. ${p.name.substring(0,35).padEnd(36)} ${String(p.maxD).padStart(3)}d  ₹${fmtN(p.total)}\n`;
-    if(d.remA||d.remH) txt+=`       Remark: ${d.remA||d.remH}\n`;
+function buildEODText(d){
+  const {dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,overdueList,selData,curOff,prevOff,curSal,prevSal}=d;
+  const sep='─'.repeat(52);
+  const total=totalAuto+totalHero,prev=prevAuto+prevHero,diff=total-prev,sign=diff>=0?'+':'';
+  let t=`YANTRAYUG — END OF DAY REPORT\n${sep}\nDate     : ${fmtDispISO(dateISO)}\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nOUTSTANDING SUMMARY\n`;
+  t+=`Total     : ₹${fmtN(total)}  ${prevGroup?`(${sign}₹${fmtN(Math.abs(diff))} vs prev)`:'(no prev)'}\n`;
+  t+=`Auto      : ₹${fmtN(totalAuto)}\nHero      : ₹${fmtN(totalHero)}\n`;
+  t+=`Called    : ${called}   Not Called: ${notCalled}\n60+ Days  : ${overdue60}   30-60 Days: ${overdue30}\n`;
+  t+=`\n${sep}\nOFFICE STAFF OUTSTANDING\n`;
+  Object.entries(curOff).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
+    const pv=prevOff[n]||{total:0}; const df=v.total-pv.total;
+    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
   });
-  txt+=`\n${sep}\nEnd of Report`;
-  return txt;
+  t+=`\n${sep}\nSALESMAN OUTSTANDING\n`;
+  Object.entries(curSal).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
+    const pv=prevSal[n]||{total:0}; const df=v.total-pv.total;
+    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
+  });
+  t+=`\n${sep}\nOFFICE CALLS\n`;
+  offRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
+  t+=`\n${sep}\nSALESMAN CALLS\n`;
+  salRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
+  t+=`\n${sep}\nTOP OVERDUE PARTIES\n`;
+  overdueList.forEach((p,i)=>{
+    const rd=selData[p.sr]||{};
+    t+=`  ${String(i+1).padStart(2,'0')}. ${p.name.substring(0,34).padEnd(35)} ${String(p.maxD).padStart(4)}d  ₹${fmtN(p.total)}\n`;
+    if(rd.remA||rd.remH) t+=`       Remark: ${rd.remA||rd.remH}\n`;
+  });
+  t+=`\n${sep}\nEnd of Report`;
+  return t;
 }
 
 function downloadEOD(){
+  if(!eodReportText){toast('Generate report first','warn');return;}
   const dateISO=document.getElementById('eodDate').value||TODAYISO;
-  const blob=new Blob([eodReportText],{type:'text/plain'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`EOD_Report_${dateISO}.txt`;
-  a.click();
+  const blob=new Blob([eodReportText],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`EOD_${dateISO}.txt`; a.click();
+}
+
+async function saveEODToSheet(){
+  if(!lastEODData){toast('Generate report first','warn');return;}
+  const d=lastEODData;
+  const payload=JSON.stringify({offCount:d.offRows,salCount:d.salRows,offOuts:d.curOff,salOuts:d.curSal});
+  const row=['EOD',d.dateISO,d.dateISO,USER.name,new Date().toISOString(),
+    d.totalAuto,d.totalHero,d.totalAuto+d.totalHero,d.prevAuto,d.prevHero,d.prevAuto+d.prevHero,
+    d.called,d.notCalled,d.overdue60,d.overdue30,payload];
+  await saveReportRow(row);
+}
+
+/* ══════════════════ WEEKLY REPORT ══════════════════ */
+function generateWeekly(){
+  const fromISO=document.getElementById('eodWeekFrom').value;
+  const toISO=document.getElementById('eodWeekTo').value;
+  if(!fromISO||!toISO){toast('Select date range','warn');return;}
+  if(fromISO>toISO){toast('From date must be before To date','warn');return;}
+
+  const weekGroups=allDateGroups.filter(g=>g.isoDate>=fromISO&&g.isoDate<=toISO)
+    .sort((a,b)=>a.isoDate.localeCompare(b.isoDate));
+
+  if(!weekGroups.length){toast('No data found in this date range','warn');return;}
+
+  // Aggregate across all days in range
+  let totalAuto=0,totalHero=0,overdue60=0,overdue30=0,totalCalled=0,totalNotCalled=0;
+  const offCount={},salCount={};
+  // Staff outstanding: use latest day in range
+  const latestGroup=weekGroups[weekGroups.length-1];
+  const firstGroup=weekGroups[0];
+  // Previous week comparison: day before fromISO
+  const beforeIdx=allDateGroups.findIndex(g=>g.isoDate===fromISO);
+  const prevGroup=allDateGroups[beforeIdx+1]||null;
+
+  // Per-day totals for trend table
+  const dayRows=weekGroups.map(g=>{
+    const ci=g.colIdx;
+    let a=0,h=0,c=0,nc=0;
+    allParties.forEach(p=>{
+      const d=(dateData[ci]||{})[p.sr]||{};
+      const ab=d.autoBal||0,hb=d.heroBal||0;
+      if(ab===0&&hb===0) return;
+      a+=ab; h+=hb;
+      const called=!!(d.remA||d.nameA||d.remH||d.nameH);
+      if(called) c++; else nc++;
+    });
+    return {iso:g.isoDate,auto:a,hero:h,total:a+h,called:c,notCalled:nc};
+  });
+
+  // Aggregate all days
+  weekGroups.forEach(g=>{
+    const ci=g.colIdx;
+    allParties.forEach(p=>{
+      const d=(dateData[ci]||{})[p.sr]||{};
+      const ab=d.autoBal||0,hb=d.heroBal||0;
+      if(ab===0&&hb===0) return;
+      const maxD=Math.max(d.autoDays||0,d.heroDays||0);
+      if(g===latestGroup){ totalAuto+=ab; totalHero+=hb; if(maxD>60)overdue60++; else if(maxD>30)overdue30++; }
+      const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
+      if(hasCalled) totalCalled++; else if(g===latestGroup) totalNotCalled++;
+      if(d.nameA) offCount[d.nameA]=(offCount[d.nameA]||0)+1;
+      if(d.nameH) salCount[d.nameH]=(salCount[d.nameH]||0)+1;
+    });
+  });
+
+  const {offMap:curOff,salMap:curSal}=staffOutstanding(latestGroup.colIdx);
+  const {offMap:prevOff,salMap:prevSal}=prevGroup?staffOutstanding(prevGroup.colIdx):{offMap:{},salMap:{}};
+  const srt=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  const offRows=srt(offCount),salRows=srt(salCount);
+  const totalToday=totalAuto+totalHero;
+  const prevLatest=prevGroup?allParties.reduce((s,p)=>{const d=(dateData[prevGroup.colIdx]||{})[p.sr]||{};return s+(d.autoBal||0)+(d.heroBal||0);},0):0;
+
+  const html=`
+    <div class="eod-section">
+      <div class="eod-section-head">📅 Weekly Summary — ${fmtDispISO(fromISO)} to ${fmtDispISO(toISO)} <span>${weekGroups.length} days</span></div>
+      <div class="eod-kpi-row">
+        <div class="eod-kpi"><div class="eod-kpi-label">Latest Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalToday)}</div><div class="eod-kpi-change ${chgCls(totalToday-prevLatest,true)}">${chgArrow(totalToday-prevLatest)} vs prev</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">Total Calls (Week)</div><div class="eod-kpi-val green">${totalCalled}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">across all days</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">60+ Days Overdue</div><div class="eod-kpi-val red">${overdue60}</div></div>
+        <div class="eod-kpi"><div class="eod-kpi-label">30–60 Days Overdue</div><div class="eod-kpi-val orange">${overdue30}</div></div>
+      </div>
+    </div>
+
+    <div class="eod-section" style="margin-bottom:18px">
+      <div class="eod-section-head">📈 Day-by-Day Outstanding Trend</div>
+      <table class="eod-table"><thead><tr><th>Date</th><th style="text-align:right">Auto ₹</th><th style="text-align:right">Hero ₹</th><th style="text-align:right">Total ₹</th><th style="text-align:right">Change</th><th style="text-align:right">Called</th></tr></thead>
+      <tbody>${dayRows.map((r,i)=>{
+        const prev=i>0?dayRows[i-1]:null;
+        const diff=prev?r.total-prev.total:0;
+        const dc=prev?(diff===0?'same':diff>0?'up':'down'):'same';
+        const isToday=r.iso===TODAYISO;
+        return `<tr style="${isToday?'background:var(--y-dim)':''}">
+          <td class="eod-wk-date-col">${fmtDispISO(r.iso)}${isToday?' ✦':''}</td>
+          <td class="num blue">₹${fmtN(r.auto)}</td>
+          <td class="num orange">₹${fmtN(r.hero)}</td>
+          <td class="num" style="font-weight:700">₹${fmtN(r.total)}</td>
+          <td class="num ${dc}">${prev?(diff===0?'→':diff>0?`▲ +₹${fmtN(Math.abs(diff))}`:`▼ -₹${fmtN(Math.abs(diff))}`):'—'}</td>
+          <td class="num green">${r.called}</td>
+        </tr>`;
+      }).join('')}</tbody></table>
+    </div>
+
+    <div class="eod-staff-grid">
+      <div class="eod-section">
+        <div class="eod-section-head">🏢 Office Staff Outstanding <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
+        ${mkStaffTable(curOff,prevOff,'blue','blue')}
+      </div>
+      <div class="eod-section">
+        <div class="eod-section-head">👤 Salesman Outstanding <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
+        ${mkStaffTable(curSal,prevSal,'orange','orange')}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+      <div class="eod-section">
+        <div class="eod-section-head">🏢 Office Calls (Week Total) <span>${offRows.reduce((s,[,c])=>s+c,0)} total</span></div>
+        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(offRows)}</tbody></table>
+      </div>
+      <div class="eod-section">
+        <div class="eod-section-head">👤 Salesman Calls (Week Total) <span>${salRows.reduce((s,[,c])=>s+c,0)} total</span></div>
+        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(salRows)}</tbody></table>
+      </div>
+    </div>`;
+
+  document.getElementById('eodWeeklyResult').innerHTML=html;
+  document.getElementById('eodWkDlBtn').classList.add('show');
+  document.getElementById('eodWkSaveBtn').classList.add('show');
+
+  lastWeeklyData={fromISO,toISO,totalAuto,totalHero,prevLatest,totalCalled,totalNotCalled,overdue60,overdue30,offRows,salRows,dayRows,curOff,prevOff,curSal,prevSal,weekGroups};
+  weeklyReportText=buildWeeklyText(lastWeeklyData);
+}
+
+function buildWeeklyText(d){
+  const {fromISO,toISO,totalAuto,totalHero,prevLatest,totalCalled,overdue60,overdue30,offRows,salRows,dayRows,curOff,prevOff,curSal,prevSal}=d;
+  const sep='─'.repeat(52);
+  const total=totalAuto+totalHero,diff=total-prevLatest,sign=diff>=0?'+':'';
+  let t=`YANTRAYUG — WEEKLY REPORT\n${sep}\nPeriod   : ${fmtDispISO(fromISO)} to ${fmtDispISO(toISO)}\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nWEEKLY SUMMARY\n`;
+  t+=`Latest Outstanding: ₹${fmtN(total)}  (${sign}₹${fmtN(Math.abs(diff))} vs prev)\n`;
+  t+=`Total Calls: ${totalCalled}  Overdue 60+: ${overdue60}  Overdue 30-60: ${overdue30}\n`;
+  t+=`\n${sep}\nDAY-BY-DAY TREND\n`;
+  dayRows.forEach((r,i)=>{
+    const prev=i>0?dayRows[i-1]:null;
+    const diff=prev?r.total-prev.total:0;
+    t+=`  ${fmtDispISO(r.iso).padEnd(12)} ₹${fmtN(r.total).padStart(14)}  ${prev?(diff===0?'→':diff>0?`▲ +₹${fmtN(Math.abs(diff))}`:`▼ -₹${fmtN(Math.abs(diff))}`):'(first day)'}  Calls: ${r.called}\n`;
+  });
+  t+=`\n${sep}\nOFFICE STAFF OUTSTANDING\n`;
+  Object.entries(curOff).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
+    const pv=prevOff[n]||{total:0};const df=v.total-pv.total;
+    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
+  });
+  t+=`\n${sep}\nSALESMAN OUTSTANDING\n`;
+  Object.entries(curSal).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
+    const pv=prevSal[n]||{total:0};const df=v.total-pv.total;
+    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
+  });
+  t+=`\n${sep}\nOFFICE CALLS (WEEK)\n`;
+  offRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
+  t+=`\n${sep}\nSALESMAN CALLS (WEEK)\n`;
+  salRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
+  t+=`\n${sep}\nEnd of Weekly Report`;
+  return t;
+}
+
+function downloadWeekly(){
+  if(!weeklyReportText){toast('Generate report first','warn');return;}
+  const from=document.getElementById('eodWeekFrom').value||TODAYISO;
+  const to=document.getElementById('eodWeekTo').value||TODAYISO;
+  const blob=new Blob([weeklyReportText],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`Weekly_${from}_${to}.txt`; a.click();
+}
+
+async function saveWeeklyToSheet(){
+  if(!lastWeeklyData){toast('Generate report first','warn');return;}
+  const d=lastWeeklyData;
+  const payload=JSON.stringify({offCount:d.offRows,salCount:d.salRows,offOuts:d.curOff,salOuts:d.curSal,dayRows:d.dayRows});
+  const row=['WEEKLY',d.fromISO,d.toISO,USER.name,new Date().toISOString(),
+    d.totalAuto,d.totalHero,d.totalAuto+d.totalHero,0,0,d.prevLatest,
+    d.totalCalled,d.totalNotCalled,d.overdue60,d.overdue30,payload];
+  await saveReportRow(row);
+}
+
+/* ── Save a report row to REPORTS sheet ── */
+async function saveReportRow(row){
+  dot('syncing');
+  try{
+    // Ensure headers exist first
+    let vals;
+    try{ vals=await fetchSheet(REPORTS_SHEET); }catch(e){ vals=[]; }
+    if(!vals||vals.length<1){
+      await batchWriteMulti([{range:`${REPORTS_SHEET}!A1:P1`,values:[REPORTS_HEADERS]}]);
+    }
+    // Append row
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(REPORTS_SHEET+'!A:P')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:[row]})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+    dot('ok'); toast('✓ Report saved to REPORTS sheet','ok');
+  }catch(e){ dot('err'); toast('✗ Save failed: '+e.message,'err'); }
 }
 
 /* ═══ MARG PARSER ═══ */
