@@ -381,7 +381,54 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .cb-card-date-sub{font-size:10px;color:var(--dim);margin-top:2px}
 .cb-empty{font-size:13px;color:var(--dim);padding:20px 0}
 
-/* EOD REPORT */
+/* ROUTE PRINT */
+#pRP{overflow-y:auto}
+.rp-inner{padding:24px 28px;max-width:1100px}
+.rp-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.rp-sub{font-size:13px;color:var(--mid);margin-bottom:22px}
+.rp-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:22px}
+.rp-controls label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.4px;text-transform:uppercase}
+.rp-select{flex:0 1 240px;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg)}
+.rp-select:focus{border-color:var(--y)}
+.rp-min{border:1.5px solid var(--border);border-radius:8px;padding:9px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink);outline:none;background:var(--bg)}
+.rp-min:focus{border-color:var(--y)}
+.rp-btn{margin-left:auto;height:38px;padding:0 18px;border-radius:8px;border:2px solid;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.rp-btn.print{border-color:var(--ink);background:var(--ink);color:#fff}
+.rp-btn.print:hover{background:#222}
+.rp-btn.download{border-color:var(--green);background:var(--green-dim);color:var(--green);margin-left:8px}
+.rp-btn.download:hover{background:var(--green);color:#fff}
+.rp-printable{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;box-shadow:var(--shadow)}
+.rp-print-header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:16px}
+.rp-print-co{font-size:18px;font-weight:800;letter-spacing:-.3px;color:var(--ink)}
+.rp-print-meta{font-size:12px;color:var(--mid);margin-top:4px;display:flex;gap:18px;flex-wrap:wrap}
+.rp-print-meta b{color:var(--ink);font-weight:700}
+.rp-summary{display:flex;gap:18px;padding:12px 14px;background:var(--bg3);border-radius:8px;margin-bottom:16px;flex-wrap:wrap}
+.rp-summary-item{display:flex;flex-direction:column}
+.rp-summary-item-label{font-size:10px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
+.rp-summary-item-val{font-size:16px;font-weight:800;font-family:'IBM Plex Mono',monospace}
+.rp-table{width:100%;border-collapse:collapse;font-size:12px}
+.rp-table thead th{background:var(--bg3);font-size:10px;font-weight:700;color:var(--mid);padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
+.rp-table thead th.right{text-align:right}
+.rp-table tbody td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.rp-table tbody tr:hover td{background:var(--bg3)}
+.rp-table .num{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
+.rp-table .num.auto{color:var(--blue)}.rp-table .num.hero{color:var(--orange)}.rp-table .num.total{color:var(--ink)}
+.rp-table .num.zero{color:var(--dim);font-weight:400}
+.rp-empty{padding:40px;text-align:center;font-size:13px;color:var(--dim)}
+
+/* Print styles — when window.print() is invoked */
+@media print {
+  body * { visibility: hidden; }
+  .rp-printable, .rp-printable * { visibility: visible; }
+  .rp-printable { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+  .no-print { display: none !important; }
+  #sidebar, #topbar, .tb-right, .nav-item, #notifStack, #toasts, #dayBanner { display: none !important; }
+  #main, #content, .pane { display: block !important; overflow: visible !important; }
+  .rp-inner { padding: 12px !important; max-width: 100% !important; }
+  .rp-table { font-size: 11px; }
+  .rp-table thead th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @page { margin: 12mm; size: A4 portrait; }
+}
 .eod-tab-btn{height:36px;padding:0 18px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .eod-tab-btn:hover{border-color:var(--border2);color:var(--ink)}
 .eod-tab-btn.active{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -735,6 +782,27 @@ tr.pw td{background:rgba(229,122,26,.04)}
       </div>
 
       <!-- CALLBACKS (all roles) -->
+      <!-- ROUTE PRINT (all roles) -->
+      <div class="pane" id="pRP">
+        <div class="rp-inner">
+          <div class="rp-title">🖨 Route-wise Outstanding Print</div>
+          <div class="rp-sub">Select a route to list all parties with outstanding. Print or download as needed.</div>
+          <div class="rp-controls no-print">
+            <label>Route</label>
+            <select class="rp-select" id="rpRoute" onchange="renderRP()"><option value="">— select route —</option></select>
+            <label style="margin-left:14px">Min Days</label>
+            <input type="number" min="0" max="999" value="0" class="rp-min" id="rpMinDays" oninput="renderRP()" style="width:70px">
+            <label style="margin-left:14px">
+              <input type="checkbox" id="rpOnlyOutstanding" checked onchange="renderRP()" style="margin-right:5px">
+              Only parties with balance
+            </label>
+            <button class="rp-btn print" onclick="window.print()" id="rpPrintBtn" style="display:none">🖨 Print</button>
+            <button class="rp-btn download" onclick="downloadRP()" id="rpDlBtn" style="display:none">⬇ Download .txt</button>
+          </div>
+          <div id="rpResult"><div class="nodata"><div class="nodata-icon">🖨</div><div class="nodata-txt">Select a route to begin</div></div></div>
+        </div>
+      </div>
+
       <div class="pane" id="pCB">
         <div class="cb-inner">
           <div class="cb-title">📞 Callbacks</div>
@@ -835,12 +903,14 @@ const ADMIN_PASS  = 'yantrayug2024'; // simple admin password
 const NAV_OFFICE = [
   {t:'SumO', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'O', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
+  {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
   {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
 const NAV_SALESMAN = [
   {t:'SumS', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'S', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
+  {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
   {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
@@ -850,6 +920,7 @@ const NAV_ADMIN = [
   {t:'S', icon:'👤', label:'Salesman View', sub:'Salesman parties'},
   {t:'A', icon:'📅', label:'All Data', sub:'Full history, read-only'},
   {t:'PH', icon:'🔍', label:'Party History', sub:'Balance by date per party'},
+  {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
   {t:'LB', icon:'🏆', label:'Leaderboard', sub:'Who called the most'},
   {t:'EOD', icon:'📄', label:'EOD Report', sub:'End of day summary'},
   {t:'CB', icon:'📞', label:'Callbacks', sub:'All follow-ups'},
@@ -961,8 +1032,8 @@ function sw(t){
   const paneId='p'+t;
   const pane=document.getElementById(paneId);
   if(pane) pane.classList.add('active');
-  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History',EOD:'End of Day Report'};
-  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',EOD:'Daily summary with call performance and outstanding trends'};
+  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History',EOD:'End of Day Report',RP:'Route Print'};
+  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',EOD:'Daily summary with call performance and outstanding trends',RP:'Filter parties by route — print or download'};
   document.getElementById('tbTitle').textContent=titles[t]||t;
   document.getElementById('tbSub').textContent=subs[t]||'';
   if(t==='CB') renderCB();
@@ -972,6 +1043,7 @@ function sw(t){
   if(t==='SumS') renderSum('S');
   if(t==='PH') renderPHInit();
   if(t==='EOD') initEOD();
+  if(t==='RP') initRP();
 }
 
 /* ═══ CFG MODAL ═══ */
@@ -1179,6 +1251,7 @@ async function loadAll(){
     if(curPane==='SumO') renderSum('O');
     if(curPane==='SumS') renderSum('S');
     if(curPane==='PH') renderPHInit();
+    if(curPane==='RP') initRP();
     // Load callbacks from sheet (shared across all users)
     await loadCallbacks();
     checkCallbackNotifs();
@@ -1787,6 +1860,148 @@ function renderCB(){
   document.getElementById('cbSections').innerHTML=html||`<div class="cb-empty">No callbacks scheduled. Use the SET button on any party row.</div>`;
 }
 
+/* ═══ ROUTE PRINT (all roles) ═══ */
+let lastRPText='';
+
+function initRP(){
+  const sel=document.getElementById('rpRoute');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">— select route —</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  sel.value=prev;
+  if(prev) renderRP();
+}
+
+function renderRP(){
+  const route=document.getElementById('rpRoute').value;
+  const minDays=+document.getElementById('rpMinDays').value||0;
+  const onlyOut=document.getElementById('rpOnlyOutstanding').checked;
+  const result=document.getElementById('rpResult');
+  if(!route){
+    result.innerHTML=`<div class="nodata"><div class="nodata-icon">🖨</div><div class="nodata-txt">Select a route to begin</div></div>`;
+    document.getElementById('rpPrintBtn').style.display='none';
+    document.getElementById('rpDlBtn').style.display='none';
+    return;
+  }
+  const ci=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
+  const tData=ci>=0?dateData[ci]||{}:{};
+  const dateLabel=ci>=0?(allDateGroups.find(g=>g.colIdx===ci)?.isoDate||TODAYISO):TODAYISO;
+
+  const parties=allParties.filter(p=>p.route===route).map(p=>{
+    const d=tData[p.sr]||{};
+    return {...p, autoBal:d.autoBal||0, heroBal:d.heroBal||0, autoDays:d.autoDays||0, heroDays:d.heroDays||0,
+      total:(d.autoBal||0)+(d.heroBal||0), maxDays:Math.max(d.autoDays||0,d.heroDays||0),
+      remA:d.remA||'', remH:d.remH||''};
+  }).filter(p=>{
+    if(onlyOut && p.total===0) return false;
+    if(minDays>0 && p.maxDays<minDays) return false;
+    return true;
+  }).sort((a,b)=>b.total-a.total);
+
+  const totalAuto=parties.reduce((s,p)=>s+p.autoBal,0);
+  const totalHero=parties.reduce((s,p)=>s+p.heroBal,0);
+  const totalAll=totalAuto+totalHero;
+  const overdue30=parties.filter(p=>p.maxDays>30).length;
+  const overdue60=parties.filter(p=>p.maxDays>60).length;
+
+  if(!parties.length){
+    result.innerHTML=`<div class="rp-printable"><div class="rp-empty">No parties match your filters for route "${esc(route)}".</div></div>`;
+    document.getElementById('rpPrintBtn').style.display='none';
+    document.getElementById('rpDlBtn').style.display='none';
+    return;
+  }
+
+  result.innerHTML=`
+    <div class="rp-printable">
+      <div class="rp-print-header">
+        <div class="rp-print-co">YANTRAYUG HERO HUB</div>
+        <div class="rp-print-meta">
+          <div><b>Route:</b> ${esc(route)}</div>
+          <div><b>Date:</b> ${fmtDispISO(dateLabel)}</div>
+          <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+          <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
+        </div>
+      </div>
+      <div class="rp-summary">
+        <div class="rp-summary-item"><div class="rp-summary-item-label">Parties</div><div class="rp-summary-item-val" style="color:var(--blue)">${parties.length}</div></div>
+        <div class="rp-summary-item"><div class="rp-summary-item-label">Total Outstanding</div><div class="rp-summary-item-val" style="color:var(--ink)">₹${fmtN(totalAll)}</div></div>
+        <div class="rp-summary-item"><div class="rp-summary-item-label">Auto ₹</div><div class="rp-summary-item-val" style="color:var(--blue)">₹${fmtN(totalAuto)}</div></div>
+        <div class="rp-summary-item"><div class="rp-summary-item-label">Hero ₹</div><div class="rp-summary-item-val" style="color:var(--orange)">₹${fmtN(totalHero)}</div></div>
+        <div class="rp-summary-item"><div class="rp-summary-item-label">30+ Days</div><div class="rp-summary-item-val" style="color:var(--orange)">${overdue30}</div></div>
+        <div class="rp-summary-item"><div class="rp-summary-item-label">60+ Days</div><div class="rp-summary-item-val" style="color:var(--red)">${overdue60}</div></div>
+      </div>
+      <table class="rp-table">
+        <thead><tr>
+          <th style="width:32px">#</th>
+          <th>Party Name</th>
+          <th>Beat</th>
+          <th>Mobile</th>
+          <th>Office</th>
+          <th>Salesman</th>
+          <th class="right">Auto ₹</th>
+          <th class="right">Days</th>
+          <th class="right">Hero ₹</th>
+          <th class="right">Days</th>
+          <th class="right">Total ₹</th>
+        </tr></thead>
+        <tbody>
+          ${parties.map((p,i)=>`<tr>
+            <td style="color:var(--dim);font-family:'IBM Plex Mono',monospace">${i+1}</td>
+            <td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}</div></td>
+            <td style="font-size:11px">${esc(p.beat)}</td>
+            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.mobile||'—'}</td>
+            <td style="font-size:11px">${esc(p.office)}</td>
+            <td style="font-size:11px">${esc(p.salesman)}</td>
+            <td class="num auto ${p.autoBal===0?'zero':''}">${p.autoBal>0?'₹'+fmtN(p.autoBal):'—'}</td>
+            <td class="num" style="color:${p.autoDays>60?'var(--red)':p.autoDays>30?'var(--orange)':'var(--dim)'}">${p.autoDays>0?p.autoDays+'d':'—'}</td>
+            <td class="num hero ${p.heroBal===0?'zero':''}">${p.heroBal>0?'₹'+fmtN(p.heroBal):'—'}</td>
+            <td class="num" style="color:${p.heroDays>60?'var(--red)':p.heroDays>30?'var(--orange)':'var(--dim)'}">${p.heroDays>0?p.heroDays+'d':'—'}</td>
+            <td class="num total"><b>₹${fmtN(p.total)}</b></td>
+          </tr>`).join('')}
+          <tr style="background:var(--bg3);font-weight:800">
+            <td colspan="6" style="text-align:right;padding:10px;font-size:11px;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Totals</td>
+            <td class="num auto"><b>₹${fmtN(totalAuto)}</b></td>
+            <td></td>
+            <td class="num hero"><b>₹${fmtN(totalHero)}</b></td>
+            <td></td>
+            <td class="num total"><b>₹${fmtN(totalAll)}</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>`;
+
+  document.getElementById('rpPrintBtn').style.display='inline-flex';
+  document.getElementById('rpDlBtn').style.display='inline-flex';
+  // Build text version for download
+  lastRPText=buildRPText(route, dateLabel, parties, totalAuto, totalHero, totalAll, overdue30, overdue60);
+}
+
+function buildRPText(route, dateISO, parties, totalAuto, totalHero, totalAll, overdue30, overdue60){
+  const sep='─'.repeat(60);
+  let t=`YANTRAYUG HERO HUB — ROUTE OUTSTANDING REPORT\n${sep}\n`;
+  t+=`Route    : ${route}\nDate     : ${fmtDispISO(dateISO)}\nBy       : ${USER.name} (${USER.role})\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nSUMMARY\n`;
+  t+=`Parties        : ${parties.length}\nTotal Outstanding: ₹${fmtN(totalAll)}\nAuto Total     : ₹${fmtN(totalAuto)}\nHero Total     : ₹${fmtN(totalHero)}\n30+ Days       : ${overdue30}\n60+ Days       : ${overdue60}\n\n${sep}\nPARTY LIST\n`;
+  parties.forEach((p,i)=>{
+    t+=`\n${String(i+1).padStart(3)}. ${p.name}\n`;
+    t+=`     Area:${p.area}  Beat:${p.beat}  Mobile:${p.mobile||'—'}\n`;
+    t+=`     Office:${p.office}  Salesman:${p.salesman}\n`;
+    if(p.autoBal>0) t+=`     Auto: ₹${fmtN(p.autoBal)} (${p.autoDays}d)\n`;
+    if(p.heroBal>0) t+=`     Hero: ₹${fmtN(p.heroBal)} (${p.heroDays}d)\n`;
+    t+=`     TOTAL: ₹${fmtN(p.total)}\n`;
+    if(p.remA) t+=`     Auto Remark: ${p.remA}\n`;
+    if(p.remH) t+=`     Hero Remark: ${p.remH}\n`;
+  });
+  t+=`\n${sep}\nGRAND TOTAL: ₹${fmtN(totalAll)}\n${sep}\nEnd of Report`;
+  return t;
+}
+
+function downloadRP(){
+  if(!lastRPText){toast('Select a route first','warn');return;}
+  const route=document.getElementById('rpRoute').value;
+  const blob=new Blob([lastRPText],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`Route_${route.replace(/[^a-zA-Z0-9]/g,'_')}_${TODAYISO}.txt`; a.click();
+}
+
 /* ═══ EOD / WEEKLY REPORTS ═══ */
 const REPORTS_SHEET = 'REPORTS';
 const REPORTS_HEADERS = ['report_type','date_from','date_to','generated_by','generated_at',
@@ -1817,15 +2032,20 @@ function staffOutstanding(ci){
   const offMap={}, salMap={};
   allParties.forEach(p=>{
     const pd=d[p.sr]||{};
-    const ab=pd.autoBal||0, hb=pd.heroBal||0, tot=ab+hb;
+    const ab=pd.autoBal||0, hb=pd.heroBal||0;
+    const ad=pd.autoDays||0, hd=pd.heroDays||0;
+    // Only count balances older than 30 days — exclude fresh outstanding under 30d
+    const autoOver=ad>30?ab:0;
+    const heroOver=hd>30?hb:0;
+    const totOver=autoOver+heroOver;
     if(p.office){
       if(!offMap[p.office]) offMap[p.office]={auto:0,hero:0,total:0,calls:0};
-      offMap[p.office].auto+=ab; offMap[p.office].hero+=hb; offMap[p.office].total+=tot;
+      offMap[p.office].auto+=autoOver; offMap[p.office].hero+=heroOver; offMap[p.office].total+=totOver;
       if(pd.nameA && ALL_CALLERS.includes(pd.nameA.toUpperCase())) offMap[p.office].calls++;
     }
     if(p.salesman){
       if(!salMap[p.salesman]) salMap[p.salesman]={auto:0,hero:0,total:0,calls:0};
-      salMap[p.salesman].auto+=ab; salMap[p.salesman].hero+=hb; salMap[p.salesman].total+=tot;
+      salMap[p.salesman].auto+=autoOver; salMap[p.salesman].hero+=heroOver; salMap[p.salesman].total+=totOver;
       if(pd.nameH && ALL_CALLERS.includes(pd.nameH.toUpperCase())) salMap[p.salesman].calls++;
     }
   });
@@ -1870,8 +2090,9 @@ function aggregateDate(ci, pci){
 
 /* ── Staff outstanding table HTML ── */
 function mkStaffTable(curMap, prevMap, label, colorCls){
-  const rows=Object.entries(curMap).sort((a,b)=>b[1].total-a[1].total);
-  if(!rows.length) return `<div style="padding:16px;color:var(--dim);font-size:12px">No data</div>`;
+  // Only show staff who have overdue balance (>30d) on this date
+  const rows=Object.entries(curMap).filter(([,v])=>v.total>0).sort((a,b)=>b[1].total-a[1].total);
+  if(!rows.length) return `<div style="padding:16px;color:var(--dim);font-size:12px">No staff has overdue (30+ days) balances</div>`;
   return rows.map(([name,cur])=>{
     const prev=prevMap[name]||{total:0,auto:0,hero:0};
     const diff=cur.total-prev.total;
@@ -1882,7 +2103,7 @@ function mkStaffTable(curMap, prevMap, label, colorCls){
       <div>
         <div class="eod-staff-bal" style="color:var(--${colorCls})">₹${fmtN(cur.total)}</div>
         <div class="eod-staff-chg ${chgCls}">${chgTxt}</div>
-        <div style="font-size:9px;color:var(--dim);margin-top:1px">${cur.calls} calls today</div>
+        <div style="font-size:9px;color:var(--dim);margin-top:1px">${cur.calls} calls today · 30+ day balance</div>
       </div>
     </div>`;
   }).join('');
@@ -1976,11 +2197,11 @@ function generateEOD(){
 
     <div class="eod-staff-grid">
       <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Staff — Outstanding <span>vs prev day</span></div>
+        <div class="eod-section-head">🏢 Office Staff — Outstanding (30+ days only) <span>vs prev day</span></div>
         ${mkStaffTable(curOff,prevOff,'blue','blue')}
       </div>
       <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman — Outstanding <span>vs prev day</span></div>
+        <div class="eod-section-head">👤 Salesman — Outstanding (30+ days only) <span>vs prev day</span></div>
         ${mkStaffTable(curSal,prevSal,'orange','orange')}
       </div>
     </div>
@@ -2208,11 +2429,11 @@ function generateWeekly(){
 
     <div class="eod-staff-grid">
       <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Staff Outstanding <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
+        <div class="eod-section-head">🏢 Office Staff Outstanding (30+ days only) <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
         ${mkStaffTable(curOff,prevOff,'blue','blue')}
       </div>
       <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman Outstanding <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
+        <div class="eod-section-head">👤 Salesman Outstanding (30+ days only) <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
         ${mkStaffTable(curSal,prevSal,'orange','orange')}
       </div>
     </div>
