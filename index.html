@@ -418,21 +418,27 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 
 /* Print styles — when window.print() is invoked */
 @media print {
-  body * { visibility: hidden; }
-  .rp-printable, .rp-printable * { visibility: visible; }
-  .rp-printable { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; margin: 0; }
-  .no-print { display: none !important; }
-  #sidebar, #topbar, .tb-right, .nav-item, #notifStack, #toasts, #dayBanner { display: none !important; }
-  #main, #content, .pane { display: block !important; overflow: visible !important; position: static !important; }
+  /* Hide everything outside the printable area */
+  body { background: #fff !important; }
+  #sidebar, #topbar, #dayBanner, #notifStack, #toasts, .no-print, .nav-item { display: none !important; }
+  .pane:not(.active) { display: none !important; }
+
+  /* Reset main wrappers so the printable area participates in normal flow */
+  html, body { height: auto !important; overflow: visible !important; }
+  #shell, #main, #content { display: block !important; position: static !important; overflow: visible !important; height: auto !important; inset: auto !important; }
+  .pane.active { display: block !important; position: static !important; inset: auto !important; overflow: visible !important; height: auto !important; }
   .rp-inner { padding: 0 !important; max-width: 100% !important; }
+  .rp-printable { position: static !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
 
-  /* Header & summary stay together */
-  .rp-print-header, .rp-summary { page-break-inside: avoid; }
+  /* Header & summary stay together on one page */
+  .rp-print-header { page-break-inside: avoid; break-inside: avoid; }
+  .rp-summary { page-break-inside: avoid; break-inside: avoid; margin-bottom: 8px !important; padding: 8px 12px !important; }
 
-  /* Table — allow page breaks BETWEEN rows, never inside a row */
-  .rp-table { font-size: 9px; width: 100%; }
-  .rp-table thead { display: table-header-group; } /* repeat on each page */
-  .rp-table tbody tr { page-break-inside: avoid; break-inside: avoid; }
+  /* Table — repeat header on each page, never break a row */
+  .rp-table { font-size: 9px; width: 100%; page-break-inside: auto; }
+  .rp-table thead { display: table-header-group; }
+  .rp-table tfoot { display: table-footer-group; }
+  .rp-table tr { page-break-inside: avoid; break-inside: avoid; }
   .rp-table thead th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 5px 6px; font-size: 8px; }
   .rp-table tbody td { padding: 4px 6px; font-size: 9px; }
   .rp-table tbody td b { font-size: 9px; }
