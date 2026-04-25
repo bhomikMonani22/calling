@@ -420,14 +420,26 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 @media print {
   body * { visibility: hidden; }
   .rp-printable, .rp-printable * { visibility: visible; }
-  .rp-printable { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; }
+  .rp-printable { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; border: none; padding: 0; margin: 0; }
   .no-print { display: none !important; }
   #sidebar, #topbar, .tb-right, .nav-item, #notifStack, #toasts, #dayBanner { display: none !important; }
-  #main, #content, .pane { display: block !important; overflow: visible !important; }
-  .rp-inner { padding: 12px !important; max-width: 100% !important; }
-  .rp-table { font-size: 11px; }
-  .rp-table thead th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  @page { margin: 12mm; size: A4 portrait; }
+  #main, #content, .pane { display: block !important; overflow: visible !important; position: static !important; }
+  .rp-inner { padding: 0 !important; max-width: 100% !important; }
+
+  /* Header & summary stay together */
+  .rp-print-header, .rp-summary { page-break-inside: avoid; }
+
+  /* Table — allow page breaks BETWEEN rows, never inside a row */
+  .rp-table { font-size: 9px; width: 100%; }
+  .rp-table thead { display: table-header-group; } /* repeat on each page */
+  .rp-table tbody tr { page-break-inside: avoid; break-inside: avoid; }
+  .rp-table thead th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 5px 6px; font-size: 8px; }
+  .rp-table tbody td { padding: 4px 6px; font-size: 9px; }
+  .rp-table tbody td b { font-size: 9px; }
+  .rp-table tbody td div { font-size: 7px; }
+
+  /* LANDSCAPE — needed to fit Auto₹ + Days + Hero₹ + Days + Total₹ */
+  @page { margin: 8mm; size: A4 landscape; }
 }
 .eod-tab-btn{height:36px;padding:0 18px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
 .eod-tab-btn:hover{border-color:var(--border2);color:var(--ink)}
