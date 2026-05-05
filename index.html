@@ -397,6 +397,8 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .rp-btn.print:hover{background:#222}
 .rp-btn.download{border-color:var(--green);background:var(--green-dim);color:var(--green);margin-left:8px}
 .rp-btn.download:hover{background:var(--green);color:#fff}
+.rp-btn.excel{border-color:var(--green);background:#fff;color:var(--green);margin-left:8px}
+.rp-btn.excel:hover{background:var(--green);color:#fff}
 .rp-printable{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px 28px;box-shadow:var(--shadow)}
 .rp-print-header{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:16px}
 .rp-print-co{font-size:18px;font-weight:800;letter-spacing:-.3px;color:var(--ink)}
@@ -807,7 +809,7 @@ tr.pw td{background:rgba(229,122,26,.04)}
           <div class="rp-sub">Select a route to list all parties with outstanding. Print or download as needed.</div>
           <div class="rp-controls no-print">
             <label>Route</label>
-            <select class="rp-select" id="rpRoute" onchange="renderRP()"><option value="">— select route —</option></select>
+            <select class="rp-select" id="rpRoute" onchange="renderRP()"><option value="">— select route —</option><option value="__ALL__">📋 All Routes (full list)</option></select>
             <label style="margin-left:14px">Min Days</label>
             <input type="number" min="0" max="999" value="0" class="rp-min" id="rpMinDays" oninput="renderRP()" style="width:70px">
             <label style="margin-left:14px">
@@ -815,6 +817,7 @@ tr.pw td{background:rgba(229,122,26,.04)}
               Only parties with balance
             </label>
             <button class="rp-btn print" onclick="window.print()" id="rpPrintBtn" style="display:none">🖨 Print</button>
+            <button class="rp-btn excel" onclick="downloadRPExcel()" id="rpXlBtn" style="display:none">📊 Download Excel</button>
             <button class="rp-btn download" onclick="downloadRP()" id="rpDlBtn" style="display:none">⬇ Download .txt</button>
           </div>
           <div id="rpResult"><div class="nodata"><div class="nodata-icon">🖨</div><div class="nodata-txt">Select a route to begin</div></div></div>
@@ -1880,11 +1883,12 @@ function renderCB(){
 
 /* ═══ ROUTE PRINT (all roles) ═══ */
 let lastRPText='';
+let lastRPParties=[], lastRPMeta=null;
 
 function initRP(){
   const sel=document.getElementById('rpRoute');
   const prev=sel.value;
-  sel.innerHTML='<option value="">— select route —</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  sel.innerHTML='<option value="">— select route —</option><option value="__ALL__">📋 All Routes (full list)</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
   sel.value=prev;
   if(prev) renderRP();
 }
@@ -1894,17 +1898,19 @@ function renderRP(){
   const minDays=+document.getElementById('rpMinDays').value||0;
   const onlyOut=document.getElementById('rpOnlyOutstanding').checked;
   const result=document.getElementById('rpResult');
+  const allBtns=['rpPrintBtn','rpDlBtn','rpXlBtn'];
   if(!route){
-    result.innerHTML=`<div class="nodata"><div class="nodata-icon">🖨</div><div class="nodata-txt">Select a route to begin</div></div>`;
-    document.getElementById('rpPrintBtn').style.display='none';
-    document.getElementById('rpDlBtn').style.display='none';
+    result.innerHTML=`<div class="nodata"><div class="nodata-icon">🖨</div><div class="nodata-txt">Select a route to begin (or choose "All Routes" for full list)</div></div>`;
+    allBtns.forEach(id=>document.getElementById(id).style.display='none');
     return;
   }
   const ci=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
   const tData=ci>=0?dateData[ci]||{}:{};
   const dateLabel=ci>=0?(allDateGroups.find(g=>g.colIdx===ci)?.isoDate||TODAYISO):TODAYISO;
+  const isAll=route==='__ALL__';
+  const routeLabel=isAll?'ALL ROUTES':route;
 
-  const parties=allParties.filter(p=>p.route===route).map(p=>{
+  const parties=allParties.filter(p=>isAll||p.route===route).map(p=>{
     const d=tData[p.sr]||{};
     return {...p, autoBal:d.autoBal||0, heroBal:d.heroBal||0, autoDays:d.autoDays||0, heroDays:d.heroDays||0,
       total:(d.autoBal||0)+(d.heroBal||0), maxDays:Math.max(d.autoDays||0,d.heroDays||0),
@@ -1913,7 +1919,14 @@ function renderRP(){
     if(onlyOut && p.total===0) return false;
     if(minDays>0 && p.maxDays<minDays) return false;
     return true;
-  }).sort((a,b)=>b.total-a.total);
+  });
+
+  // For All Routes: sort by route name then by total desc.
+  // For single route: sort by total desc.
+  if(isAll) parties.sort((a,b)=>{
+    if(a.route!==b.route) return (a.route||'').localeCompare(b.route||'');
+    return b.total-a.total;
+  }); else parties.sort((a,b)=>b.total-a.total);
 
   const totalAuto=parties.reduce((s,p)=>s+p.autoBal,0);
   const totalHero=parties.reduce((s,p)=>s+p.heroBal,0);
@@ -1922,18 +1935,42 @@ function renderRP(){
   const overdue60=parties.filter(p=>p.maxDays>60).length;
 
   if(!parties.length){
-    result.innerHTML=`<div class="rp-printable"><div class="rp-empty">No parties match your filters for route "${esc(route)}".</div></div>`;
-    document.getElementById('rpPrintBtn').style.display='none';
-    document.getElementById('rpDlBtn').style.display='none';
+    result.innerHTML=`<div class="rp-printable"><div class="rp-empty">No parties match your filters${isAll?'':' for route "'+esc(route)+'"'}.</div></div>`;
+    allBtns.forEach(id=>document.getElementById(id).style.display='none');
     return;
   }
+
+  // Build table rows. For All Routes mode, insert sub-headers when route changes.
+  let lastRoute='', tableRows='';
+  parties.forEach((p,i)=>{
+    if(isAll && p.route!==lastRoute){
+      // Sub-header for new route
+      const routeParties=parties.filter(x=>x.route===p.route);
+      const rTot=routeParties.reduce((s,x)=>s+x.total,0);
+      tableRows+=`<tr style="background:var(--y-dim);border-top:2px solid var(--y)"><td colspan="11" style="padding:8px 12px;font-weight:800;color:var(--ink);font-size:12px;letter-spacing:.3px">📍 ${esc(p.route||'(no route)')} <span style="font-weight:500;color:var(--mid);font-size:11px;margin-left:10px">${routeParties.length} parties · ₹${fmtN(rTot)}</span></td></tr>`;
+      lastRoute=p.route;
+    }
+    tableRows+=`<tr>
+      <td style="color:var(--dim);font-family:'IBM Plex Mono',monospace">${i+1}</td>
+      <td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}${isAll?' · '+esc(p.route):''}</div></td>
+      <td style="font-size:11px">${esc(p.beat)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.mobile||'—'}</td>
+      <td style="font-size:11px">${esc(p.office)}</td>
+      <td style="font-size:11px">${esc(p.salesman)}</td>
+      <td class="num auto ${p.autoBal===0?'zero':''}">${p.autoBal>0?'₹'+fmtN(p.autoBal):'—'}</td>
+      <td class="num" style="color:${p.autoDays>60?'var(--red)':p.autoDays>30?'var(--orange)':'var(--dim)'}">${p.autoDays>0?p.autoDays+'d':'—'}</td>
+      <td class="num hero ${p.heroBal===0?'zero':''}">${p.heroBal>0?'₹'+fmtN(p.heroBal):'—'}</td>
+      <td class="num" style="color:${p.heroDays>60?'var(--red)':p.heroDays>30?'var(--orange)':'var(--dim)'}">${p.heroDays>0?p.heroDays+'d':'—'}</td>
+      <td class="num total"><b>₹${fmtN(p.total)}</b></td>
+    </tr>`;
+  });
 
   result.innerHTML=`
     <div class="rp-printable">
       <div class="rp-print-header">
         <div class="rp-print-co">YANTRAYUG HERO HUB</div>
         <div class="rp-print-meta">
-          <div><b>Route:</b> ${esc(route)}</div>
+          <div><b>Route:</b> ${esc(routeLabel)}</div>
           <div><b>Date:</b> ${fmtDispISO(dateLabel)}</div>
           <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
           <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
@@ -1950,7 +1987,7 @@ function renderRP(){
       <table class="rp-table">
         <thead><tr>
           <th style="width:32px">#</th>
-          <th>Party Name</th>
+          <th>Party Name${isAll?' / Route':''}</th>
           <th>Beat</th>
           <th>Mobile</th>
           <th>Office</th>
@@ -1962,21 +1999,9 @@ function renderRP(){
           <th class="right">Total ₹</th>
         </tr></thead>
         <tbody>
-          ${parties.map((p,i)=>`<tr>
-            <td style="color:var(--dim);font-family:'IBM Plex Mono',monospace">${i+1}</td>
-            <td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}</div></td>
-            <td style="font-size:11px">${esc(p.beat)}</td>
-            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.mobile||'—'}</td>
-            <td style="font-size:11px">${esc(p.office)}</td>
-            <td style="font-size:11px">${esc(p.salesman)}</td>
-            <td class="num auto ${p.autoBal===0?'zero':''}">${p.autoBal>0?'₹'+fmtN(p.autoBal):'—'}</td>
-            <td class="num" style="color:${p.autoDays>60?'var(--red)':p.autoDays>30?'var(--orange)':'var(--dim)'}">${p.autoDays>0?p.autoDays+'d':'—'}</td>
-            <td class="num hero ${p.heroBal===0?'zero':''}">${p.heroBal>0?'₹'+fmtN(p.heroBal):'—'}</td>
-            <td class="num" style="color:${p.heroDays>60?'var(--red)':p.heroDays>30?'var(--orange)':'var(--dim)'}">${p.heroDays>0?p.heroDays+'d':'—'}</td>
-            <td class="num total"><b>₹${fmtN(p.total)}</b></td>
-          </tr>`).join('')}
-          <tr style="background:var(--bg3);font-weight:800">
-            <td colspan="6" style="text-align:right;padding:10px;font-size:11px;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Totals</td>
+          ${tableRows}
+          <tr style="background:var(--bg3);font-weight:800;border-top:2px solid var(--ink)">
+            <td colspan="6" style="text-align:right;padding:10px;font-size:11px;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Grand Totals</td>
             <td class="num auto"><b>₹${fmtN(totalAuto)}</b></td>
             <td></td>
             <td class="num hero"><b>₹${fmtN(totalHero)}</b></td>
@@ -1987,27 +2012,51 @@ function renderRP(){
       </table>
     </div>`;
 
-  document.getElementById('rpPrintBtn').style.display='inline-flex';
-  document.getElementById('rpDlBtn').style.display='inline-flex';
-  // Build text version for download
-  lastRPText=buildRPText(route, dateLabel, parties, totalAuto, totalHero, totalAll, overdue30, overdue60);
+  allBtns.forEach(id=>document.getElementById(id).style.display='inline-flex');
+  // Stash for downloads
+  lastRPParties=parties;
+  lastRPMeta={routeLabel, dateLabel, totalAuto, totalHero, totalAll, overdue30, overdue60, isAll};
+  lastRPText=buildRPText(routeLabel, dateLabel, parties, totalAuto, totalHero, totalAll, overdue30, overdue60, isAll);
 }
 
-function buildRPText(route, dateISO, parties, totalAuto, totalHero, totalAll, overdue30, overdue60){
+function buildRPText(routeLabel, dateISO, parties, totalAuto, totalHero, totalAll, overdue30, overdue60, isAll){
   const sep='─'.repeat(60);
-  let t=`YANTRAYUG HERO HUB — ROUTE OUTSTANDING REPORT\n${sep}\n`;
-  t+=`Route    : ${route}\nDate     : ${fmtDispISO(dateISO)}\nBy       : ${USER.name} (${USER.role})\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nSUMMARY\n`;
+  let t=`YANTRAYUG HERO HUB — ${isAll?'ALL ROUTES':'ROUTE'} OUTSTANDING REPORT\n${sep}\n`;
+  t+=`Route    : ${routeLabel}\nDate     : ${fmtDispISO(dateISO)}\nBy       : ${USER.name} (${USER.role})\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nSUMMARY\n`;
   t+=`Parties        : ${parties.length}\nTotal Outstanding: ₹${fmtN(totalAll)}\nAuto Total     : ₹${fmtN(totalAuto)}\nHero Total     : ₹${fmtN(totalHero)}\n30+ Days       : ${overdue30}\n60+ Days       : ${overdue60}\n\n${sep}\nPARTY LIST\n`;
-  parties.forEach((p,i)=>{
-    t+=`\n${String(i+1).padStart(3)}. ${p.name}\n`;
-    t+=`     Area:${p.area}  Beat:${p.beat}  Mobile:${p.mobile||'—'}\n`;
-    t+=`     Office:${p.office}  Salesman:${p.salesman}\n`;
-    if(p.autoBal>0) t+=`     Auto: ₹${fmtN(p.autoBal)} (${p.autoDays}d)\n`;
-    if(p.heroBal>0) t+=`     Hero: ₹${fmtN(p.heroBal)} (${p.heroDays}d)\n`;
-    t+=`     TOTAL: ₹${fmtN(p.total)}\n`;
-    if(p.remA) t+=`     Auto Remark: ${p.remA}\n`;
-    if(p.remH) t+=`     Hero Remark: ${p.remH}\n`;
-  });
+
+  if(isAll){
+    // Group by route
+    let lastRoute='', routeIdx=0;
+    parties.forEach(p=>{
+      if(p.route!==lastRoute){
+        const rp=parties.filter(x=>x.route===p.route);
+        const rTot=rp.reduce((s,x)=>s+x.total,0);
+        t+=`\n${sep}\n📍 ${p.route||'(no route)'}  —  ${rp.length} parties  ·  ₹${fmtN(rTot)}\n${sep}\n`;
+        lastRoute=p.route; routeIdx=0;
+      }
+      routeIdx++;
+      t+=`\n${String(routeIdx).padStart(3)}. ${p.name}\n`;
+      t+=`     Area:${p.area}  Beat:${p.beat}  Mobile:${p.mobile||'—'}\n`;
+      t+=`     Office:${p.office}  Salesman:${p.salesman}\n`;
+      if(p.autoBal>0) t+=`     Auto: ₹${fmtN(p.autoBal)} (${p.autoDays}d)\n`;
+      if(p.heroBal>0) t+=`     Hero: ₹${fmtN(p.heroBal)} (${p.heroDays}d)\n`;
+      t+=`     TOTAL: ₹${fmtN(p.total)}\n`;
+      if(p.remA) t+=`     Auto Remark: ${p.remA}\n`;
+      if(p.remH) t+=`     Hero Remark: ${p.remH}\n`;
+    });
+  } else {
+    parties.forEach((p,i)=>{
+      t+=`\n${String(i+1).padStart(3)}. ${p.name}\n`;
+      t+=`     Area:${p.area}  Beat:${p.beat}  Mobile:${p.mobile||'—'}\n`;
+      t+=`     Office:${p.office}  Salesman:${p.salesman}\n`;
+      if(p.autoBal>0) t+=`     Auto: ₹${fmtN(p.autoBal)} (${p.autoDays}d)\n`;
+      if(p.heroBal>0) t+=`     Hero: ₹${fmtN(p.heroBal)} (${p.heroDays}d)\n`;
+      t+=`     TOTAL: ₹${fmtN(p.total)}\n`;
+      if(p.remA) t+=`     Auto Remark: ${p.remA}\n`;
+      if(p.remH) t+=`     Hero Remark: ${p.remH}\n`;
+    });
+  }
   t+=`\n${sep}\nGRAND TOTAL: ₹${fmtN(totalAll)}\n${sep}\nEnd of Report`;
   return t;
 }
@@ -2015,9 +2064,57 @@ function buildRPText(route, dateISO, parties, totalAuto, totalHero, totalAll, ov
 function downloadRP(){
   if(!lastRPText){toast('Select a route first','warn');return;}
   const route=document.getElementById('rpRoute').value;
+  const fname=route==='__ALL__'?'All_Routes':route.replace(/[^a-zA-Z0-9]/g,'_');
   const blob=new Blob([lastRPText],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`Route_${route.replace(/[^a-zA-Z0-9]/g,'_')}_${TODAYISO}.txt`; a.click();
+  a.download=`Outstanding_${fname}_${TODAYISO}.txt`; a.click();
+}
+
+function downloadRPExcel(){
+  if(!lastRPParties||!lastRPParties.length){toast('Select a route first','warn');return;}
+  if(typeof XLSX==='undefined'){toast('Excel library not loaded yet','err');return;}
+  const m=lastRPMeta;
+  // Build sheet data — header rows + data rows
+  const aoa=[];
+  aoa.push(['YANTRAYUG HERO HUB — Outstanding Report']);
+  aoa.push(['Route', m.routeLabel]);
+  aoa.push(['Date', fmtDispISO(m.dateLabel)]);
+  aoa.push(['Generated by', `${USER.name} (${USER.role})`]);
+  aoa.push(['Generated at', fmtDisp(new Date())+' '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})]);
+  aoa.push([]);
+  aoa.push(['Summary']);
+  aoa.push(['Parties', lastRPParties.length, 'Total ₹', m.totalAll, 'Auto ₹', m.totalAuto, 'Hero ₹', m.totalHero, '30+ days', m.overdue30, '60+ days', m.overdue60]);
+  aoa.push([]);
+  // Column headers
+  aoa.push(['#','Party Name','Route','Area','Beat','Mobile','Office','Salesman','Auto ₹','Auto Days','Hero ₹','Hero Days','Total ₹','Auto Remark','Hero Remark']);
+  // Data rows
+  lastRPParties.forEach((p,i)=>{
+    aoa.push([
+      i+1, p.name, p.route, p.area, p.beat, p.mobile||'',
+      p.office, p.salesman,
+      p.autoBal||0, p.autoDays||0,
+      p.heroBal||0, p.heroDays||0,
+      p.total||0,
+      p.remA||'', p.remH||''
+    ]);
+  });
+  // Grand total row
+  aoa.push([]);
+  aoa.push(['','GRAND TOTAL','','','','','','', m.totalAuto,'', m.totalHero,'', m.totalAll,'','']);
+
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  // Column widths
+  ws['!cols']=[
+    {wch:5},{wch:35},{wch:14},{wch:14},{wch:12},{wch:14},
+    {wch:12},{wch:12},{wch:12},{wch:9},{wch:12},{wch:9},{wch:12},
+    {wch:30},{wch:30}
+  ];
+  // Merge title
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:14}}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, m.isAll?'All Routes':(m.routeLabel.substring(0,28)));
+  const fname=m.isAll?'All_Routes':m.routeLabel.replace(/[^a-zA-Z0-9]/g,'_');
+  XLSX.writeFile(wb, `Outstanding_${fname}_${TODAYISO}.xlsx`);
 }
 
 /* ═══ EOD / WEEKLY REPORTS ═══ */
