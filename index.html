@@ -381,6 +381,47 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .cb-card-date-sub{font-size:10px;color:var(--dim);margin-top:2px}
 .cb-empty{font-size:13px;color:var(--dim);padding:20px 0}
 
+/* CALL REPORT */
+#pCR{overflow-y:auto}
+.cr-inner{padding:24px 28px;max-width:1100px}
+.cr-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.cr-sub{font-size:13px;color:var(--mid);margin-bottom:22px}
+.cr-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:22px}
+.cr-controls label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.4px;text-transform:uppercase}
+.cr-date{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg)}
+.cr-date:focus{border-color:var(--y)}
+.cr-select{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg);min-width:180px}
+.cr-select:focus{border-color:var(--y)}
+.cr-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+@media(max-width:700px){.cr-summary-grid{grid-template-columns:repeat(2,1fr)}}
+.cr-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow)}
+.cr-kpi-label{font-size:10px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.cr-kpi-val{font-size:24px;font-weight:800;letter-spacing:-.3px;line-height:1}
+.cr-kpi-val.blue{color:var(--blue)}.cr-kpi-val.orange{color:var(--orange)}.cr-kpi-val.green{color:var(--green)}.cr-kpi-val.red{color:var(--red)}
+.cr-staff-block{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);page-break-inside:avoid}
+.cr-staff-head{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border)}
+.cr-staff-head.office{background:var(--blue-dim)}.cr-staff-head.salesman{background:var(--orange-dim)}
+.cr-staff-name{font-size:15px;font-weight:800;letter-spacing:-.2px}
+.cr-staff-name.office{color:var(--blue)}.cr-staff-name.salesman{color:var(--orange)}
+.cr-staff-team{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-left:8px}
+.cr-staff-team.office{background:var(--blue);color:#fff}.cr-staff-team.salesman{background:var(--orange);color:#fff}
+.cr-staff-meta{font-size:11px;font-weight:600;color:var(--mid)}
+.cr-staff-table{width:100%;border-collapse:collapse}
+.cr-staff-table th{background:var(--bg3);font-size:10px;font-weight:700;color:var(--mid);padding:7px 14px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase}
+.cr-staff-table th.right{text-align:right}
+.cr-staff-table td{padding:8px 14px;border-bottom:1px solid var(--border);vertical-align:top;font-size:12px}
+.cr-staff-table tr:last-child td{border-bottom:none}
+.cr-staff-table tr:hover td{background:var(--bg3)}
+.cr-staff-table .num{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
+.cr-staff-table .num.auto{color:var(--blue)}.cr-staff-table .num.hero{color:var(--orange)}
+.cr-empty-staff{padding:30px;text-align:center;font-size:13px;color:var(--dim)}
+.cr-no-calls-section{margin-top:18px;padding:14px 18px;background:var(--bg2);border:1px dashed var(--border2);border-radius:var(--radius);font-size:12px;color:var(--mid)}
+.cr-no-calls-section b{color:var(--ink);font-weight:700}
+.cr-print-header{padding:14px 18px;border-bottom:2px solid var(--ink);margin-bottom:18px;background:var(--bg2);border-radius:var(--radius) var(--radius) 0 0}
+.cr-print-co{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+.cr-print-meta{font-size:12px;color:var(--mid);margin-top:4px;display:flex;gap:18px;flex-wrap:wrap}
+.cr-print-meta b{color:var(--ink);font-weight:700}
+
 /* ROUTE PRINT */
 #pRP{overflow-y:auto}
 .rp-inner{padding:24px 28px;max-width:1100px}
@@ -430,11 +471,13 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
   #shell, #main, #content { display: block !important; position: static !important; overflow: visible !important; height: auto !important; inset: auto !important; }
   .pane.active { display: block !important; position: static !important; inset: auto !important; overflow: visible !important; height: auto !important; }
   .rp-inner { padding: 0 !important; max-width: 100% !important; }
-  .rp-printable { position: static !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+  .rp-printable, .cr-printable { position: static !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
 
   /* Header & summary stay together on one page */
-  .rp-print-header { page-break-inside: avoid; break-inside: avoid; }
-  .rp-summary { page-break-inside: avoid; break-inside: avoid; margin-bottom: 8px !important; padding: 8px 12px !important; }
+  .rp-print-header, .cr-print-header { page-break-inside: avoid; break-inside: avoid; }
+  .rp-summary, .cr-summary-grid { page-break-inside: avoid; break-inside: avoid; margin-bottom: 8px !important; padding: 8px 12px !important; }
+  /* Each staff block stays together if possible */
+  .cr-staff-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 10px !important; }
 
   /* Table — repeat header on each page, never break a row */
   .rp-table { font-size: 9px; width: 100%; page-break-inside: auto; }
@@ -802,6 +845,28 @@ tr.pw td{background:rgba(229,122,26,.04)}
       </div>
 
       <!-- CALLBACKS (all roles) -->
+      <!-- CALL REPORT (all roles) -->
+      <div class="pane" id="pCR">
+        <div class="cr-inner">
+          <div class="cr-title">📞 Call Report</div>
+          <div class="cr-sub">Who called whom today — every call with party name, remark, and balance</div>
+          <div class="cr-controls no-print">
+            <label>Date</label>
+            <input type="date" class="cr-date" id="crDate" onchange="renderCR()">
+            <label style="margin-left:14px">Filter</label>
+            <select class="cr-select" id="crFilter" onchange="renderCR()">
+              <option value="all">All Calls (Office + Salesman)</option>
+              <option value="office">Office Calls Only</option>
+              <option value="salesman">Salesman Calls Only</option>
+            </select>
+            <button class="rp-btn print" onclick="window.print()" id="crPrintBtn" style="display:none;margin-left:auto">🖨 Print</button>
+            <button class="rp-btn excel" onclick="downloadCRExcel()" id="crXlBtn" style="display:none;margin-left:8px">📊 Excel</button>
+            <button class="rp-btn download" onclick="downloadCR()" id="crDlBtn" style="display:none;margin-left:8px">⬇ Download .txt</button>
+          </div>
+          <div id="crResult"><div class="nodata"><div class="nodata-icon">📞</div><div class="nodata-txt">Loading…</div></div></div>
+        </div>
+      </div>
+
       <!-- ROUTE PRINT (all roles) -->
       <div class="pane" id="pRP">
         <div class="rp-inner">
@@ -924,15 +989,17 @@ const ADMIN_PASS  = 'yantrayug2024'; // simple admin password
 const NAV_OFFICE = [
   {t:'SumO', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'O', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
+  {t:'CR', icon:'📞', label:'Call Report', sub:'Today\'s calls by staff'},
   {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
-  {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
+  {t:'CB', icon:'📅', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
 const NAV_SALESMAN = [
   {t:'SumS', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'S', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
+  {t:'CR', icon:'📞', label:'Call Report', sub:'Today\'s calls by staff'},
   {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
-  {t:'CB', icon:'📞', label:'Callbacks', sub:'Scheduled follow-ups'},
+  {t:'CB', icon:'📅', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
 const NAV_ADMIN = [
@@ -941,10 +1008,11 @@ const NAV_ADMIN = [
   {t:'S', icon:'👤', label:'Salesman View', sub:'Salesman parties'},
   {t:'A', icon:'📅', label:'All Data', sub:'Full history, read-only'},
   {t:'PH', icon:'🔍', label:'Party History', sub:'Balance by date per party'},
+  {t:'CR', icon:'📞', label:'Call Report', sub:'Today\'s calls by staff'},
   {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
   {t:'LB', icon:'🏆', label:'Leaderboard', sub:'Who called the most'},
   {t:'EOD', icon:'📄', label:'EOD Report', sub:'End of day summary'},
-  {t:'CB', icon:'📞', label:'Callbacks', sub:'All follow-ups'},
+  {t:'CB', icon:'📅', label:'Callbacks', sub:'All follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
 
@@ -1053,8 +1121,8 @@ function sw(t){
   const paneId='p'+t;
   const pane=document.getElementById(paneId);
   if(pane) pane.classList.add('active');
-  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History',EOD:'End of Day Report',RP:'Route Print'};
-  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',EOD:'Daily summary with call performance and outstanding trends',RP:'Filter parties by route — print or download'};
+  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History',EOD:'End of Day Report',RP:'Route Print',CR:'Call Report'};
+  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',EOD:'Daily summary with call performance and outstanding trends',RP:'Filter parties by route — print or download',CR:'Who called whom today — full call log'};
   document.getElementById('tbTitle').textContent=titles[t]||t;
   document.getElementById('tbSub').textContent=subs[t]||'';
   if(t==='CB') renderCB();
@@ -1065,6 +1133,7 @@ function sw(t){
   if(t==='PH') renderPHInit();
   if(t==='EOD') initEOD();
   if(t==='RP') initRP();
+  if(t==='CR') renderCR();
 }
 
 /* ═══ CFG MODAL ═══ */
@@ -1273,6 +1342,7 @@ async function loadAll(){
     if(curPane==='SumS') renderSum('S');
     if(curPane==='PH') renderPHInit();
     if(curPane==='RP') initRP();
+    if(curPane==='CR') renderCR();
     // Load callbacks from sheet (shared across all users)
     await loadCallbacks();
     checkCallbackNotifs();
@@ -1879,6 +1949,221 @@ function renderCB(){
   };
   const html=mkSec('🔴 Overdue — Call Immediately','overdue','🚨',ov)+mkSec('🟡 Due Today','today','📞',td)+mkSec('🟢 Upcoming','upcoming','📅',up);
   document.getElementById('cbSections').innerHTML=html||`<div class="cb-empty">No callbacks scheduled. Use the SET button on any party row.</div>`;
+}
+
+/* ═══ CALL REPORT (all roles) ═══ */
+let crLastData=null;
+
+function renderCR(){
+  const dateInput=document.getElementById('crDate');
+  if(!dateInput.value) dateInput.value=TODAYISO;
+  const dateISO=dateInput.value;
+  const filter=document.getElementById('crFilter').value;
+  const selGroup=allDateGroups.find(g=>g.isoDate===dateISO);
+  const result=document.getElementById('crResult');
+  const allBtns=['crPrintBtn','crXlBtn','crDlBtn'];
+
+  if(!selGroup){
+    result.innerHTML=`<div class="nodata"><div class="nodata-icon">📞</div><div class="nodata-txt">No data for ${fmtDispISO(dateISO)} — date columns not created yet</div></div>`;
+    allBtns.forEach(id=>document.getElementById(id).style.display='none');
+    return;
+  }
+
+  const ci=selGroup.colIdx;
+  const {offCount,salCount,offLog,salLog}=aggregateDate(ci, -1);
+
+  const showOffice=filter==='all'||filter==='office';
+  const showSales=filter==='all'||filter==='salesman';
+  const offCallers=showOffice?Object.keys(offCount).sort((a,b)=>offCount[b]-offCount[a]):[];
+  const salCallers=showSales?Object.keys(salCount).sort((a,b)=>salCount[b]-salCount[a]):[];
+
+  const offTotal=offCallers.reduce((s,n)=>s+offCount[n],0);
+  const salTotal=salCallers.reduce((s,n)=>s+salCount[n],0);
+  const totalCalls=offTotal+salTotal;
+  const totalCallers=offCallers.length+salCallers.length;
+
+  if(totalCalls===0){
+    result.innerHTML=`<div class="cr-printable">
+      <div class="cr-print-header">
+        <div class="cr-print-co">YANTRAYUG HERO HUB — CALL REPORT</div>
+        <div class="cr-print-meta">
+          <div><b>Date:</b> ${fmtDispISO(dateISO)}</div>
+          <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+          <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
+        </div>
+      </div>
+      <div class="cr-no-calls-section"><b>No calls logged yet</b> for ${fmtDispISO(dateISO)} ${filter!=='all'?'matching this filter':''}.</div>
+    </div>`;
+    allBtns.forEach(id=>document.getElementById(id).style.display='none');
+    return;
+  }
+
+  // Build staff blocks
+  const mkBlock=(callerName, calls, team)=>{
+    const cls=team;
+    const rows=calls.map(e=>`<tr>
+      <td><b>${esc(e.partyName)}</b></td>
+      <td class="num auto">${e.autoBal>0?'₹'+fmtN(e.autoBal):'—'}</td>
+      <td class="num hero">${e.heroBal>0?'₹'+fmtN(e.heroBal):'—'}</td>
+      <td>${esc(e.remark)||'<span style="color:var(--border2)">— (no remark)</span>'}</td>
+    </tr>`).join('');
+    return `<div class="cr-staff-block">
+      <div class="cr-staff-head ${cls}">
+        <div><span class="cr-staff-name ${cls}">${esc(callerName)}</span><span class="cr-staff-team ${cls}">${team}</span></div>
+        <div class="cr-staff-meta">${calls.length} call${calls.length!==1?'s':''}</div>
+      </div>
+      <table class="cr-staff-table">
+        <thead><tr><th>Party</th><th class="right">Auto ₹</th><th class="right">Hero ₹</th><th>Remark</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  };
+
+  let html=`<div class="cr-printable">
+    <div class="cr-print-header">
+      <div class="cr-print-co">YANTRAYUG HERO HUB — CALL REPORT</div>
+      <div class="cr-print-meta">
+        <div><b>Date:</b> ${fmtDispISO(dateISO)}</div>
+        <div><b>Filter:</b> ${filter==='all'?'All Calls':filter==='office'?'Office Only':'Salesman Only'}</div>
+        <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
+      </div>
+    </div>
+    <div class="cr-summary-grid">
+      <div class="cr-kpi"><div class="cr-kpi-label">Total Calls</div><div class="cr-kpi-val green">${totalCalls}</div></div>
+      <div class="cr-kpi"><div class="cr-kpi-label">Active Staff</div><div class="cr-kpi-val blue">${totalCallers}</div></div>
+      <div class="cr-kpi"><div class="cr-kpi-label">Office Calls</div><div class="cr-kpi-val blue">${offTotal}</div></div>
+      <div class="cr-kpi"><div class="cr-kpi-label">Salesman Calls</div><div class="cr-kpi-val orange">${salTotal}</div></div>
+    </div>`;
+
+  if(showOffice){
+    html+=`<div style="margin-bottom:8px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--blue);padding:6px 0;border-bottom:2px solid var(--blue-dim)">🏢 Office Team Calls</div>`;
+    if(!offCallers.length){
+      html+=`<div class="cr-no-calls-section">No office calls logged for this date.</div>`;
+    } else {
+      offCallers.forEach(n=>{ html+=mkBlock(n, offLog[n]||[], 'office'); });
+    }
+  }
+  if(showSales){
+    html+=`<div style="margin-top:18px;margin-bottom:8px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--orange);padding:6px 0;border-bottom:2px solid var(--orange-dim)">👤 Salesman Team Calls</div>`;
+    if(!salCallers.length){
+      html+=`<div class="cr-no-calls-section">No salesman calls logged for this date.</div>`;
+    } else {
+      salCallers.forEach(n=>{ html+=mkBlock(n, salLog[n]||[], 'salesman'); });
+    }
+  }
+  html+=`</div>`;
+
+  result.innerHTML=html;
+  allBtns.forEach(id=>document.getElementById(id).style.display='inline-flex');
+
+  crLastData={dateISO, filter, offCount, salCount, offLog, salLog, offCallers, salCallers, offTotal, salTotal, totalCalls, totalCallers};
+}
+
+function buildCRText(){
+  if(!crLastData) return '';
+  const d=crLastData;
+  const sep='═'.repeat(60);
+  const sub='─'.repeat(60);
+  let t=`YANTRAYUG HERO HUB — CALL REPORT\n${sep}\n`;
+  t+=`Date     : ${fmtDispISO(d.dateISO)}\nFilter   : ${d.filter==='all'?'All Calls':d.filter==='office'?'Office Only':'Salesman Only'}\n`;
+  t+=`Generated: ${fmtDisp(new Date())}\nBy       : ${USER.name} (${USER.role})\n${sep}\n\n`;
+  t+=`SUMMARY\n  Total Calls   : ${d.totalCalls}\n  Active Staff  : ${d.totalCallers}\n  Office Calls  : ${d.offTotal}\n  Salesman Calls: ${d.salTotal}\n\n`;
+
+  if(d.filter!=='salesman'){
+    t+=`${sep}\n🏢 OFFICE TEAM CALLS\n${sep}\n`;
+    if(!d.offCallers.length){ t+=`  No office calls logged.\n`; }
+    else d.offCallers.forEach(n=>{
+      const calls=d.offLog[n]||[];
+      t+=`\n${n.toUpperCase()}  —  ${calls.length} call${calls.length!==1?'s':''}\n${sub}\n`;
+      calls.forEach((e,i)=>{
+        t+=`  ${String(i+1).padStart(2)}. ${e.partyName}\n`;
+        if(e.autoBal>0) t+=`      Auto: ₹${fmtN(e.autoBal)}\n`;
+        if(e.heroBal>0) t+=`      Hero: ₹${fmtN(e.heroBal)}\n`;
+        t+=`      Remark: ${e.remark||'(no remark)'}\n`;
+      });
+    });
+    t+=`\n`;
+  }
+  if(d.filter!=='office'){
+    t+=`${sep}\n👤 SALESMAN TEAM CALLS\n${sep}\n`;
+    if(!d.salCallers.length){ t+=`  No salesman calls logged.\n`; }
+    else d.salCallers.forEach(n=>{
+      const calls=d.salLog[n]||[];
+      t+=`\n${n.toUpperCase()}  —  ${calls.length} call${calls.length!==1?'s':''}\n${sub}\n`;
+      calls.forEach((e,i)=>{
+        t+=`  ${String(i+1).padStart(2)}. ${e.partyName}\n`;
+        if(e.autoBal>0) t+=`      Auto: ₹${fmtN(e.autoBal)}\n`;
+        if(e.heroBal>0) t+=`      Hero: ₹${fmtN(e.heroBal)}\n`;
+        t+=`      Remark: ${e.remark||'(no remark)'}\n`;
+      });
+    });
+  }
+  t+=`\n${sep}\nEnd of Call Report`;
+  return t;
+}
+
+function downloadCR(){
+  if(!crLastData){toast('Nothing to download','warn');return;}
+  const blob=new Blob([buildCRText()],{type:'text/plain;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`Call_Report_${crLastData.dateISO}.txt`; a.click();
+}
+
+function downloadCRExcel(){
+  if(!crLastData){toast('Nothing to download','warn');return;}
+  if(typeof XLSX==='undefined'){toast('Excel library not loaded','err');return;}
+  const d=crLastData;
+  const aoa=[];
+  aoa.push(['YANTRAYUG HERO HUB — Call Report']);
+  aoa.push(['Date', fmtDispISO(d.dateISO)]);
+  aoa.push(['Filter', d.filter==='all'?'All Calls':d.filter==='office'?'Office Only':'Salesman Only']);
+  aoa.push(['Generated by', `${USER.name} (${USER.role})`]);
+  aoa.push(['Generated at', fmtDisp(new Date())+' '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})]);
+  aoa.push([]);
+  aoa.push(['Summary']);
+  aoa.push(['Total Calls', d.totalCalls, 'Active Staff', d.totalCallers, 'Office Calls', d.offTotal, 'Salesman Calls', d.salTotal]);
+  aoa.push([]);
+  // Header row
+  aoa.push(['#','Team','Staff Name','Party Name','Auto ₹','Hero ₹','Total ₹','Remark']);
+  let rowIdx=1;
+  if(d.filter!=='salesman'){
+    d.offCallers.forEach(n=>{
+      (d.offLog[n]||[]).forEach(e=>{
+        aoa.push([rowIdx++, 'OFFICE', n, e.partyName, e.autoBal||0, e.heroBal||0, (e.autoBal||0)+(e.heroBal||0), e.remark||'']);
+      });
+    });
+  }
+  if(d.filter!=='office'){
+    d.salCallers.forEach(n=>{
+      (d.salLog[n]||[]).forEach(e=>{
+        aoa.push([rowIdx++, 'SALESMAN', n, e.partyName, e.autoBal||0, e.heroBal||0, (e.autoBal||0)+(e.heroBal||0), e.remark||'']);
+      });
+    });
+  }
+  // Per-staff totals sheet
+  const summary=[];
+  summary.push(['Team','Staff Name','Calls','Total Outstanding ₹']);
+  d.offCallers.forEach(n=>{
+    const calls=d.offLog[n]||[];
+    const tot=calls.reduce((s,e)=>s+(e.autoBal||0)+(e.heroBal||0),0);
+    summary.push(['OFFICE', n, calls.length, tot]);
+  });
+  d.salCallers.forEach(n=>{
+    const calls=d.salLog[n]||[];
+    const tot=calls.reduce((s,e)=>s+(e.autoBal||0)+(e.heroBal||0),0);
+    summary.push(['SALESMAN', n, calls.length, tot]);
+  });
+
+  const ws1=XLSX.utils.aoa_to_sheet(aoa);
+  ws1['!cols']=[{wch:5},{wch:10},{wch:15},{wch:35},{wch:13},{wch:13},{wch:13},{wch:40}];
+  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}}];
+  const ws2=XLSX.utils.aoa_to_sheet(summary);
+  ws2['!cols']=[{wch:10},{wch:18},{wch:8},{wch:18}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws1, 'Calls Detail');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Staff Summary');
+  XLSX.writeFile(wb, `Call_Report_${d.dateISO}.xlsx`);
 }
 
 /* ═══ ROUTE PRINT (all roles) ═══ */
