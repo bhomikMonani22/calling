@@ -1819,14 +1819,14 @@ function renderLB(){
                   F=callbackDate, G=createdAt, H=createdBy, I=dismissed(TRUE/FALSE)
 ════════════════════════════════════════════════════════════════════════ */
 const CB_SHEET = 'CALLBACKS';
-const CB_HEADERS = ['id','sr','partyName','caller','remark','callbackDate','createdAt','createdBy','dismissed'];
+const CB_HEADERS = ['id','sr','partyName','caller','remark','callbackDate','createdAt','createdBy','dismissed','daysSet'];
 
 async function loadCallbacks(){
   try{
     const vals = await fetchSheet(CB_SHEET);
     if(!vals||vals.length<1){
       // Sheet empty — write headers
-      await batchWriteMulti([{range:`${CB_SHEET}!A1:I1`, values:[CB_HEADERS]}]);
+      await batchWriteMulti([{range:`${CB_SHEET}!A1:J1`, values:[CB_HEADERS]}]);
       callbacks=[];
     } else {
       // Parse rows (skip header row 0)
@@ -1840,13 +1840,13 @@ async function loadCallbacks(){
           callbackDate:r[5]||'', createdAt:r[6]||'',
           createdBy:r[7]||'',
           dismissed:String(r[8]||'').toUpperCase()==='TRUE',
-          _row: i+1 // 1-indexed sheet row for updates
+          daysSet:+r[9]||null,
+          _row: i+1
         });
       }
     }
     updateCBBadge();
   }catch(e){
-    // CALLBACKS sheet may not exist yet — silently use empty array
     callbacks=[];
     updateCBBadge();
   }
@@ -1858,31 +1858,49 @@ async function setCB(sr){
   const party=allParties.find(p=>p.sr===sr); if(!party) return;
   const dt=new Date(); dt.setDate(dt.getDate()+days);
   const ci=todayColIdx; const d=ci>=0?(dateData[ci]||{})[sr]||{}:{};
+
+  // Prompt for callback remark — user types what to remember
+  const defaultRem=d.remA||d.remH||'';
+  const userRem=prompt(`Set callback for:\n${party.name}\n\nIn ${days} day${days!==1?'s':''} (${fmtDispISO(isoDate(dt))})\n\nWhat note do you want saved with this callback?`, defaultRem);
+  if(userRem===null) return; // user cancelled
+
   const cb={
     id:Date.now()+'-'+sr, sr,
     partyName:party.name,
     caller:d.nameA||d.nameH||USER.name,
-    remark:d.remA||d.remH||'',
+    remark:userRem||defaultRem||'',
     callbackDate:isoDate(dt),
     createdAt:TODAYISO,
     createdBy:USER.name,
-    dismissed:false
+    dismissed:false,
+    daysSet:days
   };
-  // Remove existing open CB for same party from sheet first
+  // Remove existing open CB for same party
   const existing=callbacks.find(c=>c.sr===sr&&!c.dismissed);
   if(existing) await dismissCBRow(existing);
 
   dot('syncing');
   try{
-    // Append to sheet
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(CB_SHEET+'!A:I')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-    const row=[[cb.id,cb.sr,cb.partyName,cb.caller,cb.remark,cb.callbackDate,cb.createdAt,cb.createdBy,'FALSE']];
+    // Ensure CALLBACKS sheet exists with headers
+    let vals;
+    try{ vals=await fetchSheet(CB_SHEET); }
+    catch(e){
+      dot('err');
+      toast('✗ CALLBACKS sheet not found. Create a tab named "CALLBACKS" in your Google Sheet first.','err');
+      return;
+    }
+    if(!vals||vals.length<1){
+      await batchWriteMulti([{range:`${CB_SHEET}!A1:J1`, values:[CB_HEADERS]}]);
+    }
+    // Append the new callback row
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(CB_SHEET+'!A:J')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    const row=[[cb.id,cb.sr,cb.partyName,cb.caller,cb.remark,cb.callbackDate,cb.createdAt,cb.createdBy,'FALSE',cb.daysSet]];
     const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:row})});
     if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
     dot('ok');
     await loadCallbacks();
     render('O'); render('S');
-    toast(`📅 Callback set for ${fmtDispISO(cb.callbackDate)}`,'ok');
+    toast(`📅 Callback set: ${party.name} in ${days} day${days!==1?'s':''}`,'ok');
   }catch(e){dot('err');toast('✗ '+e.message,'err');}
 }
 
@@ -1934,16 +1952,26 @@ function renderCB(){
       items.map(cb=>{
         const dA=Math.round((new Date(now)-new Date(cb.callbackDate))/864e5);
         const dU=Math.round((new Date(cb.callbackDate)-new Date(now))/864e5);
-        const dl=cls==='overdue'?(dA===0?'Today':dA===1?'Yesterday':`${dA}d ago`):cls==='today'?'TODAY':(dU===1?'Tomorrow':`In ${dU}d`);
+        // Big visible label: "Call in 3 days" / "Call today" / "Was due 2d ago"
+        const bigLbl = cls==='overdue'
+          ? (dA===0?'Call NOW':dA===1?'Was due Yesterday':`Was due ${dA} days ago`)
+          : cls==='today' ? 'Call TODAY' : (dU===1?'Call Tomorrow':`Call in ${dU} days`);
+        // Show the original "set after X days" if we have it
+        const setLbl = cb.daysSet
+          ? `Set ${fmtDispISO(cb.createdAt)} for ${cb.daysSet} day${cb.daysSet!==1?'s':''} later`
+          : `Set on ${fmtDispISO(cb.createdAt)}`;
         return `<div class="cb-card ${cls}">
           <div class="cb-card-ico">${icon}</div>
           <div class="cb-card-body">
             <div class="cb-card-name">${esc(cb.partyName)}</div>
-            <div class="cb-card-meta">Set by: <b>${esc(cb.createdBy||cb.caller||'—')}</b> &nbsp;·&nbsp; Caller: <b>${esc(cb.caller||'—')}</b> &nbsp;·&nbsp; On: ${fmtDispISO(cb.createdAt)}</div>
-            <div class="cb-card-rem">${esc(cb.remark||'No remark recorded')}</div>
+            <div class="cb-card-meta">By: <b>${esc(cb.createdBy||'—')}</b> &nbsp;·&nbsp; Caller assigned: <b>${esc(cb.caller||'—')}</b> &nbsp;·&nbsp; ${setLbl}</div>
+            <div class="cb-card-rem"><b>📝 Note:</b> ${esc(cb.remark||'(no note added)')}</div>
             <button class="cb-done" onclick="dismissCB('${cb.id}')">✓ Mark Done</button>
           </div>
-          <div class="cb-card-date"><div class="cb-card-date-main ${cls}">${dl}</div><div class="cb-card-date-sub">${fmtDispISO(cb.callbackDate)}</div></div>
+          <div class="cb-card-date">
+            <div class="cb-card-date-main ${cls}" style="font-size:14px;font-weight:800">${bigLbl}</div>
+            <div class="cb-card-date-sub" style="margin-top:4px">${fmtDispISO(cb.callbackDate)}</div>
+          </div>
         </div>`;
       }).join('')+'</div>';
   };
