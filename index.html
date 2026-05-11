@@ -2058,7 +2058,8 @@ function renderMR(){
 
   const chgArrow=v=>v===0?'→ No change':v>0?`▲ +₹${fmtN(Math.abs(v))}`:`▼ -₹${fmtN(Math.abs(v))}`;
   const chgPartiesArrow=v=>v===0?'→':v>0?`▲ +${v}`:`▼ ${v}`;
-  const chgCls=(v,inv=false)=>v===0?'same':((v>0)!==inv?'up':'down');
+  // Increase in outstanding/overdue parties = BAD (red 'up'); decrease = GOOD (green 'down')
+  const chgCls=v=>v===0?'same':v>0?'up':'down';
 
   // Staff overdue table HTML
   const hasPrevDay = !!prevGroup && pci>=0;
@@ -2080,9 +2081,9 @@ function renderMR(){
       const dfParty=cur.overdueParties-prev.overdueParties;
       // If no previous day exists, show — instead of "No change" (which is misleading)
       const partyChgHtml = !hasPrevDay ? `<span style="color:var(--dim);font-size:11px">—</span>`
-        : `<span class="chg ${chgCls(dfParty,true)}" style="font-size:12px;font-weight:700">${chgPartiesArrow(dfParty)}</span>`;
+        : `<span class="chg ${chgCls(dfParty)}" style="font-size:12px;font-weight:700">${chgPartiesArrow(dfParty)}</span>`;
       const rupeeChgHtml = !hasPrevDay ? `<span style="color:var(--dim);font-size:11px">—</span>`
-        : `<span class="chg ${chgCls(dfRupee,true)}" style="font-size:12px;font-weight:700">${chgArrow(dfRupee)}</span>`;
+        : `<span class="chg ${chgCls(dfRupee)}" style="font-size:12px;font-weight:700">${chgArrow(dfRupee)}</span>`;
       return `<tr>
         <td><b>${esc(name)}</b></td>
         <td class="num blue" style="font-size:14px;font-weight:800">${cur.overdueParties}</td>
@@ -2126,9 +2127,9 @@ function renderMR(){
     <div class="mr-section">
       <div class="mr-section-head">📊 Outstanding Summary (all parties)</div>
       <div class="mr-kpi-grid">
-        <div class="mr-kpi"><div class="mr-kpi-label">Total Outstanding</div><div class="mr-kpi-val orange">₹${fmtN(totalToday)}</div><div class="mr-kpi-change ${chgCls(totalToday-totalPrev,true)}">${chgArrow(totalToday-totalPrev)}</div></div>
-        <div class="mr-kpi"><div class="mr-kpi-label">Auto Outstanding</div><div class="mr-kpi-val blue">₹${fmtN(totalAuto)}</div><div class="mr-kpi-change ${chgCls(totalAuto-prevAuto,true)}">${chgArrow(totalAuto-prevAuto)}</div></div>
-        <div class="mr-kpi"><div class="mr-kpi-label">Hero Outstanding</div><div class="mr-kpi-val orange">₹${fmtN(totalHero)}</div><div class="mr-kpi-change ${chgCls(totalHero-prevHero,true)}">${chgArrow(totalHero-prevHero)}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">Total Outstanding</div><div class="mr-kpi-val orange">₹${fmtN(totalToday)}</div><div class="mr-kpi-change ${chgCls(totalToday-totalPrev)}">${chgArrow(totalToday-totalPrev)}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">Auto Outstanding</div><div class="mr-kpi-val blue">₹${fmtN(totalAuto)}</div><div class="mr-kpi-change ${chgCls(totalAuto-prevAuto)}">${chgArrow(totalAuto-prevAuto)}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">Hero Outstanding</div><div class="mr-kpi-val orange">₹${fmtN(totalHero)}</div><div class="mr-kpi-change ${chgCls(totalHero-prevHero)}">${chgArrow(totalHero-prevHero)}</div></div>
         <div class="mr-kpi"><div class="mr-kpi-label">Parties with Balance</div><div class="mr-kpi-val blue">${allParties.filter(p=>{const d=selData[p.sr]||{};return (d.autoBal||0)+(d.heroBal||0)>0;}).length}</div></div>
       </div>
       <div class="mr-kpi-grid">
