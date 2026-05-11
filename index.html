@@ -2012,6 +2012,16 @@ function renderMR(){
   const chgCls=(v,inv=false)=>v===0?'same':((v>0)!==inv?'up':'down');
 
   // Staff overdue table HTML
+  const hasPrevDay = !!d.prevGroup && pci>=0;
+  // Detect VLOOKUP pollution: if past dates show identical totals to today, the sheet uses
+  // live VLOOKUP formulas and historical comparison is meaningless.
+  const prevPolluted = hasPrevDay && Math.abs((prevAuto+prevHero) - (totalAuto+totalHero)) < 1;
+  const compareBanner = !hasPrevDay
+    ? `<div style="background:var(--orange-dim);border-left:3px solid var(--orange);padding:10px 16px;margin-bottom:14px;border-radius:8px;font-size:12px;color:var(--ink2)"><b>ℹ️ No previous day data</b> — this is the first recorded date, so increase/decrease comparison isn't available.</div>`
+    : prevPolluted
+    ? `<div style="background:var(--orange-dim);border-left:3px solid var(--orange);padding:10px 16px;margin-bottom:14px;border-radius:8px;font-size:12px;color:var(--ink2)"><b>⚠️ Previous day shows identical totals</b> — your sheet's history columns use live VLOOKUP formulas pointing at today's dump, so comparison isn't meaningful for this date. Once you save daily snapshots, comparisons will accumulate.</div>`
+    : '';
+
   const mkStaffOverdueRows=(curMap,prevMap)=>{
     const rows=Object.entries(curMap).filter(([,v])=>v.total>0||v.overdueParties>0).sort((a,b)=>b[1].total-a[1].total);
     if(!rows.length) return `<tr><td colspan="5" class="mr-empty-section">No staff has 30+ day overdue balances</td></tr>`;
@@ -2019,12 +2029,17 @@ function renderMR(){
       const prev=prevMap[name]||{total:0,overdueParties:0};
       const dfRupee=cur.total-prev.total;
       const dfParty=cur.overdueParties-prev.overdueParties;
+      // If no previous day exists, show — instead of "No change" (which is misleading)
+      const partyChgHtml = !hasPrevDay ? `<span style="color:var(--dim);font-size:11px">—</span>`
+        : `<span class="chg ${chgCls(dfParty,true)}" style="font-size:12px;font-weight:700">${chgPartiesArrow(dfParty)}</span>`;
+      const rupeeChgHtml = !hasPrevDay ? `<span style="color:var(--dim);font-size:11px">—</span>`
+        : `<span class="chg ${chgCls(dfRupee,true)}" style="font-size:12px;font-weight:700">${chgArrow(dfRupee)}</span>`;
       return `<tr>
         <td><b>${esc(name)}</b></td>
-        <td class="num blue">${cur.overdueParties}</td>
-        <td class="chg ${chgCls(dfParty,true)}">${chgPartiesArrow(dfParty)}</td>
-        <td class="num red">₹${fmtN(cur.total)}</td>
-        <td class="chg ${chgCls(dfRupee,true)}">${chgArrow(dfRupee)}</td>
+        <td class="num blue" style="font-size:14px;font-weight:800">${cur.overdueParties}</td>
+        <td style="text-align:right">${partyChgHtml}</td>
+        <td class="num red" style="font-size:13px;font-weight:800">₹${fmtN(cur.total)}</td>
+        <td style="text-align:right">${rupeeChgHtml}</td>
       </tr>`;
     }).join('');
   };
@@ -2056,6 +2071,7 @@ function renderMR(){
         <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
       </div>
     </div>
+    ${compareBanner}
 
     <!-- 1. OUTSTANDING SUMMARY -->
     <div class="mr-section">
