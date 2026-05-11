@@ -381,6 +381,53 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .cb-card-date-sub{font-size:10px;color:var(--dim);margin-top:2px}
 .cb-empty{font-size:13px;color:var(--dim);padding:20px 0}
 
+/* MASTER REPORT */
+#pMR{overflow-y:auto}
+.mr-inner{padding:24px 28px;max-width:1200px}
+.mr-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:4px}
+.mr-sub{font-size:13px;color:var(--mid);margin-bottom:22px}
+.mr-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;margin-bottom:22px}
+.mr-controls label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.4px;text-transform:uppercase}
+.mr-date{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;color:var(--ink);outline:none;background:var(--bg)}
+.mr-date:focus{border-color:var(--y)}
+.mr-printable{background:var(--bg);border-radius:var(--radius);overflow:hidden}
+.mr-cover{padding:18px 24px;border-bottom:2px solid var(--ink);background:var(--bg2);border-radius:var(--radius) var(--radius) 0 0;margin-bottom:14px}
+.mr-cover-title{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+.mr-cover-meta{font-size:12px;color:var(--mid);margin-top:5px;display:flex;gap:18px;flex-wrap:wrap}
+.mr-cover-meta b{color:var(--ink);font-weight:700}
+.mr-section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);page-break-inside:avoid;break-inside:avoid}
+.mr-section-head{padding:12px 20px;background:var(--bg3);border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;letter-spacing:.2px}
+.mr-section-head span{font-size:11px;font-weight:500;color:var(--mid)}
+.mr-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--border)}
+@media(max-width:760px){.mr-kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.mr-kpi{padding:14px 18px;border-right:1px solid var(--border)}
+.mr-kpi:last-child{border-right:none}
+.mr-kpi-label{font-size:10px;font-weight:700;color:var(--mid);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.mr-kpi-val{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+.mr-kpi-val.green{color:var(--green)}.mr-kpi-val.red{color:var(--red)}.mr-kpi-val.orange{color:var(--orange)}.mr-kpi-val.blue{color:var(--blue)}
+.mr-kpi-change{font-size:11px;font-weight:600;margin-top:3px}
+.mr-kpi-change.up{color:var(--red)}.mr-kpi-change.down{color:var(--green)}.mr-kpi-change.same{color:var(--dim)}
+.mr-table{width:100%;border-collapse:collapse;font-size:12px}
+.mr-table thead th{background:var(--bg3);font-size:10px;font-weight:700;color:var(--mid);padding:8px 14px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase}
+.mr-table thead th.right{text-align:right}
+.mr-table tbody td{padding:8px 14px;border-bottom:1px solid var(--border);color:var(--ink);font-weight:500;vertical-align:top}
+.mr-table tbody tr:last-child td{border-bottom:none}
+.mr-table tbody tr:hover td{background:var(--bg3)}
+.mr-table .num{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
+.mr-table .num.green{color:var(--green)}.mr-table .num.red{color:var(--red)}.mr-table .num.orange{color:var(--orange)}.mr-table .num.blue{color:var(--blue)}
+.mr-table .chg{font-size:11px;font-weight:600}
+.mr-table .chg.up{color:var(--red)}.mr-table .chg.down{color:var(--green)}.mr-table .chg.same{color:var(--dim)}
+.mr-staff-block{padding:0;border-bottom:2px solid var(--border)}
+.mr-staff-block:last-child{border-bottom:none}
+.mr-staff-head{padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border)}
+.mr-staff-head.office{background:var(--blue-dim)}.mr-staff-head.salesman{background:var(--orange-dim)}
+.mr-staff-name{font-size:14px;font-weight:800;letter-spacing:-.2px}
+.mr-staff-name.office{color:var(--blue)}.mr-staff-name.salesman{color:var(--orange)}
+.mr-staff-team-badge{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-left:8px}
+.mr-staff-team-badge.office{background:var(--blue);color:#fff}.mr-staff-team-badge.salesman{background:var(--orange);color:#fff}
+.mr-staff-meta{font-size:11px;font-weight:600;color:var(--mid)}
+.mr-empty-section{padding:16px 20px;color:var(--dim);font-size:12px;font-style:italic}
+
 /* CALL REPORT */
 #pCR{overflow-y:auto}
 .cr-inner{padding:24px 28px;max-width:1100px}
@@ -471,13 +518,13 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
   #shell, #main, #content { display: block !important; position: static !important; overflow: visible !important; height: auto !important; inset: auto !important; }
   .pane.active { display: block !important; position: static !important; inset: auto !important; overflow: visible !important; height: auto !important; }
   .rp-inner { padding: 0 !important; max-width: 100% !important; }
-  .rp-printable, .cr-printable { position: static !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+  .rp-printable, .cr-printable, .mr-printable { position: static !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
 
   /* Header & summary stay together on one page */
-  .rp-print-header, .cr-print-header { page-break-inside: avoid; break-inside: avoid; }
+  .rp-print-header, .cr-print-header, .mr-cover { page-break-inside: avoid; break-inside: avoid; }
   .rp-summary, .cr-summary-grid { page-break-inside: avoid; break-inside: avoid; margin-bottom: 8px !important; padding: 8px 12px !important; }
   /* Each staff block stays together if possible */
-  .cr-staff-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 10px !important; }
+  .cr-staff-block, .mr-section, .mr-staff-block { page-break-inside: avoid; break-inside: avoid; margin-bottom: 10px !important; }
 
   /* Table — repeat header on each page, never break a row */
   .rp-table { font-size: 9px; width: 100%; page-break-inside: auto; }
@@ -844,48 +891,19 @@ tr.pw td{background:rgba(229,122,26,.04)}
         </div>
       </div>
 
-      <!-- CALLBACKS (all roles) -->
-      <!-- CALL REPORT (all roles) -->
-      <div class="pane" id="pCR">
-        <div class="cr-inner">
-          <div class="cr-title">📞 Call Report</div>
-          <div class="cr-sub">Who called whom today — every call with party name, remark, and balance</div>
-          <div class="cr-controls no-print">
+      <!-- MASTER REPORT (all roles) -->
+      <div class="pane" id="pMR">
+        <div class="mr-inner">
+          <div class="mr-title">📄 Daily Master Report</div>
+          <div class="mr-sub">Complete view of today's calling activity, outstanding trends, and staff performance — accessible by everyone</div>
+          <div class="mr-controls no-print">
             <label>Date</label>
-            <input type="date" class="cr-date" id="crDate" onchange="renderCR()">
-            <label style="margin-left:14px">Filter</label>
-            <select class="cr-select" id="crFilter" onchange="renderCR()">
-              <option value="all">All Calls (Office + Salesman)</option>
-              <option value="office">Office Calls Only</option>
-              <option value="salesman">Salesman Calls Only</option>
-            </select>
-            <button class="rp-btn print" onclick="window.print()" id="crPrintBtn" style="display:none;margin-left:auto">🖨 Print</button>
-            <button class="rp-btn excel" onclick="downloadCRExcel()" id="crXlBtn" style="display:none;margin-left:8px">📊 Excel</button>
-            <button class="rp-btn download" onclick="downloadCR()" id="crDlBtn" style="display:none;margin-left:8px">⬇ Download .txt</button>
+            <input type="date" class="mr-date" id="mrDate" onchange="renderMR()">
+            <button class="rp-btn print" onclick="window.print()" id="mrPrintBtn" style="display:none;margin-left:auto">🖨 Print</button>
+            <button class="rp-btn excel" onclick="downloadMRExcel()" id="mrXlBtn" style="display:none;margin-left:8px">📊 Excel</button>
+            <button class="rp-btn download" onclick="downloadMR()" id="mrDlBtn" style="display:none;margin-left:8px">⬇ Download .txt</button>
           </div>
-          <div id="crResult"><div class="nodata"><div class="nodata-icon">📞</div><div class="nodata-txt">Loading…</div></div></div>
-        </div>
-      </div>
-
-      <!-- ROUTE PRINT (all roles) -->
-      <div class="pane" id="pRP">
-        <div class="rp-inner">
-          <div class="rp-title">🖨 Route-wise Outstanding Print</div>
-          <div class="rp-sub">Select a route to list all parties with outstanding. Print or download as needed.</div>
-          <div class="rp-controls no-print">
-            <label>Route</label>
-            <select class="rp-select" id="rpRoute" onchange="renderRP()"><option value="">— select route —</option><option value="__ALL__">📋 All Routes (full list)</option></select>
-            <label style="margin-left:14px">Min Days</label>
-            <input type="number" min="0" max="999" value="0" class="rp-min" id="rpMinDays" oninput="renderRP()" style="width:70px">
-            <label style="margin-left:14px">
-              <input type="checkbox" id="rpOnlyOutstanding" checked onchange="renderRP()" style="margin-right:5px">
-              Only parties with balance
-            </label>
-            <button class="rp-btn print" onclick="window.print()" id="rpPrintBtn" style="display:none">🖨 Print</button>
-            <button class="rp-btn excel" onclick="downloadRPExcel()" id="rpXlBtn" style="display:none">📊 Download Excel</button>
-            <button class="rp-btn download" onclick="downloadRP()" id="rpDlBtn" style="display:none">⬇ Download .txt</button>
-          </div>
-          <div id="rpResult"><div class="nodata"><div class="nodata-icon">🖨</div><div class="nodata-txt">Select a route to begin</div></div></div>
+          <div id="mrResult"><div class="nodata"><div class="nodata-icon">📄</div><div class="nodata-txt">Loading today's report…</div></div></div>
         </div>
       </div>
 
@@ -898,43 +916,6 @@ tr.pw td{background:rgba(229,122,26,.04)}
       </div>
 
       <!-- UPLOAD (admin or any role who uploads) -->
-      <!-- EOD REPORT (admin) -->
-      <div class="pane" id="pEOD">
-        <div class="eod-inner">
-          <div class="eod-title">📄 Reports</div>
-          <div class="eod-sub">Daily and weekly outstanding summaries with staff performance and trends</div>
-          <!-- Report type tabs -->
-          <div style="display:flex;gap:8px;margin-bottom:18px">
-            <button class="eod-tab-btn active" id="eodTabDaily" onclick="switchEODTab('daily')">📄 Daily EOD</button>
-            <button class="eod-tab-btn" id="eodTabWeekly" onclick="switchEODTab('weekly')">📅 Weekly Report</button>
-          </div>
-          <!-- DAILY -->
-          <div id="eodDailyPanel">
-            <div class="eod-controls">
-              <label style="font-size:11px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Report Date</label>
-              <input type="date" class="eod-date-pick" id="eodDate">
-              <button class="eod-gen-btn" onclick="generateEOD()">⚡ Generate</button>
-              <button class="eod-dl-btn" id="eodDlBtn" onclick="downloadEOD()">⬇ Download .txt</button>
-              <button class="eod-save-btn" id="eodSaveBtn" onclick="saveEODToSheet()">💾 Save to Sheet</button>
-            </div>
-            <div id="eodResult"><div class="nodata"><div class="nodata-icon">📄</div><div class="nodata-txt">Select a date and click Generate</div></div></div>
-          </div>
-          <!-- WEEKLY -->
-          <div id="eodWeeklyPanel" style="display:none">
-            <div class="eod-controls">
-              <label style="font-size:11px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Week Starting</label>
-              <input type="date" class="eod-date-pick" id="eodWeekFrom">
-              <label style="font-size:11px;font-weight:600;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">To</label>
-              <input type="date" class="eod-date-pick" id="eodWeekTo">
-              <button class="eod-gen-btn" onclick="generateWeekly()">⚡ Generate</button>
-              <button class="eod-dl-btn" id="eodWkDlBtn" onclick="downloadWeekly()">⬇ Download .txt</button>
-              <button class="eod-save-btn" id="eodWkSaveBtn" onclick="saveWeeklyToSheet()">💾 Save to Sheet</button>
-            </div>
-            <div id="eodWeeklyResult"><div class="nodata"><div class="nodata-icon">📅</div><div class="nodata-txt">Select a date range and click Generate</div></div></div>
-          </div>
-        </div>
-      </div>
-
       <div class="pane" id="pUP">
         <div class="up-inner">
           <div class="up-title">⬆ Daily Dump Upload</div>
@@ -989,16 +970,14 @@ const ADMIN_PASS  = 'yantrayug2024'; // simple admin password
 const NAV_OFFICE = [
   {t:'SumO', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'O', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
-  {t:'CR', icon:'📞', label:'Call Report', sub:'Today\'s calls by staff'},
-  {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
+  {t:'MR', icon:'📄', label:'Report', sub:'Daily master report'},
   {t:'CB', icon:'📅', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
 const NAV_SALESMAN = [
   {t:'SumS', icon:'📊', label:'Summary', sub:'Your overdue overview'},
   {t:'S', icon:'📋', label:'Outstanding', sub:'Your assigned parties'},
-  {t:'CR', icon:'📞', label:'Call Report', sub:'Today\'s calls by staff'},
-  {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
+  {t:'MR', icon:'📄', label:'Report', sub:'Daily master report'},
   {t:'CB', icon:'📅', label:'Callbacks', sub:'Scheduled follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
@@ -1008,10 +987,8 @@ const NAV_ADMIN = [
   {t:'S', icon:'👤', label:'Salesman View', sub:'Salesman parties'},
   {t:'A', icon:'📅', label:'All Data', sub:'Full history, read-only'},
   {t:'PH', icon:'🔍', label:'Party History', sub:'Balance by date per party'},
-  {t:'CR', icon:'📞', label:'Call Report', sub:'Today\'s calls by staff'},
-  {t:'RP', icon:'🖨', label:'Route Print', sub:'Print parties by route'},
+  {t:'MR', icon:'📄', label:'Report', sub:'Daily master report'},
   {t:'LB', icon:'🏆', label:'Leaderboard', sub:'Who called the most'},
-  {t:'EOD', icon:'📄', label:'EOD Report', sub:'End of day summary'},
   {t:'CB', icon:'📅', label:'Callbacks', sub:'All follow-ups'},
   {t:'UP', icon:'⬆', label:'Upload Dump', sub:'Daily Marg export'},
 ];
@@ -1121,8 +1098,8 @@ function sw(t){
   const paneId='p'+t;
   const pane=document.getElementById(paneId);
   if(pane) pane.classList.add('active');
-  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History',EOD:'End of Day Report',RP:'Route Print',CR:'Call Report'};
-  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',EOD:'Daily summary with call performance and outstanding trends',RP:'Filter parties by route — print or download',CR:'Who called whom today — full call log'};
+  const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History',MR:'Daily Master Report'};
+  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',MR:'All-in-one daily report — calls, outstanding, staff performance'};
   document.getElementById('tbTitle').textContent=titles[t]||t;
   document.getElementById('tbSub').textContent=subs[t]||'';
   if(t==='CB') renderCB();
@@ -1131,9 +1108,7 @@ function sw(t){
   if(t==='SumO') renderSum('O');
   if(t==='SumS') renderSum('S');
   if(t==='PH') renderPHInit();
-  if(t==='EOD') initEOD();
-  if(t==='RP') initRP();
-  if(t==='CR') renderCR();
+  if(t==='MR') initMR();
 }
 
 /* ═══ CFG MODAL ═══ */
@@ -1341,8 +1316,7 @@ async function loadAll(){
     if(curPane==='SumO') renderSum('O');
     if(curPane==='SumS') renderSum('S');
     if(curPane==='PH') renderPHInit();
-    if(curPane==='RP') initRP();
-    if(curPane==='CR') renderCR();
+    if(curPane==='MR') initMR();
     // Load callbacks from sheet (shared across all users)
     await loadCallbacks();
     checkCallbackNotifs();
@@ -1979,1005 +1953,360 @@ function renderCB(){
   document.getElementById('cbSections').innerHTML=html||`<div class="cb-empty">No callbacks scheduled. Use the SET button on any party row.</div>`;
 }
 
-/* ═══ CALL REPORT (all roles) ═══ */
-let crLastData=null;
+/* ═══ MASTER REPORT (all roles, combines everything) ═══ */
+let mrLastData=null;
 
-function renderCR(){
-  const dateInput=document.getElementById('crDate');
-  if(!dateInput.value) dateInput.value=TODAYISO;
-  const dateISO=dateInput.value;
-  const filter=document.getElementById('crFilter').value;
+function initMR(){
+  const dateEl=document.getElementById('mrDate');
+  if(!dateEl.value) dateEl.value=TODAYISO;
+  renderMR();
+}
+
+function renderMR(){
+  const dateISO=document.getElementById('mrDate').value||TODAYISO;
+  const result=document.getElementById('mrResult');
+  const allBtns=['mrPrintBtn','mrXlBtn','mrDlBtn'];
+
   const selGroup=allDateGroups.find(g=>g.isoDate===dateISO);
-  const result=document.getElementById('crResult');
-  const allBtns=['crPrintBtn','crXlBtn','crDlBtn'];
-
   if(!selGroup){
-    result.innerHTML=`<div class="nodata"><div class="nodata-icon">📞</div><div class="nodata-txt">No data for ${fmtDispISO(dateISO)} — date columns not created yet</div></div>`;
+    result.innerHTML=`<div class="nodata"><div class="nodata-icon">📄</div><div class="nodata-txt">No data for ${fmtDispISO(dateISO)} — date columns not created yet</div></div>`;
     allBtns.forEach(id=>document.getElementById(id).style.display='none');
     return;
   }
-
-  const ci=selGroup.colIdx;
-  const {offCount,salCount,offLog,salLog}=aggregateDate(ci, -1);
-
-  const showOffice=filter==='all'||filter==='office';
-  const showSales=filter==='all'||filter==='salesman';
-  const offCallers=showOffice?Object.keys(offCount).sort((a,b)=>offCount[b]-offCount[a]):[];
-  const salCallers=showSales?Object.keys(salCount).sort((a,b)=>salCount[b]-salCount[a]):[];
-
-  const offTotal=offCallers.reduce((s,n)=>s+offCount[n],0);
-  const salTotal=salCallers.reduce((s,n)=>s+salCount[n],0);
-  const totalCalls=offTotal+salTotal;
-  const totalCallers=offCallers.length+salCallers.length;
-
-  if(totalCalls===0){
-    result.innerHTML=`<div class="cr-printable">
-      <div class="cr-print-header">
-        <div class="cr-print-co">YANTRAYUG HERO HUB — CALL REPORT</div>
-        <div class="cr-print-meta">
-          <div><b>Date:</b> ${fmtDispISO(dateISO)}</div>
-          <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
-          <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
-        </div>
-      </div>
-      <div class="cr-no-calls-section"><b>No calls logged yet</b> for ${fmtDispISO(dateISO)} ${filter!=='all'?'matching this filter':''}.</div>
-    </div>`;
-    allBtns.forEach(id=>document.getElementById(id).style.display='none');
-    return;
-  }
-
-  // Build staff blocks
-  const mkBlock=(callerName, calls, team)=>{
-    const cls=team;
-    const rows=calls.map(e=>`<tr>
-      <td><b>${esc(e.partyName)}</b></td>
-      <td class="num auto">${e.autoBal>0?'₹'+fmtN(e.autoBal):'—'}</td>
-      <td class="num hero">${e.heroBal>0?'₹'+fmtN(e.heroBal):'—'}</td>
-      <td>${esc(e.remark)||'<span style="color:var(--border2)">— (no remark)</span>'}</td>
-    </tr>`).join('');
-    return `<div class="cr-staff-block">
-      <div class="cr-staff-head ${cls}">
-        <div><span class="cr-staff-name ${cls}">${esc(callerName)}</span><span class="cr-staff-team ${cls}">${team}</span></div>
-        <div class="cr-staff-meta">${calls.length} call${calls.length!==1?'s':''}</div>
-      </div>
-      <table class="cr-staff-table">
-        <thead><tr><th>Party</th><th class="right">Auto ₹</th><th class="right">Hero ₹</th><th>Remark</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-  };
-
-  let html=`<div class="cr-printable">
-    <div class="cr-print-header">
-      <div class="cr-print-co">YANTRAYUG HERO HUB — CALL REPORT</div>
-      <div class="cr-print-meta">
-        <div><b>Date:</b> ${fmtDispISO(dateISO)}</div>
-        <div><b>Filter:</b> ${filter==='all'?'All Calls':filter==='office'?'Office Only':'Salesman Only'}</div>
-        <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
-        <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
-      </div>
-    </div>
-    <div class="cr-summary-grid">
-      <div class="cr-kpi"><div class="cr-kpi-label">Total Calls</div><div class="cr-kpi-val green">${totalCalls}</div></div>
-      <div class="cr-kpi"><div class="cr-kpi-label">Active Staff</div><div class="cr-kpi-val blue">${totalCallers}</div></div>
-      <div class="cr-kpi"><div class="cr-kpi-label">Office Calls</div><div class="cr-kpi-val blue">${offTotal}</div></div>
-      <div class="cr-kpi"><div class="cr-kpi-label">Salesman Calls</div><div class="cr-kpi-val orange">${salTotal}</div></div>
-    </div>`;
-
-  if(showOffice){
-    html+=`<div style="margin-bottom:8px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--blue);padding:6px 0;border-bottom:2px solid var(--blue-dim)">🏢 Office Team Calls</div>`;
-    if(!offCallers.length){
-      html+=`<div class="cr-no-calls-section">No office calls logged for this date.</div>`;
-    } else {
-      offCallers.forEach(n=>{ html+=mkBlock(n, offLog[n]||[], 'office'); });
-    }
-  }
-  if(showSales){
-    html+=`<div style="margin-top:18px;margin-bottom:8px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--orange);padding:6px 0;border-bottom:2px solid var(--orange-dim)">👤 Salesman Team Calls</div>`;
-    if(!salCallers.length){
-      html+=`<div class="cr-no-calls-section">No salesman calls logged for this date.</div>`;
-    } else {
-      salCallers.forEach(n=>{ html+=mkBlock(n, salLog[n]||[], 'salesman'); });
-    }
-  }
-  html+=`</div>`;
-
-  result.innerHTML=html;
-  allBtns.forEach(id=>document.getElementById(id).style.display='inline-flex');
-
-  crLastData={dateISO, filter, offCount, salCount, offLog, salLog, offCallers, salCallers, offTotal, salTotal, totalCalls, totalCallers};
-}
-
-function buildCRText(){
-  if(!crLastData) return '';
-  const d=crLastData;
-  const sep='═'.repeat(60);
-  const sub='─'.repeat(60);
-  let t=`YANTRAYUG HERO HUB — CALL REPORT\n${sep}\n`;
-  t+=`Date     : ${fmtDispISO(d.dateISO)}\nFilter   : ${d.filter==='all'?'All Calls':d.filter==='office'?'Office Only':'Salesman Only'}\n`;
-  t+=`Generated: ${fmtDisp(new Date())}\nBy       : ${USER.name} (${USER.role})\n${sep}\n\n`;
-  t+=`SUMMARY\n  Total Calls   : ${d.totalCalls}\n  Active Staff  : ${d.totalCallers}\n  Office Calls  : ${d.offTotal}\n  Salesman Calls: ${d.salTotal}\n\n`;
-
-  if(d.filter!=='salesman'){
-    t+=`${sep}\n🏢 OFFICE TEAM CALLS\n${sep}\n`;
-    if(!d.offCallers.length){ t+=`  No office calls logged.\n`; }
-    else d.offCallers.forEach(n=>{
-      const calls=d.offLog[n]||[];
-      t+=`\n${n.toUpperCase()}  —  ${calls.length} call${calls.length!==1?'s':''}\n${sub}\n`;
-      calls.forEach((e,i)=>{
-        t+=`  ${String(i+1).padStart(2)}. ${e.partyName}\n`;
-        if(e.autoBal>0) t+=`      Auto: ₹${fmtN(e.autoBal)}\n`;
-        if(e.heroBal>0) t+=`      Hero: ₹${fmtN(e.heroBal)}\n`;
-        t+=`      Remark: ${e.remark||'(no remark)'}\n`;
-      });
-    });
-    t+=`\n`;
-  }
-  if(d.filter!=='office'){
-    t+=`${sep}\n👤 SALESMAN TEAM CALLS\n${sep}\n`;
-    if(!d.salCallers.length){ t+=`  No salesman calls logged.\n`; }
-    else d.salCallers.forEach(n=>{
-      const calls=d.salLog[n]||[];
-      t+=`\n${n.toUpperCase()}  —  ${calls.length} call${calls.length!==1?'s':''}\n${sub}\n`;
-      calls.forEach((e,i)=>{
-        t+=`  ${String(i+1).padStart(2)}. ${e.partyName}\n`;
-        if(e.autoBal>0) t+=`      Auto: ₹${fmtN(e.autoBal)}\n`;
-        if(e.heroBal>0) t+=`      Hero: ₹${fmtN(e.heroBal)}\n`;
-        t+=`      Remark: ${e.remark||'(no remark)'}\n`;
-      });
-    });
-  }
-  t+=`\n${sep}\nEnd of Call Report`;
-  return t;
-}
-
-function downloadCR(){
-  if(!crLastData){toast('Nothing to download','warn');return;}
-  const blob=new Blob([buildCRText()],{type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`Call_Report_${crLastData.dateISO}.txt`; a.click();
-}
-
-function downloadCRExcel(){
-  if(!crLastData){toast('Nothing to download','warn');return;}
-  if(typeof XLSX==='undefined'){toast('Excel library not loaded','err');return;}
-  const d=crLastData;
-  const aoa=[];
-  aoa.push(['YANTRAYUG HERO HUB — Call Report']);
-  aoa.push(['Date', fmtDispISO(d.dateISO)]);
-  aoa.push(['Filter', d.filter==='all'?'All Calls':d.filter==='office'?'Office Only':'Salesman Only']);
-  aoa.push(['Generated by', `${USER.name} (${USER.role})`]);
-  aoa.push(['Generated at', fmtDisp(new Date())+' '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})]);
-  aoa.push([]);
-  aoa.push(['Summary']);
-  aoa.push(['Total Calls', d.totalCalls, 'Active Staff', d.totalCallers, 'Office Calls', d.offTotal, 'Salesman Calls', d.salTotal]);
-  aoa.push([]);
-  // Header row
-  aoa.push(['#','Team','Staff Name','Party Name','Auto ₹','Hero ₹','Total ₹','Remark']);
-  let rowIdx=1;
-  if(d.filter!=='salesman'){
-    d.offCallers.forEach(n=>{
-      (d.offLog[n]||[]).forEach(e=>{
-        aoa.push([rowIdx++, 'OFFICE', n, e.partyName, e.autoBal||0, e.heroBal||0, (e.autoBal||0)+(e.heroBal||0), e.remark||'']);
-      });
-    });
-  }
-  if(d.filter!=='office'){
-    d.salCallers.forEach(n=>{
-      (d.salLog[n]||[]).forEach(e=>{
-        aoa.push([rowIdx++, 'SALESMAN', n, e.partyName, e.autoBal||0, e.heroBal||0, (e.autoBal||0)+(e.heroBal||0), e.remark||'']);
-      });
-    });
-  }
-  // Per-staff totals sheet
-  const summary=[];
-  summary.push(['Team','Staff Name','Calls','Total Outstanding ₹']);
-  d.offCallers.forEach(n=>{
-    const calls=d.offLog[n]||[];
-    const tot=calls.reduce((s,e)=>s+(e.autoBal||0)+(e.heroBal||0),0);
-    summary.push(['OFFICE', n, calls.length, tot]);
-  });
-  d.salCallers.forEach(n=>{
-    const calls=d.salLog[n]||[];
-    const tot=calls.reduce((s,e)=>s+(e.autoBal||0)+(e.heroBal||0),0);
-    summary.push(['SALESMAN', n, calls.length, tot]);
-  });
-
-  const ws1=XLSX.utils.aoa_to_sheet(aoa);
-  ws1['!cols']=[{wch:5},{wch:10},{wch:15},{wch:35},{wch:13},{wch:13},{wch:13},{wch:40}];
-  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}}];
-  const ws2=XLSX.utils.aoa_to_sheet(summary);
-  ws2['!cols']=[{wch:10},{wch:18},{wch:8},{wch:18}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws1, 'Calls Detail');
-  XLSX.utils.book_append_sheet(wb, ws2, 'Staff Summary');
-  XLSX.writeFile(wb, `Call_Report_${d.dateISO}.xlsx`);
-}
-
-/* ═══ ROUTE PRINT (all roles) ═══ */
-let lastRPText='';
-let lastRPParties=[], lastRPMeta=null;
-
-function initRP(){
-  const sel=document.getElementById('rpRoute');
-  const prev=sel.value;
-  sel.innerHTML='<option value="">— select route —</option><option value="__ALL__">📋 All Routes (full list)</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
-  sel.value=prev;
-  if(prev) renderRP();
-}
-
-function renderRP(){
-  const route=document.getElementById('rpRoute').value;
-  const minDays=+document.getElementById('rpMinDays').value||0;
-  const onlyOut=document.getElementById('rpOnlyOutstanding').checked;
-  const result=document.getElementById('rpResult');
-  const allBtns=['rpPrintBtn','rpDlBtn','rpXlBtn'];
-  if(!route){
-    result.innerHTML=`<div class="nodata"><div class="nodata-icon">🖨</div><div class="nodata-txt">Select a route to begin (or choose "All Routes" for full list)</div></div>`;
-    allBtns.forEach(id=>document.getElementById(id).style.display='none');
-    return;
-  }
-  const ci=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
-  const tData=ci>=0?dateData[ci]||{}:{};
-  const dateLabel=ci>=0?(allDateGroups.find(g=>g.colIdx===ci)?.isoDate||TODAYISO):TODAYISO;
-  const isAll=route==='__ALL__';
-  const routeLabel=isAll?'ALL ROUTES':route;
-
-  const parties=allParties.filter(p=>isAll||p.route===route).map(p=>{
-    const d=tData[p.sr]||{};
-    return {...p, autoBal:d.autoBal||0, heroBal:d.heroBal||0, autoDays:d.autoDays||0, heroDays:d.heroDays||0,
-      total:(d.autoBal||0)+(d.heroBal||0), maxDays:Math.max(d.autoDays||0,d.heroDays||0),
-      remA:d.remA||'', remH:d.remH||''};
-  }).filter(p=>{
-    if(onlyOut && p.total===0) return false;
-    if(minDays>0 && p.maxDays<minDays) return false;
-    return true;
-  });
-
-  // For All Routes: sort by route name then by total desc.
-  // For single route: sort by total desc.
-  if(isAll) parties.sort((a,b)=>{
-    if(a.route!==b.route) return (a.route||'').localeCompare(b.route||'');
-    return b.total-a.total;
-  }); else parties.sort((a,b)=>b.total-a.total);
-
-  const totalAuto=parties.reduce((s,p)=>s+p.autoBal,0);
-  const totalHero=parties.reduce((s,p)=>s+p.heroBal,0);
-  const totalAll=totalAuto+totalHero;
-  const overdue30=parties.filter(p=>p.maxDays>30).length;
-  const overdue60=parties.filter(p=>p.maxDays>60).length;
-
-  if(!parties.length){
-    result.innerHTML=`<div class="rp-printable"><div class="rp-empty">No parties match your filters${isAll?'':' for route "'+esc(route)+'"'}.</div></div>`;
-    allBtns.forEach(id=>document.getElementById(id).style.display='none');
-    return;
-  }
-
-  // Build table rows. For All Routes mode, insert sub-headers when route changes.
-  let lastRoute='', tableRows='';
-  parties.forEach((p,i)=>{
-    if(isAll && p.route!==lastRoute){
-      // Sub-header for new route
-      const routeParties=parties.filter(x=>x.route===p.route);
-      const rTot=routeParties.reduce((s,x)=>s+x.total,0);
-      tableRows+=`<tr style="background:var(--y-dim);border-top:2px solid var(--y)"><td colspan="11" style="padding:8px 12px;font-weight:800;color:var(--ink);font-size:12px;letter-spacing:.3px">📍 ${esc(p.route||'(no route)')} <span style="font-weight:500;color:var(--mid);font-size:11px;margin-left:10px">${routeParties.length} parties · ₹${fmtN(rTot)}</span></td></tr>`;
-      lastRoute=p.route;
-    }
-    tableRows+=`<tr>
-      <td style="color:var(--dim);font-family:'IBM Plex Mono',monospace">${i+1}</td>
-      <td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}${isAll?' · '+esc(p.route):''}</div></td>
-      <td style="font-size:11px">${esc(p.beat)}</td>
-      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${p.mobile||'—'}</td>
-      <td style="font-size:11px">${esc(p.office)}</td>
-      <td style="font-size:11px">${esc(p.salesman)}</td>
-      <td class="num auto ${p.autoBal===0?'zero':''}">${p.autoBal>0?'₹'+fmtN(p.autoBal):'—'}</td>
-      <td class="num" style="color:${p.autoDays>60?'var(--red)':p.autoDays>30?'var(--orange)':'var(--dim)'}">${p.autoDays>0?p.autoDays+'d':'—'}</td>
-      <td class="num hero ${p.heroBal===0?'zero':''}">${p.heroBal>0?'₹'+fmtN(p.heroBal):'—'}</td>
-      <td class="num" style="color:${p.heroDays>60?'var(--red)':p.heroDays>30?'var(--orange)':'var(--dim)'}">${p.heroDays>0?p.heroDays+'d':'—'}</td>
-      <td class="num total"><b>₹${fmtN(p.total)}</b></td>
-    </tr>`;
-  });
-
-  result.innerHTML=`
-    <div class="rp-printable">
-      <div class="rp-print-header">
-        <div class="rp-print-co">YANTRAYUG HERO HUB</div>
-        <div class="rp-print-meta">
-          <div><b>Route:</b> ${esc(routeLabel)}</div>
-          <div><b>Date:</b> ${fmtDispISO(dateLabel)}</div>
-          <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
-          <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
-        </div>
-      </div>
-      <div class="rp-summary">
-        <div class="rp-summary-item"><div class="rp-summary-item-label">Parties</div><div class="rp-summary-item-val" style="color:var(--blue)">${parties.length}</div></div>
-        <div class="rp-summary-item"><div class="rp-summary-item-label">Total Outstanding</div><div class="rp-summary-item-val" style="color:var(--ink)">₹${fmtN(totalAll)}</div></div>
-        <div class="rp-summary-item"><div class="rp-summary-item-label">Auto ₹</div><div class="rp-summary-item-val" style="color:var(--blue)">₹${fmtN(totalAuto)}</div></div>
-        <div class="rp-summary-item"><div class="rp-summary-item-label">Hero ₹</div><div class="rp-summary-item-val" style="color:var(--orange)">₹${fmtN(totalHero)}</div></div>
-        <div class="rp-summary-item"><div class="rp-summary-item-label">30+ Days</div><div class="rp-summary-item-val" style="color:var(--orange)">${overdue30}</div></div>
-        <div class="rp-summary-item"><div class="rp-summary-item-label">60+ Days</div><div class="rp-summary-item-val" style="color:var(--red)">${overdue60}</div></div>
-      </div>
-      <table class="rp-table">
-        <thead><tr>
-          <th style="width:32px">#</th>
-          <th>Party Name${isAll?' / Route':''}</th>
-          <th>Beat</th>
-          <th>Mobile</th>
-          <th>Office</th>
-          <th>Salesman</th>
-          <th class="right">Auto ₹</th>
-          <th class="right">Days</th>
-          <th class="right">Hero ₹</th>
-          <th class="right">Days</th>
-          <th class="right">Total ₹</th>
-        </tr></thead>
-        <tbody>
-          ${tableRows}
-          <tr style="background:var(--bg3);font-weight:800;border-top:2px solid var(--ink)">
-            <td colspan="6" style="text-align:right;padding:10px;font-size:11px;color:var(--mid);text-transform:uppercase;letter-spacing:.4px">Grand Totals</td>
-            <td class="num auto"><b>₹${fmtN(totalAuto)}</b></td>
-            <td></td>
-            <td class="num hero"><b>₹${fmtN(totalHero)}</b></td>
-            <td></td>
-            <td class="num total"><b>₹${fmtN(totalAll)}</b></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>`;
-
-  allBtns.forEach(id=>document.getElementById(id).style.display='inline-flex');
-  // Stash for downloads
-  lastRPParties=parties;
-  lastRPMeta={routeLabel, dateLabel, totalAuto, totalHero, totalAll, overdue30, overdue60, isAll};
-  lastRPText=buildRPText(routeLabel, dateLabel, parties, totalAuto, totalHero, totalAll, overdue30, overdue60, isAll);
-}
-
-function buildRPText(routeLabel, dateISO, parties, totalAuto, totalHero, totalAll, overdue30, overdue60, isAll){
-  const sep='─'.repeat(60);
-  let t=`YANTRAYUG HERO HUB — ${isAll?'ALL ROUTES':'ROUTE'} OUTSTANDING REPORT\n${sep}\n`;
-  t+=`Route    : ${routeLabel}\nDate     : ${fmtDispISO(dateISO)}\nBy       : ${USER.name} (${USER.role})\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nSUMMARY\n`;
-  t+=`Parties        : ${parties.length}\nTotal Outstanding: ₹${fmtN(totalAll)}\nAuto Total     : ₹${fmtN(totalAuto)}\nHero Total     : ₹${fmtN(totalHero)}\n30+ Days       : ${overdue30}\n60+ Days       : ${overdue60}\n\n${sep}\nPARTY LIST\n`;
-
-  if(isAll){
-    // Group by route
-    let lastRoute='', routeIdx=0;
-    parties.forEach(p=>{
-      if(p.route!==lastRoute){
-        const rp=parties.filter(x=>x.route===p.route);
-        const rTot=rp.reduce((s,x)=>s+x.total,0);
-        t+=`\n${sep}\n📍 ${p.route||'(no route)'}  —  ${rp.length} parties  ·  ₹${fmtN(rTot)}\n${sep}\n`;
-        lastRoute=p.route; routeIdx=0;
-      }
-      routeIdx++;
-      t+=`\n${String(routeIdx).padStart(3)}. ${p.name}\n`;
-      t+=`     Area:${p.area}  Beat:${p.beat}  Mobile:${p.mobile||'—'}\n`;
-      t+=`     Office:${p.office}  Salesman:${p.salesman}\n`;
-      if(p.autoBal>0) t+=`     Auto: ₹${fmtN(p.autoBal)} (${p.autoDays}d)\n`;
-      if(p.heroBal>0) t+=`     Hero: ₹${fmtN(p.heroBal)} (${p.heroDays}d)\n`;
-      t+=`     TOTAL: ₹${fmtN(p.total)}\n`;
-      if(p.remA) t+=`     Auto Remark: ${p.remA}\n`;
-      if(p.remH) t+=`     Hero Remark: ${p.remH}\n`;
-    });
-  } else {
-    parties.forEach((p,i)=>{
-      t+=`\n${String(i+1).padStart(3)}. ${p.name}\n`;
-      t+=`     Area:${p.area}  Beat:${p.beat}  Mobile:${p.mobile||'—'}\n`;
-      t+=`     Office:${p.office}  Salesman:${p.salesman}\n`;
-      if(p.autoBal>0) t+=`     Auto: ₹${fmtN(p.autoBal)} (${p.autoDays}d)\n`;
-      if(p.heroBal>0) t+=`     Hero: ₹${fmtN(p.heroBal)} (${p.heroDays}d)\n`;
-      t+=`     TOTAL: ₹${fmtN(p.total)}\n`;
-      if(p.remA) t+=`     Auto Remark: ${p.remA}\n`;
-      if(p.remH) t+=`     Hero Remark: ${p.remH}\n`;
-    });
-  }
-  t+=`\n${sep}\nGRAND TOTAL: ₹${fmtN(totalAll)}\n${sep}\nEnd of Report`;
-  return t;
-}
-
-function downloadRP(){
-  if(!lastRPText){toast('Select a route first','warn');return;}
-  const route=document.getElementById('rpRoute').value;
-  const fname=route==='__ALL__'?'All_Routes':route.replace(/[^a-zA-Z0-9]/g,'_');
-  const blob=new Blob([lastRPText],{type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`Outstanding_${fname}_${TODAYISO}.txt`; a.click();
-}
-
-function downloadRPExcel(){
-  if(!lastRPParties||!lastRPParties.length){toast('Select a route first','warn');return;}
-  if(typeof XLSX==='undefined'){toast('Excel library not loaded yet','err');return;}
-  const m=lastRPMeta;
-  // Build sheet data — header rows + data rows
-  const aoa=[];
-  aoa.push(['YANTRAYUG HERO HUB — Outstanding Report']);
-  aoa.push(['Route', m.routeLabel]);
-  aoa.push(['Date', fmtDispISO(m.dateLabel)]);
-  aoa.push(['Generated by', `${USER.name} (${USER.role})`]);
-  aoa.push(['Generated at', fmtDisp(new Date())+' '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})]);
-  aoa.push([]);
-  aoa.push(['Summary']);
-  aoa.push(['Parties', lastRPParties.length, 'Total ₹', m.totalAll, 'Auto ₹', m.totalAuto, 'Hero ₹', m.totalHero, '30+ days', m.overdue30, '60+ days', m.overdue60]);
-  aoa.push([]);
-  // Column headers
-  aoa.push(['#','Party Name','Route','Area','Beat','Mobile','Office','Salesman','Auto ₹','Auto Days','Hero ₹','Hero Days','Total ₹','Auto Remark','Hero Remark']);
-  // Data rows
-  lastRPParties.forEach((p,i)=>{
-    aoa.push([
-      i+1, p.name, p.route, p.area, p.beat, p.mobile||'',
-      p.office, p.salesman,
-      p.autoBal||0, p.autoDays||0,
-      p.heroBal||0, p.heroDays||0,
-      p.total||0,
-      p.remA||'', p.remH||''
-    ]);
-  });
-  // Grand total row
-  aoa.push([]);
-  aoa.push(['','GRAND TOTAL','','','','','','', m.totalAuto,'', m.totalHero,'', m.totalAll,'','']);
-
-  const ws=XLSX.utils.aoa_to_sheet(aoa);
-  // Column widths
-  ws['!cols']=[
-    {wch:5},{wch:35},{wch:14},{wch:14},{wch:12},{wch:14},
-    {wch:12},{wch:12},{wch:12},{wch:9},{wch:12},{wch:9},{wch:12},
-    {wch:30},{wch:30}
-  ];
-  // Merge title
-  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:14}}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, m.isAll?'All Routes':(m.routeLabel.substring(0,28)));
-  const fname=m.isAll?'All_Routes':m.routeLabel.replace(/[^a-zA-Z0-9]/g,'_');
-  XLSX.writeFile(wb, `Outstanding_${fname}_${TODAYISO}.xlsx`);
-}
-
-/* ═══ EOD / WEEKLY REPORTS ═══ */
-const REPORTS_SHEET = 'REPORTS';
-const REPORTS_HEADERS = ['report_type','date_from','date_to','generated_by','generated_at',
-  'total_auto','total_hero','total_outstanding','prev_auto','prev_hero','prev_outstanding',
-  'called','not_called','overdue_60','overdue_30','payload_json'];
-
-let eodReportText='', weeklyReportText='', lastEODData=null, lastWeeklyData=null;
-
-function switchEODTab(tab){
-  document.getElementById('eodTabDaily').classList.toggle('active', tab==='daily');
-  document.getElementById('eodTabWeekly').classList.toggle('active', tab==='weekly');
-  document.getElementById('eodDailyPanel').style.display  = tab==='daily'  ? '' : 'none';
-  document.getElementById('eodWeeklyPanel').style.display = tab==='weekly' ? '' : 'none';
-}
-
-function initEOD(){
-  if(!document.getElementById('eodDate').value) document.getElementById('eodDate').value=TODAYISO;
-  // Set weekly default: Mon–Sun of current week
-  const mon=new Date(TODAY); mon.setDate(TODAY.getDate()-((TODAY.getDay()+6)%7));
-  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
-  if(!document.getElementById('eodWeekFrom').value) document.getElementById('eodWeekFrom').value=isoDate(mon);
-  if(!document.getElementById('eodWeekTo').value)   document.getElementById('eodWeekTo').value=isoDate(sun);
-}
-
-/* ── Helper: compute staff outstanding for a date group ── */
-function staffOutstanding(ci){
-  const d=dateData[ci]||{};
-  const offMap={}, salMap={};
-  allParties.forEach(p=>{
-    const pd=d[p.sr]||{};
-    const ab=pd.autoBal||0, hb=pd.heroBal||0;
-    const ad=pd.autoDays||0, hd=pd.heroDays||0;
-    // Only count balances older than 30 days — exclude fresh outstanding under 30d
-    const autoOver=ad>30?ab:0;
-    const heroOver=hd>30?hb:0;
-    const totOver=autoOver+heroOver;
-    if(p.office){
-      if(!offMap[p.office]) offMap[p.office]={auto:0,hero:0,total:0,calls:0};
-      offMap[p.office].auto+=autoOver; offMap[p.office].hero+=heroOver; offMap[p.office].total+=totOver;
-      if(pd.nameA && ALL_CALLERS.includes(pd.nameA.toUpperCase())) offMap[p.office].calls++;
-    }
-    if(p.salesman){
-      if(!salMap[p.salesman]) salMap[p.salesman]={auto:0,hero:0,total:0,calls:0};
-      salMap[p.salesman].auto+=autoOver; salMap[p.salesman].hero+=heroOver; salMap[p.salesman].total+=totOver;
-      if(pd.nameH && ALL_CALLERS.includes(pd.nameH.toUpperCase())) salMap[p.salesman].calls++;
-    }
-  });
-  return {offMap, salMap};
-}
-
-/* ── Core data aggregation for a date ── */
-function aggregateDate(ci, pci){
-  const selData=dateData[ci]||{}, prevData=pci>=0?dateData[pci]||{}:{};
-  let totalAuto=0,totalHero=0,prevAuto=0,prevHero=0;
-  let overdue60=0,overdue30=0,called=0,notCalled=0;
-  const offCount={}, salCount={};
-  // Call log: { callerName: [{partyName, remark, bal}] }
-  const offLog={}, salLog={};
-
-  allParties.forEach(p=>{
-    const d=selData[p.sr]||{}, pd=prevData[p.sr]||{};
-    const ab=d.autoBal||0, hb=d.heroBal||0;
-    if(ab===0&&hb===0) return;
-    totalAuto+=ab; totalHero+=hb;
-    prevAuto+=pd.autoBal||0; prevHero+=pd.heroBal||0;
-    const maxD=Math.max(d.autoDays||0,d.heroDays||0);
-    if(maxD>60) overdue60++; else if(maxD>30) overdue30++;
-    const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
-    if(hasCalled) called++; else notCalled++;
-    if(d.nameA){
-      // Validate it's actually a caller name, not a remark accidentally in wrong column
-      const callerA = ALL_CALLERS.includes(d.nameA.toUpperCase()) ? d.nameA : (ALL_CALLERS.includes((d.remA||'').toUpperCase()) ? d.remA : d.nameA);
-      offCount[callerA]=(offCount[callerA]||0)+1;
-      if(!offLog[callerA]) offLog[callerA]=[];
-      offLog[callerA].push({partyName:p.name, remark:d.remA||'', autoBal:ab, heroBal:hb});
-    }
-    if(d.nameH){
-      const callerH = ALL_CALLERS.includes(d.nameH.toUpperCase()) ? d.nameH : (ALL_CALLERS.includes((d.remH||'').toUpperCase()) ? d.remH : d.nameH);
-      salCount[callerH]=(salCount[callerH]||0)+1;
-      if(!salLog[callerH]) salLog[callerH]=[];
-      salLog[callerH].push({partyName:p.name, remark:d.remH||'', autoBal:ab, heroBal:hb});
-    }
-  });
-  return {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,offLog,salLog,selData,prevData};
-}
-
-/* ── Staff outstanding table HTML ── */
-function mkStaffTable(curMap, prevMap, label, colorCls){
-  // Only show staff who have overdue balance (>30d) on this date
-  const rows=Object.entries(curMap).filter(([,v])=>v.total>0).sort((a,b)=>b[1].total-a[1].total);
-  if(!rows.length) return `<div style="padding:16px;color:var(--dim);font-size:12px">No staff has overdue (30+ days) balances</div>`;
-  return rows.map(([name,cur])=>{
-    const prev=prevMap[name]||{total:0,auto:0,hero:0};
-    const diff=cur.total-prev.total;
-    const chgCls=diff===0?'same':diff>0?'up':'down';
-    const chgTxt=diff===0?'→ No change':diff>0?`▲ +₹${fmtN(Math.abs(diff))}`:`▼ -₹${fmtN(Math.abs(diff))}`;
-    return `<div class="eod-staff-row">
-      <div class="eod-staff-name">${esc(name)}</div>
-      <div>
-        <div class="eod-staff-bal" style="color:var(--${colorCls})">₹${fmtN(cur.total)}</div>
-        <div class="eod-staff-chg ${chgCls}">${chgTxt}</div>
-        <div style="font-size:9px;color:var(--dim);margin-top:1px">${cur.calls} calls today · 30+ day balance</div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-/* ── Detailed call log table HTML ── */
-function mkCallLog(logMap, countMap, colorCls){
-  const callers=Object.keys(countMap).sort((a,b)=>countMap[b]-countMap[a]);
-  if(!callers.length) return `<div style="padding:16px;color:var(--dim);font-size:12px">No calls logged</div>`;
-
-  return callers.map(caller=>{
-    const entries=logMap[caller]||[];
-    const rows=entries.map(e=>`
-      <tr>
-        <td style="padding:8px 14px 8px 32px;font-size:12px;font-weight:600;color:var(--ink);min-width:180px">${esc(e.partyName)}</td>
-        <td style="padding:8px 14px;font-size:12px;color:var(--mid);max-width:280px">${esc(e.remark)||'<span style="color:var(--border2)">—</span>'}</td>
-        <td style="padding:8px 14px;font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:var(--blue);text-align:right;white-space:nowrap">${e.autoBal>0?'₹'+fmtN(e.autoBal):'—'}</td>
-        <td style="padding:8px 14px;font-family:\'IBM Plex Mono\',monospace;font-size:11px;font-weight:600;color:var(--orange);text-align:right;white-space:nowrap">${e.heroBal>0?'₹'+fmtN(e.heroBal):'—'}</td>
-      </tr>`).join('');
-
-    return `<div style="border-bottom:2px solid var(--border)">
-      <div style="padding:10px 14px;background:var(--bg3);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:13px;font-weight:700;color:var(--${colorCls})">${esc(caller)}</span>
-        <span style="font-size:11px;font-weight:600;color:var(--mid);background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:2px 10px">${entries.length} call${entries.length!==1?'s':''}</span>
-      </div>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr>
-          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--dim);padding:6px 14px 6px 32px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Party Name</th>
-          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--dim);padding:6px 14px;text-align:left;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Remark</th>
-          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--blue);padding:6px 14px;text-align:right;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Auto ₹</th>
-          <th style="background:var(--bg2);font-size:10px;font-weight:700;color:var(--orange);padding:6px 14px;text-align:right;border-bottom:1px solid var(--border);letter-spacing:.4px;text-transform:uppercase">Hero ₹</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>`;
-  }).join('');
-}
-function mkLeaderRows(rows){
-  const rank=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1);
-  const rankCls=i=>i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
-  if(!rows.length) return `<tr><td colspan="3" style="color:var(--dim);padding:14px">No calls logged</td></tr>`;
-  return rows.map(([n,c],i)=>`<tr>
-    <td style="width:32px;font-size:14px">${rank(i)}</td>
-    <td class="${rankCls(i)}">${esc(n)}</td>
-    <td class="num orange">${c} call${c!==1?'s':''}</td>
-  </tr>`).join('');
-}
-
-/* ── Change arrow helper ── */
-const chgArrow=v=>v===0?'→ No change':v>0?`▲ +₹${fmtN(Math.abs(v))}`:`▼ -₹${fmtN(Math.abs(v))}`;
-const chgCls=(v,inv=false)=>v===0?'same':((v>0)!==inv?'up':'down');
-
-/* ══════════════════ DAILY EOD ══════════════════ */
-function generateEOD(){
-  const dateISO=document.getElementById('eodDate').value;
-  if(!dateISO){toast('Select a date first','warn');return;}
-  const selGroup=allDateGroups.find(g=>g.isoDate===dateISO);
-  if(!selGroup){toast('No data for this date — columns not created yet','warn');return;}
   const selIdx=allDateGroups.findIndex(g=>g.isoDate===dateISO);
   const prevGroup=allDateGroups[selIdx+1]||null;
   const ci=selGroup.colIdx, pci=prevGroup?prevGroup.colIdx:-1;
 
-  const {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,offLog,salLog,selData,prevData}=aggregateDate(ci,pci);
-  const {offMap:curOff, salMap:curSal}=staffOutstanding(ci);
-  const {offMap:prevOff, salMap:prevSal}=pci>=0?staffOutstanding(pci):{offMap:{},salMap:{}};
+  // Aggregate today's calls + balances
+  const {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,offLog,salLog,selData}=aggregateDate(ci,pci);
+  const {offMap:curOff,salMap:curSal}=staffOutstanding(ci);
+  const {offMap:prevOff,salMap:prevSal}=pci>=0?staffOutstanding(pci):{offMap:{},salMap:{}};
   const totalToday=totalAuto+totalHero, totalPrev=prevAuto+prevHero;
-  const srt=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]);
-  const offRows=srt(offCount), salRows=srt(salCount);
 
+  const srt=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  const offCallers=Object.keys(offCount).sort((a,b)=>offCount[b]-offCount[a]);
+  const salCallers=Object.keys(salCount).sort((a,b)=>salCount[b]-salCount[a]);
+  const totalCalls=Object.values(offCount).reduce((s,c)=>s+c,0)+Object.values(salCount).reduce((s,c)=>s+c,0);
+
+  // Top overdue parties (30+ days)
   const overdueList=allParties.map(p=>{
     const d=selData[p.sr]||{};
-    return {...p,ab:d.autoBal||0,hb:d.heroBal||0,maxD:Math.max(d.autoDays||0,d.heroDays||0),total:(d.autoBal||0)+(d.heroBal||0)};
-  }).filter(p=>p.maxD>30&&p.total>0).sort((a,b)=>b.maxD-a.maxD).slice(0,20);
+    return {...p,ab:d.autoBal||0,hb:d.heroBal||0,maxD:Math.max(d.autoDays||0,d.heroDays||0),total:(d.autoBal||0)+(d.heroBal||0),remA:d.remA||'',remH:d.remH||''};
+  }).filter(p=>p.maxD>30&&p.total>0).sort((a,b)=>b.maxD-a.maxD).slice(0,25);
 
-  const html=`
-    <div class="eod-section">
-      <div class="eod-section-head">📊 Outstanding Summary — ${fmtDispISO(dateISO)} <span>${prevGroup?`vs ${fmtDispISO(prevGroup.isoDate)}`:'(no previous date)'}</span></div>
-      <div class="eod-kpi-row">
-        <div class="eod-kpi"><div class="eod-kpi-label">Total Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalToday)}</div><div class="eod-kpi-change ${chgCls(totalToday-totalPrev,true)}">${chgArrow(totalToday-totalPrev)}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Auto Outstanding</div><div class="eod-kpi-val blue">₹${fmtN(totalAuto)}</div><div class="eod-kpi-change ${chgCls(totalAuto-prevAuto,true)}">${chgArrow(totalAuto-prevAuto)}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Hero Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalHero)}</div><div class="eod-kpi-change ${chgCls(totalHero-prevHero,true)}">${chgArrow(totalHero-prevHero)}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Parties Outstanding</div><div class="eod-kpi-val blue">${allParties.filter(p=>{const d=selData[p.sr]||{};return (d.autoBal||0)+(d.heroBal||0)>0;}).length}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">with balance</div></div>
-      </div>
-      <div class="eod-kpi-row">
-        <div class="eod-kpi"><div class="eod-kpi-label">Called Today</div><div class="eod-kpi-val green">${called}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Not Called</div><div class="eod-kpi-val red">${notCalled}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">60+ Days Overdue</div><div class="eod-kpi-val red">${overdue60}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">30–60 Days Overdue</div><div class="eod-kpi-val orange">${overdue30}</div></div>
-      </div>
-    </div>
+  // Route breakdown
+  const routeMap={};
+  allParties.forEach(p=>{
+    const d=selData[p.sr]||{};
+    const ab=d.autoBal||0,hb=d.heroBal||0;
+    if(ab===0&&hb===0) return;
+    if(!routeMap[p.route||'(no route)']) routeMap[p.route||'(no route)']={count:0,auto:0,hero:0};
+    routeMap[p.route||'(no route)'].count++;
+    routeMap[p.route||'(no route)'].auto+=ab;
+    routeMap[p.route||'(no route)'].hero+=hb;
+  });
+  const routeRows=Object.entries(routeMap).sort((a,b)=>(b[1].auto+b[1].hero)-(a[1].auto+a[1].hero));
 
-    <div class="eod-staff-grid">
-      <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Staff — Outstanding (30+ days only) <span>vs prev day</span></div>
-        ${mkStaffTable(curOff,prevOff,'blue','blue')}
-      </div>
-      <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman — Outstanding (30+ days only) <span>vs prev day</span></div>
-        ${mkStaffTable(curSal,prevSal,'orange','orange')}
-      </div>
-    </div>
+  const chgArrow=v=>v===0?'→ No change':v>0?`▲ +₹${fmtN(Math.abs(v))}`:`▼ -₹${fmtN(Math.abs(v))}`;
+  const chgPartiesArrow=v=>v===0?'→':v>0?`▲ +${v}`:`▼ ${v}`;
+  const chgCls=(v,inv=false)=>v===0?'same':((v>0)!==inv?'up':'down');
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
-      <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Staff Calls — Detail <span>${Object.values(offCount).reduce((s,c)=>s+c,0)} total calls</span></div>
-        ${mkCallLog(offLog, offCount, 'blue')}
-      </div>
-      <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman Calls — Detail <span>${Object.values(salCount).reduce((s,c)=>s+c,0)} total calls</span></div>
-        ${mkCallLog(salLog, salCount, 'orange')}
-      </div>
-    </div>
+  // Staff overdue table HTML
+  const mkStaffOverdueRows=(curMap,prevMap)=>{
+    const rows=Object.entries(curMap).filter(([,v])=>v.total>0||v.overdueParties>0).sort((a,b)=>b[1].total-a[1].total);
+    if(!rows.length) return `<tr><td colspan="5" class="mr-empty-section">No staff has 30+ day overdue balances</td></tr>`;
+    return rows.map(([name,cur])=>{
+      const prev=prevMap[name]||{total:0,overdueParties:0};
+      const dfRupee=cur.total-prev.total;
+      const dfParty=cur.overdueParties-prev.overdueParties;
+      return `<tr>
+        <td><b>${esc(name)}</b></td>
+        <td class="num blue">${cur.overdueParties}</td>
+        <td class="chg ${chgCls(dfParty,true)}">${chgPartiesArrow(dfParty)}</td>
+        <td class="num red">₹${fmtN(cur.total)}</td>
+        <td class="chg ${chgCls(dfRupee,true)}">${chgArrow(dfRupee)}</td>
+      </tr>`;
+    }).join('');
+  };
 
-    <div class="eod-section">
-      <div class="eod-section-head">🔴 Top Overdue Parties (30+ days) <span>${overdueList.length} shown</span></div>
-      <table class="eod-table"><thead><tr><th>#</th><th>Party</th><th>Route</th><th>Days</th><th style="text-align:right">Auto ₹</th><th style="text-align:right">Hero ₹</th><th style="text-align:right">Total ₹</th><th>Remark</th></tr></thead>
-      <tbody>${overdueList.length?overdueList.map((p,i)=>{
-        const d=selData[p.sr]||{};
-        return `<tr><td style="color:var(--dim)">${i+1}</td><td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}</div></td><td style="font-size:11px">${esc(p.route)}</td><td><span class="dbg ${p.maxD>60?'over':'warn'}">${p.maxD}d</span></td><td class="num blue">${p.ab>0?'₹'+fmtN(p.ab):'—'}</td><td class="num orange">${p.hb>0?'₹'+fmtN(p.hb):'—'}</td><td class="num red">₹${fmtN(p.total)}</td><td style="font-size:11px;color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.remA||d.remH||'—')}</td></tr>`;
-      }).join(''):`<tr><td colspan="8" style="color:var(--dim);padding:14px">None</td></tr>`}
-      </tbody></table>
+  // Call log section per staff
+  const mkCallLogBlock=(callerName,calls,team)=>{
+    const rows=calls.map(e=>`<tr>
+      <td><b>${esc(e.partyName)}</b></td>
+      <td class="num blue">${e.autoBal>0?'₹'+fmtN(e.autoBal):'—'}</td>
+      <td class="num orange">${e.heroBal>0?'₹'+fmtN(e.heroBal):'—'}</td>
+      <td>${esc(e.remark)||'<span style="color:var(--border2)">(no remark)</span>'}</td>
+    </tr>`).join('');
+    return `<div class="mr-staff-block">
+      <div class="mr-staff-head ${team}">
+        <div><span class="mr-staff-name ${team}">${esc(callerName)}</span><span class="mr-staff-team-badge ${team}">${team}</span></div>
+        <div class="mr-staff-meta">${calls.length} call${calls.length!==1?'s':''}</div>
+      </div>
+      <table class="mr-table"><thead><tr><th>Party</th><th class="right">Auto ₹</th><th class="right">Hero ₹</th><th>Remark</th></tr></thead><tbody>${rows}</tbody></table>
     </div>`;
+  };
 
-  document.getElementById('eodResult').innerHTML=html;
-  document.getElementById('eodDlBtn').classList.add('show');
-  document.getElementById('eodSaveBtn').classList.add('show');
+  const html=`<div class="mr-printable">
+    <div class="mr-cover">
+      <div class="mr-cover-title">YANTRAYUG HERO HUB — DAILY MASTER REPORT</div>
+      <div class="mr-cover-meta">
+        <div><b>Date:</b> ${fmtDispISO(dateISO)}</div>
+        ${prevGroup?`<div><b>Comparing vs:</b> ${fmtDispISO(prevGroup.isoDate)}</div>`:'<div><b>Comparing vs:</b> — (no prev day)</div>'}
+        <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
+      </div>
+    </div>
 
-  lastEODData={dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,offLog,salLog,overdueList,selData,curOff,prevOff,curSal,prevSal};
-  eodReportText=buildEODText(lastEODData);
+    <!-- 1. OUTSTANDING SUMMARY -->
+    <div class="mr-section">
+      <div class="mr-section-head">📊 Outstanding Summary (all parties)</div>
+      <div class="mr-kpi-grid">
+        <div class="mr-kpi"><div class="mr-kpi-label">Total Outstanding</div><div class="mr-kpi-val orange">₹${fmtN(totalToday)}</div><div class="mr-kpi-change ${chgCls(totalToday-totalPrev,true)}">${chgArrow(totalToday-totalPrev)}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">Auto Outstanding</div><div class="mr-kpi-val blue">₹${fmtN(totalAuto)}</div><div class="mr-kpi-change ${chgCls(totalAuto-prevAuto,true)}">${chgArrow(totalAuto-prevAuto)}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">Hero Outstanding</div><div class="mr-kpi-val orange">₹${fmtN(totalHero)}</div><div class="mr-kpi-change ${chgCls(totalHero-prevHero,true)}">${chgArrow(totalHero-prevHero)}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">Parties with Balance</div><div class="mr-kpi-val blue">${allParties.filter(p=>{const d=selData[p.sr]||{};return (d.autoBal||0)+(d.heroBal||0)>0;}).length}</div></div>
+      </div>
+      <div class="mr-kpi-grid">
+        <div class="mr-kpi"><div class="mr-kpi-label">Called Today</div><div class="mr-kpi-val green">${called}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">Not Called</div><div class="mr-kpi-val red">${notCalled}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">60+ Days Overdue</div><div class="mr-kpi-val red">${overdue60}</div></div>
+        <div class="mr-kpi"><div class="mr-kpi-label">30–60 Days</div><div class="mr-kpi-val orange">${overdue30}</div></div>
+      </div>
+    </div>
+
+    <!-- 2. STAFF OVERDUE BREAKDOWN -->
+    <div class="mr-section">
+      <div class="mr-section-head">🏢 Office Staff — 30+ Day Overdue <span>parties &amp; outstanding, vs prev day</span></div>
+      <table class="mr-table"><thead><tr><th>Staff Name</th><th class="right">Overdue Parties</th><th class="right">Party Change</th><th class="right">Outstanding ₹</th><th class="right">Rupee Change</th></tr></thead><tbody>${mkStaffOverdueRows(curOff,prevOff)}</tbody></table>
+    </div>
+
+    <div class="mr-section">
+      <div class="mr-section-head">👤 Salesman — 30+ Day Overdue <span>parties &amp; outstanding, vs prev day</span></div>
+      <table class="mr-table"><thead><tr><th>Staff Name</th><th class="right">Overdue Parties</th><th class="right">Party Change</th><th class="right">Outstanding ₹</th><th class="right">Rupee Change</th></tr></thead><tbody>${mkStaffOverdueRows(curSal,prevSal)}</tbody></table>
+    </div>
+
+    <!-- 3. ALL CALLS LOG -->
+    <div class="mr-section">
+      <div class="mr-section-head">📞 Today's Calling Log <span>${totalCalls} total calls · ${offCallers.length+salCallers.length} staff active</span></div>
+      ${offCallers.length||salCallers.length
+        ? offCallers.map(n=>mkCallLogBlock(n,offLog[n]||[],'office')).join('')+salCallers.map(n=>mkCallLogBlock(n,salLog[n]||[],'salesman')).join('')
+        : `<div class="mr-empty-section">No calls logged for ${fmtDispISO(dateISO)} yet.</div>`}
+    </div>
+
+    <!-- 4. TOP OVERDUE PARTIES -->
+    <div class="mr-section">
+      <div class="mr-section-head">🔴 Top Overdue Parties <span>30+ days, sorted by days overdue · top ${overdueList.length}</span></div>
+      <table class="mr-table"><thead><tr><th>#</th><th>Party</th><th>Route</th><th>Office</th><th>Salesman</th><th class="right">Days</th><th class="right">Auto ₹</th><th class="right">Hero ₹</th><th class="right">Total ₹</th><th>Remark</th></tr></thead>
+      <tbody>${overdueList.length?overdueList.map((p,i)=>`<tr>
+        <td style="color:var(--dim);font-family:'IBM Plex Mono',monospace">${i+1}</td>
+        <td><b>${esc(p.name)}</b><div style="font-size:10px;color:var(--dim)">${esc(p.area)}</div></td>
+        <td style="font-size:11px">${esc(p.route)}</td>
+        <td style="font-size:11px">${esc(p.office)}</td>
+        <td style="font-size:11px">${esc(p.salesman)}</td>
+        <td><span class="dbg ${p.maxD>60?'over':'warn'}">${p.maxD}d</span></td>
+        <td class="num blue">${p.ab>0?'₹'+fmtN(p.ab):'—'}</td>
+        <td class="num orange">${p.hb>0?'₹'+fmtN(p.hb):'—'}</td>
+        <td class="num red"><b>₹${fmtN(p.total)}</b></td>
+        <td style="font-size:11px;color:var(--mid);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.remA||p.remH||'—')}</td>
+      </tr>`).join(''):`<tr><td colspan="10" class="mr-empty-section">No overdue parties (30+ days)</td></tr>`}</tbody></table>
+    </div>
+
+    <!-- 5. ROUTE BREAKDOWN -->
+    <div class="mr-section">
+      <div class="mr-section-head">📍 Outstanding by Route</div>
+      <table class="mr-table"><thead><tr><th>Route</th><th class="right">Parties</th><th class="right">Auto ₹</th><th class="right">Hero ₹</th><th class="right">Total ₹</th></tr></thead>
+      <tbody>${routeRows.length?routeRows.map(([r,v])=>`<tr>
+        <td><b>${esc(r)}</b></td>
+        <td class="num">${v.count}</td>
+        <td class="num blue">₹${fmtN(v.auto)}</td>
+        <td class="num orange">₹${fmtN(v.hero)}</td>
+        <td class="num red"><b>₹${fmtN(v.auto+v.hero)}</b></td>
+      </tr>`).join(''):`<tr><td colspan="5" class="mr-empty-section">No route data</td></tr>`}</tbody></table>
+    </div>
+  </div>`;
+
+  result.innerHTML=html;
+  allBtns.forEach(id=>document.getElementById(id).style.display='inline-flex');
+
+  mrLastData={dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,
+    offCount,salCount,offLog,salLog,offCallers,salCallers,totalCalls,curOff,prevOff,curSal,prevSal,
+    overdueList,routeRows,selData};
 }
 
-function buildEODText(d){
-  const {dateISO,prevGroup,totalAuto,totalHero,prevAuto,prevHero,called,notCalled,overdue60,overdue30,offRows,salRows,offLog,salLog,overdueList,selData,curOff,prevOff,curSal,prevSal}=d;
-  const sep='─'.repeat(52);
-  const total=totalAuto+totalHero,prev=prevAuto+prevHero,diff=total-prev,sign=diff>=0?'+':'';
-  let t=`YANTRAYUG — END OF DAY REPORT\n${sep}\nDate     : ${fmtDispISO(dateISO)}\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nOUTSTANDING SUMMARY\n`;
-  t+=`Total     : ₹${fmtN(total)}  ${prevGroup?`(${sign}₹${fmtN(Math.abs(diff))} vs prev)`:'(no prev)'}\n`;
-  t+=`Auto      : ₹${fmtN(totalAuto)}\nHero      : ₹${fmtN(totalHero)}\n`;
-  t+=`Called    : ${called}   Not Called: ${notCalled}\n60+ Days  : ${overdue60}   30-60 Days: ${overdue30}\n`;
-  t+=`\n${sep}\nOFFICE STAFF OUTSTANDING\n`;
-  Object.entries(curOff).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
-    const pv=prevOff[n]||{total:0}; const df=v.total-pv.total;
-    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
-  });
-  t+=`\n${sep}\nSALESMAN OUTSTANDING\n`;
-  Object.entries(curSal).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
-    const pv=prevSal[n]||{total:0}; const df=v.total-pv.total;
-    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
-  });
-  // Detailed call log
-  t+=`\n${sep}\nOFFICE CALLS — DETAIL\n`;
-  offRows.forEach(([caller,cnt])=>{
-    t+=`\n  ${caller} (${cnt} calls)\n`;
-    (offLog[caller]||[]).forEach(e=>{
-      t+=`    • ${e.partyName.substring(0,36).padEnd(37)}`;
-      if(e.autoBal>0) t+=` Auto:₹${fmtN(e.autoBal)}`;
-      if(e.heroBal>0) t+=` Hero:₹${fmtN(e.heroBal)}`;
-      if(e.remark) t+=`\n      Remark: ${e.remark}`;
-      t+='\n';
+function buildMRText(){
+  if(!mrLastData) return '';
+  const d=mrLastData;
+  const sep='═'.repeat(64), sub='─'.repeat(64);
+  const total=d.totalAuto+d.totalHero, prev=d.prevAuto+d.prevHero, df=total-prev, sg=df>=0?'+':'';
+  let t=`YANTRAYUG HERO HUB — DAILY MASTER REPORT\n${sep}\n`;
+  t+=`Date         : ${fmtDispISO(d.dateISO)}\n`;
+  t+=`Compared vs  : ${d.prevGroup?fmtDispISO(d.prevGroup.isoDate):'— (no previous day)'}\n`;
+  t+=`Generated    : ${fmtDisp(new Date())}\nGenerated by : ${USER.name} (${USER.role})\n${sep}\n\n`;
+
+  // 1. Summary
+  t+=`📊 OUTSTANDING SUMMARY\n${sub}\n`;
+  t+=`Total Outstanding : ₹${fmtN(total)}  ${d.prevGroup?`(${sg}₹${fmtN(Math.abs(df))} vs prev)`:''}\n`;
+  t+=`Auto Outstanding  : ₹${fmtN(d.totalAuto)}\n`;
+  t+=`Hero Outstanding  : ₹${fmtN(d.totalHero)}\n`;
+  t+=`Called Today      : ${d.called}    Not Called: ${d.notCalled}\n`;
+  t+=`60+ Days Overdue  : ${d.overdue60}    30-60 Days: ${d.overdue30}\n\n`;
+
+  // 2. Staff overdue
+  const writeStaff=(title,cur,prev)=>{
+    t+=`${sep}\n${title}  (30+ DAY OVERDUE ONLY, vs prev day)\n${sep}\n`;
+    const rows=Object.entries(cur).filter(([,v])=>v.total>0||v.overdueParties>0).sort((a,b)=>b[1].total-a[1].total);
+    if(!rows.length){ t+=`  None\n\n`; return; }
+    t+=`  ${'NAME'.padEnd(16)} ${'PARTIES'.padStart(8)} ${'(chg)'.padStart(8)}  ${'OUTSTANDING'.padStart(14)}  ${'CHANGE'.padStart(14)}\n`;
+    rows.forEach(([n,v])=>{
+      const pv=prev[n]||{total:0,overdueParties:0};
+      const dfp=v.overdueParties-pv.overdueParties;
+      const dfr=v.total-pv.total;
+      const pChg=dfp===0?'→':dfp>0?`▲+${dfp}`:`▼${dfp}`;
+      const rChg=dfr===0?'→':dfr>0?`▲+₹${fmtN(Math.abs(dfr))}`:`▼-₹${fmtN(Math.abs(dfr))}`;
+      t+=`  ${n.padEnd(16)} ${String(v.overdueParties).padStart(8)} ${pChg.padStart(8)}  ${('₹'+fmtN(v.total)).padStart(14)}  ${rChg.padStart(14)}\n`;
     });
-  });
-  if(!offRows.length) t+=`  No calls logged\n`;
-  t+=`\n${sep}\nSALESMAN CALLS — DETAIL\n`;
-  salRows.forEach(([caller,cnt])=>{
-    t+=`\n  ${caller} (${cnt} calls)\n`;
-    (salLog[caller]||[]).forEach(e=>{
-      t+=`    • ${e.partyName.substring(0,36).padEnd(37)}`;
-      if(e.autoBal>0) t+=` Auto:₹${fmtN(e.autoBal)}`;
-      if(e.heroBal>0) t+=` Hero:₹${fmtN(e.heroBal)}`;
-      if(e.remark) t+=`\n      Remark: ${e.remark}`;
-      t+='\n';
+    t+=`\n`;
+  };
+  writeStaff('🏢 OFFICE STAFF', d.curOff, d.prevOff);
+  writeStaff('👤 SALESMAN', d.curSal, d.prevSal);
+
+  // 3. Calling log
+  t+=`${sep}\n📞 TODAY'S CALLING LOG  (${d.totalCalls} calls by ${d.offCallers.length+d.salCallers.length} staff)\n${sep}\n`;
+  const writeCalls=(callers,log,team)=>{
+    callers.forEach(n=>{
+      const calls=log[n]||[];
+      t+=`\n${team}: ${n.toUpperCase()}  —  ${calls.length} call${calls.length!==1?'s':''}\n${sub}\n`;
+      calls.forEach((e,i)=>{
+        t+=`  ${String(i+1).padStart(2)}. ${e.partyName}\n`;
+        if(e.autoBal>0) t+=`      Auto: ₹${fmtN(e.autoBal)}\n`;
+        if(e.heroBal>0) t+=`      Hero: ₹${fmtN(e.heroBal)}\n`;
+        t+=`      Remark: ${e.remark||'(no remark)'}\n`;
+      });
     });
+  };
+  if(d.offCallers.length||d.salCallers.length){
+    writeCalls(d.offCallers, d.offLog, 'OFFICE');
+    writeCalls(d.salCallers, d.salLog, 'SALESMAN');
+  } else {
+    t+=`  No calls logged.\n`;
+  }
+  t+=`\n`;
+
+  // 4. Top overdue
+  t+=`${sep}\n🔴 TOP OVERDUE PARTIES (30+ days)\n${sep}\n`;
+  if(!d.overdueList.length){ t+=`  None\n\n`; }
+  else d.overdueList.forEach((p,i)=>{
+    t+=`  ${String(i+1).padStart(2,'0')}. ${p.name.substring(0,38).padEnd(39)} ${String(p.maxD).padStart(4)}d  ₹${fmtN(p.total)}\n`;
+    t+=`      Route:${p.route}  Office:${p.office}  Salesman:${p.salesman}\n`;
+    if(p.remA||p.remH) t+=`      Remark: ${p.remA||p.remH}\n`;
   });
-  if(!salRows.length) t+=`  No calls logged\n`;
-  t+=`\n${sep}\nTOP OVERDUE PARTIES\n`;
-  overdueList.forEach((p,i)=>{
-    const rd=selData[p.sr]||{};
-    t+=`  ${String(i+1).padStart(2,'0')}. ${p.name.substring(0,34).padEnd(35)} ${String(p.maxD).padStart(4)}d  ₹${fmtN(p.total)}\n`;
-    if(rd.remA||rd.remH) t+=`       Remark: ${rd.remA||rd.remH}\n`;
+  t+=`\n`;
+
+  // 5. Route
+  t+=`${sep}\n📍 OUTSTANDING BY ROUTE\n${sep}\n`;
+  t+=`  ${'ROUTE'.padEnd(20)} ${'PARTIES'.padStart(8)}  ${'AUTO'.padStart(14)}  ${'HERO'.padStart(14)}  ${'TOTAL'.padStart(14)}\n`;
+  d.routeRows.forEach(([r,v])=>{
+    t+=`  ${r.padEnd(20)} ${String(v.count).padStart(8)}  ${('₹'+fmtN(v.auto)).padStart(14)}  ${('₹'+fmtN(v.hero)).padStart(14)}  ${('₹'+fmtN(v.auto+v.hero)).padStart(14)}\n`;
   });
-  t+=`\n${sep}\nEnd of Report`;
+  t+=`\n${sep}\nEnd of Master Report`;
   return t;
 }
 
-function downloadEOD(){
-  if(!eodReportText){toast('Generate report first','warn');return;}
-  const dateISO=document.getElementById('eodDate').value||TODAYISO;
-  const blob=new Blob([eodReportText],{type:'text/plain;charset=utf-8'});
+function downloadMR(){
+  if(!mrLastData){toast('Generate report first','warn');return;}
+  const blob=new Blob([buildMRText()],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`EOD_${dateISO}.txt`; a.click();
+  a.download=`Master_Report_${mrLastData.dateISO}.txt`; a.click();
 }
 
-async function saveEODToSheet(){
-  if(!lastEODData){toast('Generate report first','warn');return;}
-  const d=lastEODData;
-  const rows=[];
-  // Summary row
-  rows.push(['EOD_SUMMARY', d.dateISO, d.dateISO, USER.name, new Date().toISOString(),
-    d.totalAuto, d.totalHero, d.totalAuto+d.totalHero,
-    d.prevAuto, d.prevHero, d.prevAuto+d.prevHero,
-    d.called, d.notCalled, d.overdue60, d.overdue30, '']);
-  // Per office staff outstanding row
-  Object.entries(d.curOff).forEach(([name,v])=>{
-    const pv=d.prevOff[name]||{total:0,auto:0,hero:0};
-    rows.push(['EOD_OFFICE_STAFF', d.dateISO, d.dateISO, name, new Date().toISOString(),
-      v.auto, v.hero, v.total, pv.auto||0, pv.hero||0, pv.total||0,
-      v.calls, '', '', '', `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
+function downloadMRExcel(){
+  if(!mrLastData){toast('Generate report first','warn');return;}
+  if(typeof XLSX==='undefined'){toast('Excel library not loaded','err');return;}
+  const d=mrLastData;
+  const wb=XLSX.utils.book_new();
+
+  // Sheet 1: Summary
+  const sum=[];
+  sum.push(['YANTRAYUG HERO HUB — Daily Master Report']);
+  sum.push(['Date', fmtDispISO(d.dateISO)]);
+  sum.push(['Compared vs', d.prevGroup?fmtDispISO(d.prevGroup.isoDate):'—']);
+  sum.push(['Generated', fmtDisp(new Date())+' '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})]);
+  sum.push(['By', `${USER.name} (${USER.role})`]);
+  sum.push([]);
+  sum.push(['OUTSTANDING SUMMARY']);
+  sum.push(['Metric','Today','Previous','Change']);
+  sum.push(['Total Outstanding ₹', d.totalAuto+d.totalHero, d.prevAuto+d.prevHero, (d.totalAuto+d.totalHero)-(d.prevAuto+d.prevHero)]);
+  sum.push(['Auto Outstanding ₹', d.totalAuto, d.prevAuto, d.totalAuto-d.prevAuto]);
+  sum.push(['Hero Outstanding ₹', d.totalHero, d.prevHero, d.totalHero-d.prevHero]);
+  sum.push(['Called Today', d.called, '', '']);
+  sum.push(['Not Called', d.notCalled, '', '']);
+  sum.push(['60+ Days Overdue', d.overdue60, '', '']);
+  sum.push(['30-60 Days Overdue', d.overdue30, '', '']);
+  const ws1=XLSX.utils.aoa_to_sheet(sum);
+  ws1['!cols']=[{wch:30},{wch:18},{wch:18},{wch:18}];
+  ws1['!merges']=[{s:{r:0,c:0},e:{r:0,c:3}}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+
+  // Sheet 2: Staff Overdue (30+ days)
+  const staff=[];
+  staff.push(['Staff Overdue Breakdown — 30+ days only']);
+  staff.push(['Team','Staff Name','Overdue Parties Today','Overdue Parties Prev','Party Change','Outstanding ₹ Today','Outstanding ₹ Prev','Rupee Change']);
+  Object.entries(d.curOff).filter(([,v])=>v.total>0||v.overdueParties>0).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
+    const pv=d.prevOff[n]||{total:0,overdueParties:0};
+    staff.push(['OFFICE', n, v.overdueParties, pv.overdueParties, v.overdueParties-pv.overdueParties, v.total, pv.total, v.total-pv.total]);
   });
-  // Per salesman outstanding row
-  Object.entries(d.curSal).forEach(([name,v])=>{
-    const pv=d.prevSal[name]||{total:0,auto:0,hero:0};
-    rows.push(['EOD_SALESMAN', d.dateISO, d.dateISO, name, new Date().toISOString(),
-      v.auto, v.hero, v.total, pv.auto||0, pv.hero||0, pv.total||0,
-      v.calls, '', '', '', `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
+  Object.entries(d.curSal).filter(([,v])=>v.total>0||v.overdueParties>0).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
+    const pv=d.prevSal[n]||{total:0,overdueParties:0};
+    staff.push(['SALESMAN', n, v.overdueParties, pv.overdueParties, v.overdueParties-pv.overdueParties, v.total, pv.total, v.total-pv.total]);
   });
-  // Call detail rows
-  d.offRows.forEach(([caller])=>{
-    (d.offLog[caller]||[]).forEach(e=>{
-      rows.push(['EOD_OFFICE_CALL', d.dateISO, d.dateISO, caller, new Date().toISOString(),
-        e.autoBal, e.heroBal, e.autoBal+e.heroBal, '', '', '',
-        1, '', '', '', e.partyName+'|'+e.remark]);
+  const ws2=XLSX.utils.aoa_to_sheet(staff);
+  ws2['!cols']=[{wch:10},{wch:18},{wch:18},{wch:18},{wch:14},{wch:18},{wch:18},{wch:18}];
+  ws2['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Staff Overdue');
+
+  // Sheet 3: Calling Log
+  const calls=[];
+  calls.push(['Today\'s Calling Log']);
+  calls.push(['#','Team','Staff Name','Party Name','Auto ₹','Hero ₹','Total ₹','Remark']);
+  let row=1;
+  d.offCallers.forEach(n=>{
+    (d.offLog[n]||[]).forEach(e=>{
+      calls.push([row++,'OFFICE',n,e.partyName,e.autoBal||0,e.heroBal||0,(e.autoBal||0)+(e.heroBal||0),e.remark||'']);
     });
   });
-  d.salRows.forEach(([caller])=>{
-    (d.salLog[caller]||[]).forEach(e=>{
-      rows.push(['EOD_SALESMAN_CALL', d.dateISO, d.dateISO, caller, new Date().toISOString(),
-        e.autoBal, e.heroBal, e.autoBal+e.heroBal, '', '', '',
-        1, '', '', '', e.partyName+'|'+e.remark]);
+  d.salCallers.forEach(n=>{
+    (d.salLog[n]||[]).forEach(e=>{
+      calls.push([row++,'SALESMAN',n,e.partyName,e.autoBal||0,e.heroBal||0,(e.autoBal||0)+(e.heroBal||0),e.remark||'']);
     });
   });
-  await saveReportRows(rows);
-}
+  const ws3=XLSX.utils.aoa_to_sheet(calls);
+  ws3['!cols']=[{wch:5},{wch:10},{wch:15},{wch:35},{wch:13},{wch:13},{wch:13},{wch:40}];
+  ws3['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}}];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Calling Log');
 
-/* ══════════════════ WEEKLY REPORT ══════════════════ */
-function generateWeekly(){
-  const fromISO=document.getElementById('eodWeekFrom').value;
-  const toISO=document.getElementById('eodWeekTo').value;
-  if(!fromISO||!toISO){toast('Select date range','warn');return;}
-  if(fromISO>toISO){toast('From date must be before To date','warn');return;}
-
-  const weekGroups=allDateGroups.filter(g=>g.isoDate>=fromISO&&g.isoDate<=toISO)
-    .sort((a,b)=>a.isoDate.localeCompare(b.isoDate));
-
-  if(!weekGroups.length){toast('No data found in this date range','warn');return;}
-
-  // Aggregate across all days in range
-  let totalAuto=0,totalHero=0,overdue60=0,overdue30=0,totalCalled=0,totalNotCalled=0;
-  const offCount={},salCount={};
-  // Staff outstanding: use latest day in range
-  const latestGroup=weekGroups[weekGroups.length-1];
-  const firstGroup=weekGroups[0];
-  // Previous week comparison: day before fromISO
-  const beforeIdx=allDateGroups.findIndex(g=>g.isoDate===fromISO);
-  const prevGroup=allDateGroups[beforeIdx+1]||null;
-
-  // Per-day totals for trend table
-  const dayRows=weekGroups.map(g=>{
-    const ci=g.colIdx;
-    let a=0,h=0,c=0,nc=0;
-    allParties.forEach(p=>{
-      const d=(dateData[ci]||{})[p.sr]||{};
-      const ab=d.autoBal||0,hb=d.heroBal||0;
-      if(ab===0&&hb===0) return;
-      a+=ab; h+=hb;
-      const called=!!(d.remA||d.nameA||d.remH||d.nameH);
-      if(called) c++; else nc++;
-    });
-    return {iso:g.isoDate,auto:a,hero:h,total:a+h,called:c,notCalled:nc};
+  // Sheet 4: Top Overdue Parties
+  const over=[];
+  over.push(['Top Overdue Parties (30+ days)']);
+  over.push(['#','Party','Area','Route','Office','Salesman','Days Overdue','Auto ₹','Hero ₹','Total ₹','Remark']);
+  d.overdueList.forEach((p,i)=>{
+    over.push([i+1,p.name,p.area,p.route,p.office,p.salesman,p.maxD,p.ab||0,p.hb||0,p.total||0,p.remA||p.remH||'']);
   });
+  const ws4=XLSX.utils.aoa_to_sheet(over);
+  ws4['!cols']=[{wch:5},{wch:35},{wch:14},{wch:14},{wch:12},{wch:12},{wch:13},{wch:13},{wch:13},{wch:13},{wch:40}];
+  ws4['!merges']=[{s:{r:0,c:0},e:{r:0,c:10}}];
+  XLSX.utils.book_append_sheet(wb, ws4, 'Top Overdue');
 
-  // Aggregate all days
-  weekGroups.forEach(g=>{
-    const ci=g.colIdx;
-    allParties.forEach(p=>{
-      const d=(dateData[ci]||{})[p.sr]||{};
-      const ab=d.autoBal||0,hb=d.heroBal||0;
-      if(ab===0&&hb===0) return;
-      const maxD=Math.max(d.autoDays||0,d.heroDays||0);
-      if(g===latestGroup){ totalAuto+=ab; totalHero+=hb; if(maxD>60)overdue60++; else if(maxD>30)overdue30++; }
-      const hasCalled=!!(d.remA||d.nameA||d.remH||d.nameH);
-      if(hasCalled) totalCalled++; else if(g===latestGroup) totalNotCalled++;
-      if(d.nameA) offCount[d.nameA]=(offCount[d.nameA]||0)+1;
-      if(d.nameH) salCount[d.nameH]=(salCount[d.nameH]||0)+1;
-    });
-  });
+  // Sheet 5: Route breakdown
+  const route=[];
+  route.push(['Outstanding by Route']);
+  route.push(['Route','Parties','Auto ₹','Hero ₹','Total ₹']);
+  d.routeRows.forEach(([r,v])=>{ route.push([r,v.count,v.auto,v.hero,v.auto+v.hero]); });
+  const ws5=XLSX.utils.aoa_to_sheet(route);
+  ws5['!cols']=[{wch:20},{wch:10},{wch:14},{wch:14},{wch:14}];
+  ws5['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}}];
+  XLSX.utils.book_append_sheet(wb, ws5, 'By Route');
 
-  const {offMap:curOff,salMap:curSal}=staffOutstanding(latestGroup.colIdx);
-  const {offMap:prevOff,salMap:prevSal}=prevGroup?staffOutstanding(prevGroup.colIdx):{offMap:{},salMap:{}};
-  const srt=obj=>Object.entries(obj).sort((a,b)=>b[1]-a[1]);
-  const offRows=srt(offCount),salRows=srt(salCount);
-  const totalToday=totalAuto+totalHero;
-  const prevLatest=prevGroup?allParties.reduce((s,p)=>{const d=(dateData[prevGroup.colIdx]||{})[p.sr]||{};return s+(d.autoBal||0)+(d.heroBal||0);},0):0;
-
-  const html=`
-    <div class="eod-section">
-      <div class="eod-section-head">📅 Weekly Summary — ${fmtDispISO(fromISO)} to ${fmtDispISO(toISO)} <span>${weekGroups.length} days</span></div>
-      <div class="eod-kpi-row">
-        <div class="eod-kpi"><div class="eod-kpi-label">Latest Outstanding</div><div class="eod-kpi-val orange">₹${fmtN(totalToday)}</div><div class="eod-kpi-change ${chgCls(totalToday-prevLatest,true)}">${chgArrow(totalToday-prevLatest)} vs prev</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">Total Calls (Week)</div><div class="eod-kpi-val green">${totalCalled}</div><div class="eod-kpi-meta" style="font-size:11px;color:var(--dim)">across all days</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">60+ Days Overdue</div><div class="eod-kpi-val red">${overdue60}</div></div>
-        <div class="eod-kpi"><div class="eod-kpi-label">30–60 Days Overdue</div><div class="eod-kpi-val orange">${overdue30}</div></div>
-      </div>
-    </div>
-
-    <div class="eod-section" style="margin-bottom:18px">
-      <div class="eod-section-head">📈 Day-by-Day Outstanding Trend</div>
-      <table class="eod-table"><thead><tr><th>Date</th><th style="text-align:right">Auto ₹</th><th style="text-align:right">Hero ₹</th><th style="text-align:right">Total ₹</th><th style="text-align:right">Change</th><th style="text-align:right">Called</th></tr></thead>
-      <tbody>${dayRows.map((r,i)=>{
-        const prev=i>0?dayRows[i-1]:null;
-        const diff=prev?r.total-prev.total:0;
-        const dc=prev?(diff===0?'same':diff>0?'up':'down'):'same';
-        const isToday=r.iso===TODAYISO;
-        return `<tr style="${isToday?'background:var(--y-dim)':''}">
-          <td class="eod-wk-date-col">${fmtDispISO(r.iso)}${isToday?' ✦':''}</td>
-          <td class="num blue">₹${fmtN(r.auto)}</td>
-          <td class="num orange">₹${fmtN(r.hero)}</td>
-          <td class="num" style="font-weight:700">₹${fmtN(r.total)}</td>
-          <td class="num ${dc}">${prev?(diff===0?'→':diff>0?`▲ +₹${fmtN(Math.abs(diff))}`:`▼ -₹${fmtN(Math.abs(diff))}`):'—'}</td>
-          <td class="num green">${r.called}</td>
-        </tr>`;
-      }).join('')}</tbody></table>
-    </div>
-
-    <div class="eod-staff-grid">
-      <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Staff Outstanding (30+ days only) <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
-        ${mkStaffTable(curOff,prevOff,'blue','blue')}
-      </div>
-      <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman Outstanding (30+ days only) <span>as of ${fmtDispISO(latestGroup.isoDate)}</span></div>
-        ${mkStaffTable(curSal,prevSal,'orange','orange')}
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
-      <div class="eod-section">
-        <div class="eod-section-head">🏢 Office Calls (Week Total) <span>${offRows.reduce((s,[,c])=>s+c,0)} total</span></div>
-        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(offRows)}</tbody></table>
-      </div>
-      <div class="eod-section">
-        <div class="eod-section-head">👤 Salesman Calls (Week Total) <span>${salRows.reduce((s,[,c])=>s+c,0)} total</span></div>
-        <table class="eod-table"><thead><tr><th></th><th>Name</th><th style="text-align:right">Calls</th></tr></thead><tbody>${mkLeaderRows(salRows)}</tbody></table>
-      </div>
-    </div>`;
-
-  document.getElementById('eodWeeklyResult').innerHTML=html;
-  document.getElementById('eodWkDlBtn').classList.add('show');
-  document.getElementById('eodWkSaveBtn').classList.add('show');
-
-  lastWeeklyData={fromISO,toISO,totalAuto,totalHero,prevLatest,totalCalled,totalNotCalled,overdue60,overdue30,offRows,salRows,dayRows,curOff,prevOff,curSal,prevSal,weekGroups};
-  weeklyReportText=buildWeeklyText(lastWeeklyData);
-}
-
-function buildWeeklyText(d){
-  const {fromISO,toISO,totalAuto,totalHero,prevLatest,totalCalled,overdue60,overdue30,offRows,salRows,dayRows,curOff,prevOff,curSal,prevSal}=d;
-  const sep='─'.repeat(52);
-  const total=totalAuto+totalHero,diff=total-prevLatest,sign=diff>=0?'+':'';
-  let t=`YANTRAYUG — WEEKLY REPORT\n${sep}\nPeriod   : ${fmtDispISO(fromISO)} to ${fmtDispISO(toISO)}\nGenerated: ${fmtDisp(new Date())}\n${sep}\n\nWEEKLY SUMMARY\n`;
-  t+=`Latest Outstanding: ₹${fmtN(total)}  (${sign}₹${fmtN(Math.abs(diff))} vs prev)\n`;
-  t+=`Total Calls: ${totalCalled}  Overdue 60+: ${overdue60}  Overdue 30-60: ${overdue30}\n`;
-  t+=`\n${sep}\nDAY-BY-DAY TREND\n`;
-  dayRows.forEach((r,i)=>{
-    const prev=i>0?dayRows[i-1]:null;
-    const diff=prev?r.total-prev.total:0;
-    t+=`  ${fmtDispISO(r.iso).padEnd(12)} ₹${fmtN(r.total).padStart(14)}  ${prev?(diff===0?'→':diff>0?`▲ +₹${fmtN(Math.abs(diff))}`:`▼ -₹${fmtN(Math.abs(diff))}`):'(first day)'}  Calls: ${r.called}\n`;
-  });
-  t+=`\n${sep}\nOFFICE STAFF OUTSTANDING\n`;
-  Object.entries(curOff).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
-    const pv=prevOff[n]||{total:0};const df=v.total-pv.total;
-    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
-  });
-  t+=`\n${sep}\nSALESMAN OUTSTANDING\n`;
-  Object.entries(curSal).sort((a,b)=>b[1].total-a[1].total).forEach(([n,v])=>{
-    const pv=prevSal[n]||{total:0};const df=v.total-pv.total;
-    t+=`  ${n.padEnd(16)} ₹${fmtN(v.total).padStart(12)}  ${df===0?'→':df>0?'▲ +₹'+fmtN(Math.abs(df)):'▼ -₹'+fmtN(Math.abs(df))}\n`;
-  });
-  t+=`\n${sep}\nOFFICE CALLS (WEEK)\n`;
-  offRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
-  t+=`\n${sep}\nSALESMAN CALLS (WEEK)\n`;
-  salRows.forEach(([n,c],i)=>{t+=`  ${i+1}. ${n.padEnd(16)} ${c} calls\n`;});
-  t+=`\n${sep}\nEnd of Weekly Report`;
-  return t;
-}
-
-function downloadWeekly(){
-  if(!weeklyReportText){toast('Generate report first','warn');return;}
-  const from=document.getElementById('eodWeekFrom').value||TODAYISO;
-  const to=document.getElementById('eodWeekTo').value||TODAYISO;
-  const blob=new Blob([weeklyReportText],{type:'text/plain;charset=utf-8'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`Weekly_${from}_${to}.txt`; a.click();
-}
-
-async function saveWeeklyToSheet(){
-  if(!lastWeeklyData){toast('Generate report first','warn');return;}
-  const d=lastWeeklyData;
-  const payload=JSON.stringify({offCount:d.offRows,salCount:d.salRows,offOuts:d.curOff,salOuts:d.curSal,dayRows:d.dayRows});
-  const row=['WEEKLY',d.fromISO,d.toISO,USER.name,new Date().toISOString(),
-    d.totalAuto,d.totalHero,d.totalAuto+d.totalHero,0,0,d.prevLatest,
-    d.totalCalled,d.totalNotCalled,d.overdue60,d.overdue30,payload];
-  await saveReportRow(row);
-}
-
-async function saveWeeklyToSheet(){
-  if(!lastWeeklyData){toast('Generate report first','warn');return;}
-  const d=lastWeeklyData;
-  const rows=[];
-  // Summary
-  rows.push(['WEEKLY_SUMMARY',d.fromISO,d.toISO,USER.name,new Date().toISOString(),
-    d.totalAuto,d.totalHero,d.totalAuto+d.totalHero,0,0,d.prevLatest,
-    d.totalCalled,d.totalNotCalled,d.overdue60,d.overdue30,'']);
-  // Day trend rows
-  d.dayRows.forEach(r=>{
-    rows.push(['WEEKLY_DAY',r.iso,r.iso,USER.name,new Date().toISOString(),
-      r.auto,r.hero,r.total,'','','',r.called,r.notCalled,'','','']);
-  });
-  // Staff outstanding
-  Object.entries(d.curOff).forEach(([name,v])=>{
-    const pv=d.prevOff[name]||{total:0,auto:0,hero:0};
-    rows.push(['WEEKLY_OFFICE_STAFF',d.fromISO,d.toISO,name,new Date().toISOString(),
-      v.auto,v.hero,v.total,pv.auto||0,pv.hero||0,pv.total||0,v.calls,'','','',
-      `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
-  });
-  Object.entries(d.curSal).forEach(([name,v])=>{
-    const pv=d.prevSal[name]||{total:0,auto:0,hero:0};
-    rows.push(['WEEKLY_SALESMAN',d.fromISO,d.toISO,name,new Date().toISOString(),
-      v.auto,v.hero,v.total,pv.auto||0,pv.hero||0,pv.total||0,v.calls,'','','',
-      `Outstanding change: ${v.total-pv.total>=0?'+':''}₹${fmtN(v.total-pv.total)}`]);
-  });
-  await saveReportRows(rows);
-}
-
-/* ── Save multiple report rows to REPORTS sheet ── */
-async function saveReportRows(rows){
-  dot('syncing');
-  try{
-    let vals;
-    try{ vals=await fetchSheet(REPORTS_SHEET); }catch(e){ vals=[]; }
-    if(!vals||vals.length<1){
-      await batchWriteMulti([{range:`${REPORTS_SHEET}!A1:P1`,values:[REPORTS_HEADERS]}]);
-    }
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(REPORTS_SHEET+'!A:P')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:rows})});
-    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
-    dot('ok'); toast(`✓ ${rows.length} rows saved to REPORTS sheet`,'ok');
-  }catch(e){ dot('err'); toast('✗ Save failed: '+e.message,'err'); }
+  XLSX.writeFile(wb, `Master_Report_${d.dateISO}.xlsx`);
 }
 
 /* ═══ MARG PARSER ═══ */
