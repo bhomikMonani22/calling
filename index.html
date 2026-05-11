@@ -2005,8 +2005,26 @@ function renderMR(){
     return;
   }
   const selIdx=allDateGroups.findIndex(g=>g.isoDate===dateISO);
-  const prevGroup=allDateGroups[selIdx+1]||null;
+  // Find the nearest previous date that ACTUALLY has data — skips empty placeholder columns
+  // (e.g. Monday → previous group with real outstanding data; Sundays usually don't exist or are empty)
+  let prevGroup=null;
+  for(let i=selIdx+1; i<allDateGroups.length; i++){
+    const candidate=allDateGroups[i];
+    const candData=dateData[candidate.colIdx]||{};
+    // Check if this date has ANY party with non-zero balance — if all zeros, it's an empty/skipped day
+    const hasData=Object.values(candData).some(d=>(d.autoBal||0)>0 || (d.heroBal||0)>0);
+    if(hasData){ prevGroup=candidate; break; }
+  }
+  // If no data day found, fall back to immediate previous (might still be empty, but at least we tried)
+  if(!prevGroup) prevGroup=allDateGroups[selIdx+1]||null;
   const ci=selGroup.colIdx, pci=prevGroup?prevGroup.colIdx:-1;
+
+  // Day gap label for clarity — e.g. "Saturday (2 days ago)" if Sunday was skipped
+  let prevGapLabel='';
+  if(prevGroup){
+    const days=Math.round((new Date(dateISO)-new Date(prevGroup.isoDate))/864e5);
+    prevGapLabel = days===1 ? '' : days===2 ? ' (2 days ago — Sunday skipped)' : ` (${days} days ago)`;
+  }
 
   // Aggregate today's calls + balances
   const {totalAuto,totalHero,prevAuto,prevHero,overdue60,overdue30,called,notCalled,offCount,salCount,offLog,salLog,selData}=aggregateDate(ci,pci);
@@ -2043,7 +2061,7 @@ function renderMR(){
   const chgCls=(v,inv=false)=>v===0?'same':((v>0)!==inv?'up':'down');
 
   // Staff overdue table HTML
-  const hasPrevDay = !!d.prevGroup && pci>=0;
+  const hasPrevDay = !!prevGroup && pci>=0;
   // Detect VLOOKUP pollution: if past dates show identical totals to today, the sheet uses
   // live VLOOKUP formulas and historical comparison is meaningless.
   const prevPolluted = hasPrevDay && Math.abs((prevAuto+prevHero) - (totalAuto+totalHero)) < 1;
@@ -2097,7 +2115,7 @@ function renderMR(){
       <div class="mr-cover-title">YANTRAYUG HERO HUB — DAILY MASTER REPORT</div>
       <div class="mr-cover-meta">
         <div><b>Date:</b> ${fmtDispISO(dateISO)}</div>
-        ${prevGroup?`<div><b>Comparing vs:</b> ${fmtDispISO(prevGroup.isoDate)}</div>`:'<div><b>Comparing vs:</b> — (no prev day)</div>'}
+        ${prevGroup?`<div><b>Comparing vs:</b> ${fmtDispISO(prevGroup.isoDate)}${prevGapLabel}</div>`:'<div><b>Comparing vs:</b> — (no prev day)</div>'}
         <div><b>Generated:</b> ${fmtDisp(new Date())} ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
         <div><b>By:</b> ${esc(USER.name)} (${esc(USER.role)})</div>
       </div>
