@@ -1310,6 +1310,20 @@ async function loadAll(){
     routes=Array.from(rSet).sort(); beats=Array.from(bSet).sort();
     officeMembers=Array.from(oSet).filter(Boolean).sort();
     salesMembers=Array.from(sSet).filter(Boolean).sort();
+    // ── Detect duplicate party names in MASTER (case-insensitive on full name) ──
+    const dupMap={};
+    allParties.forEach(p=>{
+      const key=p.name.toUpperCase().trim();
+      if(!dupMap[key]) dupMap[key]=[];
+      dupMap[key].push(p);
+    });
+    const dups=Object.entries(dupMap).filter(([,arr])=>arr.length>1);
+    if(dups.length){
+      const total=dups.reduce((s,[,arr])=>s+arr.length,0);
+      const lines=dups.map(([name,arr])=>`  • ${name}: rows ${arr.map(p=>'SR '+p.sr).join(', ')}`).join('\n');
+      console.warn(`Found ${dups.length} duplicate party names (${total} rows):\n${lines}`);
+      toast(`⚠ ${dups.length} duplicate party names in MASTER (${total} rows). Check console for details and remove duplicates from the Google Sheet.`,'warn');
+    }
     buildSelects(); buildMemberBars(); buildDateBar();
     adminDateCol=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
     render('O'); render('S'); render('A');
@@ -2698,8 +2712,35 @@ function parseP(t){
 /* ── Auto-add missing parties to MASTER / OFFICE / SALESMAN sheets ── */
 async function addMissingParties(t){
   const data=missingParties[t]||{definitelyNew:[],maybeDuplicate:[]};
-  const missing=data.definitelyNew||[];
+  let missing=data.definitelyNew||[];
   if(!missing.length){toast('No safe-to-add parties','warn');return;}
+
+  // FRESH re-check against MASTER right now — handles case where user added them from the
+  // OTHER dump (Auto/Hero) moments ago and allParties hasn't reloaded yet, OR same name
+  // appearing in both dumps. Dedup within the list too (case-insensitive).
+  const masterKeys=masterPartyKeys();
+  const seen=new Set();
+  const filtered=[];
+  for(const name of missing){
+    const nk=name.toUpperCase().trim();
+    if(seen.has(nk)) continue;            // dedup within this batch
+    if(isInMaster(name, masterKeys)) continue; // already exists in MASTER
+    seen.add(nk);
+    filtered.push(name);
+  }
+  const skippedCount = missing.length - filtered.length;
+  if(skippedCount>0){
+    toast(`${skippedCount} ${skippedCount===1?'party':'parties'} already added — adding ${filtered.length} unique`,'warn');
+  }
+  if(!filtered.length){
+    toast('All listed parties already exist in MASTER. Nothing to add.','warn');
+    missingParties[t]={definitelyNew:[],maybeDuplicate:data.maybeDuplicate};
+    // Refresh the parse preview so the orange banner disappears
+    setTimeout(()=>loadAll(),300);
+    return;
+  }
+  missing=filtered;
+
   if(!confirm(`Add ${missing.length} new ${missing.length===1?'party':'parties'} to MASTER, OFFICE and SALESMAN sheets?\n\nThey will be added with blank fields (mobile, area, route, office, salesman, beat). Admin can fill these later in the Google Sheet.`)) return;
 
   dot('syncing');
