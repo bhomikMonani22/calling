@@ -2462,11 +2462,18 @@ function parseCSV(lines){
   for(const line of lines){
     const parts = line.split(',');
     if(parts.length < 2) continue;
-    const name = parts[0].trim();
+    let name = parts[0].trim();
     // Skip header row
     if(!name || /^party\s*name/i.test(name) || /^amt/i.test(name)) continue;
+    // Skip junk lines like Marg ERP advertising text starting with a quote, very long names, etc.
+    if(name.startsWith('"')) continue;                    // quoted/escaped junk
+    if(name.length > 80) continue;                        // ridiculous length = ad/garbage
+    if(/marg\s*erp/i.test(name)) continue;                // explicit Marg ad blocker
+    if(/^https?:\/\//i.test(name)) continue;              // URL
     const amount = parseFloat(parts[1])||0;
     const days   = parseFloat(parts[2])||0;
+    // Skip rows with both 0 amount and 0 days — definitely junk
+    if(amount===0 && days===0) continue;
     if(!name) continue;
     out.push({name, amount:String(Math.round(amount)), days:String(Math.round(days)), flag:''});
   }
@@ -2723,9 +2730,10 @@ async function addMissingParties(t){
     const newOfficeRows=missing.map((name,i)=>buildSheetRow(maxSR+i+1, name));
     const newSalesmanRows=missing.map((name,i)=>buildSheetRow(maxSR+i+1, name));
 
-    // Compute column range for OFFICE/SALESMAN write (cols A through end of last date group)
+    // Compute column range for OFFICE/SALESMAN write (cols A through end of last date group).
+    // colL takes a 1-indexed column number — totalCols is exactly the last column count.
     const totalCols=8+(allDateGroups.length*8);
-    const endColLetter=colL(totalCols-1); // 0-indexed
+    const endColLetter=colL(totalCols);
     const endRow=startRow+missing.length-1;
 
     const writes=[
