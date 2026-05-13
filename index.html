@@ -2677,14 +2677,14 @@ function parseP(t){
       </div>
       <details style="margin-top:8px;font-size:11px;color:#7f1d1d" open><summary style="cursor:pointer;font-weight:600">Show conflicts</summary>
         <div style="margin-top:6px;background:#fee2e2;padding:8px;border-radius:6px;max-height:280px;overflow-y:auto">
-          ${maybeDuplicate.map((m,i)=>`
+          ${maybeDuplicate.map(m=>`
             <div style="padding:8px;border-bottom:1px solid #fecaca;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
               <div style="flex:1;min-width:240px">
                 <b>Dump:</b> ${esc(m.name)}<br>
                 <b>Similar in MASTER:</b><br>
                 ${m.similar.map(s=>`&nbsp;&nbsp;• ${esc(s.name)} <span style="color:#9a3412">(SR ${s.sr}, ${esc(s.area||'no area')})</span>`).join('<br>')}
               </div>
-              <button onclick="addOneDuplicate('${t}', ${i})" style="height:30px;padding:0 12px;border-radius:6px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">➕ Add anyway</button>
+              <button onclick="addOneDuplicate('${t}', ${JSON.stringify(m.name).replace(/"/g,'&quot;')})" style="height:30px;padding:0 12px;border-radius:6px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">➕ Add anyway</button>
             </div>`).join('')}
         </div>
       </details>
@@ -2733,22 +2733,30 @@ function parseP(t){
 
 /* ── Auto-add missing parties to MASTER / OFFICE / SALESMAN sheets ── */
 /* ── Force-add a single flagged duplicate after admin review ── */
-async function addOneDuplicate(t, idx){
+async function addOneDuplicate(t, partyName){
   const data=missingParties[t];
-  if(!data||!data.maybeDuplicate||!data.maybeDuplicate[idx]){toast('Party not found','warn');return;}
-  const entry=data.maybeDuplicate[idx];
+  if(!data||!data.maybeDuplicate){toast('No pending dup list','warn');return;}
+  // Look up by name (immutable) not by index (volatile after re-renders)
+  const entry=data.maybeDuplicate.find(m=>m.name===partyName);
+  if(!entry){toast(`Party not found in pending list: ${partyName}`,'warn');return;}
+
+  // Also re-check it's not already in MASTER (e.g. user added it through some other path)
+  const masterKeys=masterPartyKeys();
+  if(isInMaster(entry.name, masterKeys)){
+    toast(`Already in MASTER — refresh the parse preview`,'warn');
+    return;
+  }
 
   // Build a clear confirmation showing exactly what's being added and what already exists
   const similarTxt=entry.similar.map(s=>`  • ${s.name} (SR ${s.sr}, ${s.area||'no area'})`).join('\n');
   const msg=`Add this party to MASTER even though similar names already exist?\n\nADDING:\n  ${entry.name}\n\nALREADY IN MASTER:\n${similarTxt}\n\nOnly proceed if you're sure this is a different branch, not the same party renamed.`;
   if(!confirm(msg)) return;
 
-  // Move from maybeDuplicate → definitelyNew (just this one), then re-call addMissingParties
-  // Save other unrelated state so we don't lose it
-  const otherDups=data.maybeDuplicate.filter((_,i)=>i!==idx);
+  // Move just this one into definitelyNew, keep rest of maybeDuplicate untouched
+  const otherDups=data.maybeDuplicate.filter(m=>m.name!==partyName);
   missingParties[t]={
-    definitelyNew:[entry.name],   // only this one
-    maybeDuplicate:otherDups       // keep the rest as-is
+    definitelyNew:[entry.name],
+    maybeDuplicate:otherDups
   };
   await addMissingParties(t);
 }
