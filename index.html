@@ -2672,23 +2672,26 @@ function parseP(t){
   if(maybeDuplicate.length){
     missingBanner+=`<div style="background:#fef2f2;border:1.5px solid #f87171;border-radius:8px;padding:12px 14px;margin-bottom:10px">
       <div style="font-size:12px;color:#7f1d1d">
-        <b style="color:#991b1b">⚠ ${maybeDuplicate.length} possible duplicate ${maybeDuplicate.length===1?'party':'parties'} — DO NOT auto-add without review</b><br>
-        These names share a base with existing MASTER parties. They might be the same party renamed in Marg, or a genuinely new branch/location.
+        <b style="color:#991b1b">⚠ ${maybeDuplicate.length} possible duplicate ${maybeDuplicate.length===1?'party':'parties'} — review before adding</b><br>
+        These names share a base with existing MASTER parties. If you're sure it's a <b>different branch</b>, use the "Add anyway" button next to each one.
       </div>
       <details style="margin-top:8px;font-size:11px;color:#7f1d1d" open><summary style="cursor:pointer;font-weight:600">Show conflicts</summary>
-        <div style="margin-top:6px;background:#fee2e2;padding:8px;border-radius:6px;max-height:200px;overflow-y:auto">
-          ${maybeDuplicate.map(m=>`
-            <div style="padding:6px 0;border-bottom:1px solid #fecaca">
-              <b>Dump:</b> ${esc(m.name)}<br>
-              <b>Similar in MASTER:</b><br>
-              ${m.similar.map(s=>`&nbsp;&nbsp;• ${esc(s.name)} <span style="color:#9a3412">(SR ${s.sr}, ${esc(s.area||'no area')})</span>`).join('<br>')}
+        <div style="margin-top:6px;background:#fee2e2;padding:8px;border-radius:6px;max-height:280px;overflow-y:auto">
+          ${maybeDuplicate.map((m,i)=>`
+            <div style="padding:8px;border-bottom:1px solid #fecaca;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+              <div style="flex:1;min-width:240px">
+                <b>Dump:</b> ${esc(m.name)}<br>
+                <b>Similar in MASTER:</b><br>
+                ${m.similar.map(s=>`&nbsp;&nbsp;• ${esc(s.name)} <span style="color:#9a3412">(SR ${s.sr}, ${esc(s.area||'no area')})</span>`).join('<br>')}
+              </div>
+              <button onclick="addOneDuplicate('${t}', ${i})" style="height:30px;padding:0 12px;border-radius:6px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">➕ Add anyway</button>
             </div>`).join('')}
         </div>
       </details>
       <div style="margin-top:8px;font-size:11px;color:#7f1d1d">
-        <b>What to do:</b><br>
-        • If it's the <b>same party</b> — fix the name in Marg or rename the MASTER row to match the dump exactly.<br>
-        • If it's a <b>genuinely new branch</b> — add it manually in MASTER with a clearly different name (e.g. include the area).
+        <b>Before clicking "Add anyway":</b><br>
+        • If it's the <b>same party</b> renamed in Marg — fix the name in Marg OR rename the MASTER row to match, don't add a duplicate.<br>
+        • If it's a <b>genuinely new branch</b> with a different location — safe to add anyway.
       </div>
     </div>`;
   }
@@ -2729,6 +2732,29 @@ function parseP(t){
 }
 
 /* ── Auto-add missing parties to MASTER / OFFICE / SALESMAN sheets ── */
+/* ── Force-add a single flagged duplicate after admin review ── */
+async function addOneDuplicate(t, idx){
+  const data=missingParties[t];
+  if(!data||!data.maybeDuplicate||!data.maybeDuplicate[idx]){toast('Party not found','warn');return;}
+  const entry=data.maybeDuplicate[idx];
+
+  // Build a clear confirmation showing exactly what's being added and what already exists
+  const similarTxt=entry.similar.map(s=>`  • ${s.name} (SR ${s.sr}, ${s.area||'no area'})`).join('\n');
+  const msg=`Add this party to MASTER even though similar names already exist?\n\nADDING:\n  ${entry.name}\n\nALREADY IN MASTER:\n${similarTxt}\n\nOnly proceed if you're sure this is a different branch, not the same party renamed.`;
+  if(!confirm(msg)) return;
+
+  // Move from maybeDuplicate → definitelyNew (just this one), then re-call addMissingParties
+  // Save other unrelated state so we don't lose it
+  const otherDups=data.maybeDuplicate.filter((_,i)=>i!==idx);
+  missingParties[t]={
+    definitelyNew:[entry.name],   // only this one
+    maybeDuplicate:otherDups       // keep the rest as-is
+  };
+  await addMissingParties(t);
+}
+
+/* ═══ ADDED PARTY HELPERS END ═══ */
+
 async function addMissingParties(t){
   const data=missingParties[t]||{definitelyNew:[],maybeDuplicate:[]};
   let missing=data.definitelyNew||[];
