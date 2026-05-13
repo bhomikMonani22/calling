@@ -2671,9 +2671,12 @@ function parseP(t){
   let missingBanner='';
   if(maybeDuplicate.length){
     missingBanner+=`<div style="background:#fef2f2;border:1.5px solid #f87171;border-radius:8px;padding:12px 14px;margin-bottom:10px">
-      <div style="font-size:12px;color:#7f1d1d">
-        <b style="color:#991b1b">⚠ ${maybeDuplicate.length} possible duplicate ${maybeDuplicate.length===1?'party':'parties'} — review before adding</b><br>
-        These names share a base with existing MASTER parties. If you're sure it's a <b>different branch</b>, use the "Add anyway" button next to each one.
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="font-size:12px;color:#7f1d1d;flex:1;min-width:240px">
+          <b style="color:#991b1b">⚠ ${maybeDuplicate.length} possible duplicate ${maybeDuplicate.length===1?'party':'parties'} — review before adding</b><br>
+          These names share a base with existing MASTER parties. Review each one and add individually, OR add all at once if you've reviewed them.
+        </div>
+        <button onclick="addAllDuplicates('${t}', this)" style="height:36px;padding:0 14px;border-radius:7px;border:2px solid #dc2626;background:#dc2626;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">⚡ Add ALL ${maybeDuplicate.length} anyway</button>
       </div>
       <details style="margin-top:8px;font-size:11px;color:#7f1d1d" open><summary style="cursor:pointer;font-weight:600">Show conflicts</summary>
         <div style="margin-top:6px;background:#fee2e2;padding:8px;border-radius:6px;max-height:280px;overflow-y:auto">
@@ -2684,7 +2687,7 @@ function parseP(t){
                 <b>Similar in MASTER:</b><br>
                 ${m.similar.map(s=>`&nbsp;&nbsp;• ${esc(s.name)} <span style="color:#9a3412">(SR ${s.sr}, ${esc(s.area||'no area')})</span>`).join('<br>')}
               </div>
-              <button onclick="addOneDuplicate('${t}', ${JSON.stringify(m.name).replace(/"/g,'&quot;')})" style="height:30px;padding:0 12px;border-radius:6px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">➕ Add anyway</button>
+              <button id="dupAddBtn-${esc(m.name).replace(/[^a-zA-Z0-9]/g,'_')}" onclick="addOneDuplicate('${t}', ${JSON.stringify(m.name).replace(/"/g,'&quot;')}, this)" style="height:30px;padding:0 12px;border-radius:6px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">➕ Add anyway</button>
             </div>`).join('')}
         </div>
       </details>
@@ -2732,33 +2735,75 @@ function parseP(t){
 }
 
 /* ── Auto-add missing parties to MASTER / OFFICE / SALESMAN sheets ── */
-/* ── Force-add a single flagged duplicate after admin review ── */
-async function addOneDuplicate(t, partyName){
+/* ── Force-add ALL flagged duplicates at once after admin review ── */
+async function addAllDuplicates(t, btn){
+  if(btn){ btn.disabled=true; btn.style.opacity='0.5'; btn.style.cursor='not-allowed'; btn.textContent='⏳ Working…'; }
   const data=missingParties[t];
-  if(!data||!data.maybeDuplicate){toast('No pending dup list','warn');return;}
-  // Look up by name (immutable) not by index (volatile after re-renders)
-  const entry=data.maybeDuplicate.find(m=>m.name===partyName);
-  if(!entry){toast(`Party not found in pending list: ${partyName}`,'warn');return;}
-
-  // Also re-check it's not already in MASTER (e.g. user added it through some other path)
+  if(!data||!data.maybeDuplicate||!data.maybeDuplicate.length){
+    toast('No duplicates to add','warn');
+    if(btn){ btn.style.display='none'; }
+    return;
+  }
+  // Filter out any that have somehow already been added
   const masterKeys=masterPartyKeys();
-  if(isInMaster(entry.name, masterKeys)){
-    toast(`Already in MASTER — refresh the parse preview`,'warn');
+  const toAdd=data.maybeDuplicate.filter(m=>!isInMaster(m.name, masterKeys));
+  if(!toAdd.length){
+    toast('All flagged parties already in MASTER','ok');
+    if(btn){ btn.textContent='✓ All already added'; btn.style.background='#16a34a'; btn.style.borderColor='#16a34a'; }
+    return;
+  }
+  const list=toAdd.map((m,i)=>`  ${i+1}. ${m.name}`).join('\n');
+  const msg=`Add ALL ${toAdd.length} flagged duplicate ${toAdd.length===1?'party':'parties'} to MASTER?\n\nADDING:\n${list}\n\nMake sure you've reviewed each — these names overlap with existing MASTER parties. If any of these is actually the same party renamed in Marg, don't proceed (fix the name in Marg or MASTER instead).`;
+  if(!confirm(msg)){
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer'; btn.textContent=`⚡ Add ALL ${data.maybeDuplicate.length} anyway`; }
+    return;
+  }
+  // Move ALL flagged dups into definitelyNew in one shot
+  missingParties[t]={
+    definitelyNew:toAdd.map(m=>m.name),
+    maybeDuplicate:[]
+  };
+  // Call addMissingParties — it will skip the confirm if we pre-set flag, but here we'll let it run
+  // (the confirm message is generic and fine to show again as final safety check)
+  await addMissingParties(t);
+}
+
+/* ── Force-add a single flagged duplicate after admin review ── */
+async function addOneDuplicate(t, partyName, btn){
+  // Immediately disable the button to prevent double/rapid clicks
+  if(btn){ btn.disabled=true; btn.style.opacity='0.5'; btn.style.cursor='not-allowed'; btn.textContent='⏳ Working…'; }
+
+  const data=missingParties[t];
+  if(!data||!data.maybeDuplicate){toast('No pending dup list','warn'); if(btn) btn.style.display='none'; return;}
+  const entry=data.maybeDuplicate.find(m=>m.name===partyName);
+  if(!entry){
+    // Entry no longer in pending — most likely already added. Just hide the button silently.
+    if(btn){ btn.textContent='✓ Already added'; btn.style.background='#16a34a'; btn.style.color='#fff'; btn.style.borderColor='#16a34a'; }
     return;
   }
 
-  // Build a clear confirmation showing exactly what's being added and what already exists
+  // Re-check MASTER right now
+  const masterKeys=masterPartyKeys();
+  if(isInMaster(entry.name, masterKeys)){
+    if(btn){ btn.textContent='✓ Already in MASTER'; btn.style.background='#16a34a'; btn.style.color='#fff'; btn.style.borderColor='#16a34a'; }
+    return;
+  }
+
   const similarTxt=entry.similar.map(s=>`  • ${s.name} (SR ${s.sr}, ${s.area||'no area'})`).join('\n');
   const msg=`Add this party to MASTER even though similar names already exist?\n\nADDING:\n  ${entry.name}\n\nALREADY IN MASTER:\n${similarTxt}\n\nOnly proceed if you're sure this is a different branch, not the same party renamed.`;
-  if(!confirm(msg)) return;
+  if(!confirm(msg)){
+    // User cancelled — re-enable the button
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer'; btn.textContent='➕ Add anyway'; }
+    return;
+  }
 
-  // Move just this one into definitelyNew, keep rest of maybeDuplicate untouched
   const otherDups=data.maybeDuplicate.filter(m=>m.name!==partyName);
   missingParties[t]={
     definitelyNew:[entry.name],
     maybeDuplicate:otherDups
   };
   await addMissingParties(t);
+  // After successful add, the button gets removed by the page reload, no need to re-enable
 }
 
 /* ═══ ADDED PARTY HELPERS END ═══ */
