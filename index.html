@@ -950,6 +950,17 @@ tr.pw td{background:rgba(229,122,26,.04)}
               </div>
             </div>
           </div>
+
+          <!-- DUPLICATE CLEANUP (admin only) -->
+          <div id="dupCleanupSection" style="display:none;margin-top:28px;background:#fef2f2;border:1.5px solid #f87171;border-radius:14px;padding:18px 22px">
+            <div style="font-size:15px;font-weight:800;color:#991b1b;margin-bottom:4px">🧹 Duplicate Party Cleanup</div>
+            <div style="font-size:12px;color:#7f1d1d;margin-bottom:14px">Same party name exists in multiple MASTER rows. Pick which copies to keep — the rest will be deleted from MASTER, OFFICE, and SALESMAN sheets.</div>
+            <div id="dupList"></div>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+              <button onclick="findAndRenderDuplicates()" style="height:36px;padding:0 16px;border-radius:7px;border:2px solid #dc2626;background:#fff;color:#dc2626;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">🔍 Re-scan for Duplicates</button>
+              <button id="dupDelBtn" onclick="deleteDuplicateRows()" style="height:36px;padding:0 16px;border-radius:7px;border:2px solid #dc2626;background:#dc2626;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:none">🗑 Delete Selected Duplicate Rows</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1002,6 +1013,7 @@ let allDateGroups=[], dateData={}, rowMap={};
 let totalPartyRows=0, nextFreeCol=8, todayColIdx=-1, adminDateCol=-1;
 let parsedDump={auto:[],hero:[]};
 let missingParties={auto:{definitelyNew:[],maybeDuplicate:[]}, hero:{definitelyNew:[],maybeDuplicate:[]}};
+let duplicateGroups=[]; // [ [nameKey, [partyObj, ...]], ... ]
 let callbacks=[];
 let ovOnly={O:false,S:false}, minDays={O:0,S:0}, memberSel={O:'ALL',S:'ALL'};
 let routes=[], beats=[], officeMembers=[], salesMembers=[];
@@ -1318,11 +1330,18 @@ async function loadAll(){
       dupMap[key].push(p);
     });
     const dups=Object.entries(dupMap).filter(([,arr])=>arr.length>1);
+    duplicateGroups=dups; // store globally
+    // Show admin cleanup UI if any duplicates exist
+    if(USER.role==='ADMIN'){
+      const sec=document.getElementById('dupCleanupSection');
+      if(sec) sec.style.display=dups.length?'block':'none';
+      if(dups.length) renderDuplicatesList();
+    }
     if(dups.length){
       const total=dups.reduce((s,[,arr])=>s+arr.length,0);
       const lines=dups.map(([name,arr])=>`  • ${name}: rows ${arr.map(p=>'SR '+p.sr).join(', ')}`).join('\n');
       console.warn(`Found ${dups.length} duplicate party names (${total} rows):\n${lines}`);
-      toast(`⚠ ${dups.length} duplicate party names in MASTER (${total} rows). Check console for details and remove duplicates from the Google Sheet.`,'warn');
+      toast(`⚠ ${dups.length} duplicate party ${dups.length===1?'name':'names'} in MASTER. ${USER.role==='ADMIN'?'Open Upload Dump tab to clean up.':'Ask admin to clean up.'}`,'warn');
     }
     buildSelects(); buildMemberBars(); buildDateBar();
     adminDateCol=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
@@ -2792,6 +2811,115 @@ async function addMissingParties(t){
     toast('✗ Failed to add parties: '+e.message,'err');
   }
 }
+
+/* ═══ DUPLICATE PARTY CLEANUP (admin) ═══ */
+function findAndRenderDuplicates(){
+  // Rebuild list from current allParties
+  const map={};
+  allParties.forEach(p=>{
+    const key=p.name.toUpperCase().trim();
+    if(!map[key]) map[key]=[];
+    map[key].push(p);
+  });
+  duplicateGroups=Object.entries(map).filter(([,arr])=>arr.length>1);
+  renderDuplicatesList();
+  const sec=document.getElementById('dupCleanupSection');
+  if(sec) sec.style.display=duplicateGroups.length?'block':'none';
+  if(!duplicateGroups.length) toast('✓ No duplicates found','ok');
+}
+
+function renderDuplicatesList(){
+  const wrap=document.getElementById('dupList');
+  if(!wrap) return;
+  if(!duplicateGroups.length){
+    wrap.innerHTML=`<div style="padding:14px;font-size:13px;color:#7f1d1d">No duplicates found 🎉</div>`;
+    document.getElementById('dupDelBtn').style.display='none';
+    return;
+  }
+  wrap.innerHTML=duplicateGroups.map(([name,arr])=>{
+    // Default: keep the first (lowest SR), pre-select the rest for deletion
+    const rows=arr.map((p,i)=>{
+      const isFirst=i===0;
+      const checked=isFirst?'':'checked';
+      // Pull today's balance to help admin decide
+      const ci=todayColIdx>=0?todayColIdx:-1;
+      const d=ci>=0?(dateData[ci]||{})[p.sr]||{}:{};
+      const balTxt=(d.autoBal||d.heroBal)?` · Today: Auto ₹${fmtN(d.autoBal||0)} / Hero ₹${fmtN(d.heroBal||0)}`:'';
+      return `<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border:1px solid #fecaca;border-radius:6px;margin-bottom:4px;cursor:pointer">
+        <input type="checkbox" class="dup-chk" data-sr="${p.sr}" ${checked} style="cursor:pointer">
+        <div style="flex:1;font-size:12px">
+          <b style="color:#7f1d1d">SR ${p.sr}</b>
+          ${isFirst?'<span style="font-size:10px;background:#16a34a;color:#fff;padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:700">KEEP (default)</span>':''}
+          <span style="color:#4b5563;margin-left:4px">${esc(p.area||'no area')} · ${esc(p.route||'no route')} · ${esc(p.office||'no office')}/${esc(p.salesman||'no salesman')}${balTxt}</span>
+        </div>
+      </label>`;
+    }).join('');
+    return `<div style="margin-bottom:14px;padding:10px 14px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px">
+      <div style="font-size:13px;font-weight:700;color:#991b1b;margin-bottom:8px">📛 ${esc(name)}  <span style="font-size:11px;font-weight:500;color:#7f1d1d">(${arr.length} rows)</span></div>
+      <div style="font-size:11px;color:#7f1d1d;margin-bottom:8px">Tick the rows to <b>delete</b>. Unticked rows are kept.</div>
+      ${rows}
+    </div>`;
+  }).join('');
+  document.getElementById('dupDelBtn').style.display='inline-flex';
+}
+
+async function deleteDuplicateRows(){
+  const checks=document.querySelectorAll('.dup-chk:checked');
+  if(!checks.length){toast('Nothing selected for deletion','warn');return;}
+  const srs=Array.from(checks).map(c=>+c.dataset.sr).filter(Boolean);
+  // Confirm
+  if(!confirm(`Delete ${srs.length} duplicate row${srs.length!==1?'s':''} from MASTER, OFFICE, and SALESMAN sheets?\n\nSR numbers to delete: ${srs.join(', ')}\n\nThis cannot be undone.`)) return;
+
+  dot('syncing');
+  toast(`Deleting ${srs.length} rows…`,'ok');
+  try{
+    // Find sheet IDs (gid) for each tab — needed for the deleteDimension batch request
+    const meta=await fetchSheetMeta();
+    const sheetIdMap={};
+    meta.sheets.forEach(s=>{ sheetIdMap[s.properties.title]=s.properties.sheetId; });
+
+    // For each SR, find its sheet row (rowMap stores 1-indexed row), then sort DESCENDING
+    // so we delete from bottom up (rows above remain at same position).
+    const rowsToDelete=srs.map(sr=>rowMap[sr]).filter(Boolean).sort((a,b)=>b-a);
+
+    const requests=[];
+    ['MASTER','OFFICE','SALESMAN'].forEach(sheetName=>{
+      const sheetId=sheetIdMap[sheetName];
+      if(sheetId===undefined) return;
+      rowsToDelete.forEach(rowNum=>{
+        requests.push({
+          deleteDimension:{
+            range:{
+              sheetId:sheetId,
+              dimension:'ROWS',
+              startIndex:rowNum-1, // 0-indexed inclusive
+              endIndex:rowNum      // 0-indexed exclusive
+            }
+          }
+        });
+      });
+    });
+
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}:batchUpdate`;
+    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({requests})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+    dot('ok');
+    toast(`✓ ${srs.length} duplicate rows deleted. Reloading…`,'ok');
+    duplicateGroups=[];
+    setTimeout(()=>loadAll(),800);
+  }catch(e){
+    dot('err');
+    toast('✗ Delete failed: '+e.message,'err');
+  }
+}
+
+async function fetchSheetMeta(){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}?fields=sheets.properties`;
+  const r=await fetch(url,{headers:await authHeader()});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+  return await r.json();
+}
+
 async function uploadDump(t){
   const rows=parsedDump[t];if(!rows||!rows.length){toast('Nothing to upload','warn');return;}
   const sn=DUMP_SHEETS[t];
