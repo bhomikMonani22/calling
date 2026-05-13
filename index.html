@@ -1001,6 +1001,7 @@ let allParties=[], autoMap={}, heroMap={};
 let allDateGroups=[], dateData={}, rowMap={};
 let totalPartyRows=0, nextFreeCol=8, todayColIdx=-1, adminDateCol=-1;
 let parsedDump={auto:[],hero:[]};
+let missingParties={auto:{definitelyNew:[],maybeDuplicate:[]}, hero:{definitelyNew:[],maybeDuplicate:[]}};
 let callbacks=[];
 let ovOnly={O:false,S:false}, minDays={O:0,S:0}, memberSel={O:'ALL',S:'ALL'};
 let routes=[], beats=[], officeMembers=[], salesMembers=[];
@@ -2546,18 +2547,201 @@ function readF(file,t){
     r.readAsText(file);
   }
 }
+/* ── Build normalized name set for MASTER party lookup ── */
+function masterPartyKeys(){
+  const keys=new Set();
+  allParties.forEach(p=>{
+    const nk=p.name.toUpperCase();
+    keys.add(nk);
+    keys.add(nk.replace(/\s*\(?COD\)?\s*$/,'').replace(/\s*COD\s*$/,'').trim());
+    keys.add(nk.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')'));
+    keys.add(nk.replace(/\s/g,''));
+  });
+  return keys;
+}
+function isInMaster(dumpName, masterKeys){
+  const nk=String(dumpName||'').toUpperCase().trim();
+  if(masterKeys.has(nk)) return true;
+  const nkNoCOD=nk.replace(/\s*\(?COD\)?\s*$/,'').replace(/\s*COD\s*$/,'').trim();
+  if(masterKeys.has(nkNoCOD)) return true;
+  const nkNorm=nkNoCOD.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')');
+  if(masterKeys.has(nkNorm)) return true;
+  const nkNoSp=nk.replace(/\s/g,'');
+  if(masterKeys.has(nkNoSp)) return true;
+  return false;
+}
+
+/* ── Extract base/core part of a name (strip location suffix in parens) ── */
+function nameStem(name){
+  return String(name||'').toUpperCase().trim()
+    .replace(/\s*\([^)]*\)\s*/g,' ')      // remove all (PARENS) content
+    .replace(/\s*\[[^\]]*\]\s*/g,' ')      // remove all [BRACKETS]
+    .replace(/\s*COD\s*$/i,'')             // strip trailing COD
+    .replace(/\s+/g,' ').trim();
+}
+
+/* ── Find MASTER parties that share the same name stem (potential duplicates) ── */
+function findSimilarMasterParties(dumpName){
+  const dumpStem=nameStem(dumpName);
+  if(!dumpStem||dumpStem.length<4) return []; // too short to safely match
+  return allParties.filter(p=>{
+    const masterStem=nameStem(p.name);
+    return masterStem===dumpStem;
+  });
+}
+
 function parseP(t){
   const raw=document.getElementById('paste'+cap(t)).value.trim();
   if(!raw){toast('Nothing to parse','warn');return;}
   const rows=parseMarg(raw);parsedDump[t]=rows;
   const warns=rows.filter(r=>r.flag).length;
+
+  // Detect parties in dump that are NOT in MASTER
+  const masterKeys=masterPartyKeys();
+  const definitelyNew=[];  // safe to auto-add
+  const maybeDuplicate=[]; // share name stem with existing MASTER party — needs human review
+  const seen=new Set();
+  rows.forEach(r=>{
+    if(!isInMaster(r.name, masterKeys)){
+      const k=r.name.toUpperCase().trim();
+      if(seen.has(k)) return;
+      seen.add(k);
+      const similar=findSimilarMasterParties(r.name);
+      if(similar.length>0){
+        maybeDuplicate.push({name:r.name.trim(), similar});
+      } else {
+        definitelyNew.push(r.name.trim());
+      }
+    }
+  });
+  // Store both for the auto-add button
+  missingParties[t]={definitelyNew, maybeDuplicate};
+  const totalMissing=definitelyNew.length+maybeDuplicate.length;
+
   const cnt=document.getElementById('cnt'+cap(t));cnt.style.display='flex';
-  cnt.innerHTML=`Parsed: <strong>${rows.length}</strong> records &nbsp;|&nbsp; <span class="pw">⚠ ${warns} flagged</span>`;
+  let cntHTML=`Parsed: <strong>${rows.length}</strong> records &nbsp;|&nbsp; <span class="pw">⚠ ${warns} flagged</span>`;
+  if(definitelyNew.length) cntHTML+=` &nbsp;|&nbsp; <span style="color:#16a34a;font-weight:700">🆕 ${definitelyNew.length} new</span>`;
+  if(maybeDuplicate.length) cntHTML+=` &nbsp;|&nbsp; <span style="color:#dc2626;font-weight:700">⚠ ${maybeDuplicate.length} possible duplicates</span>`;
+  cnt.innerHTML=cntHTML;
+
   const wrap=document.getElementById('prev'+cap(t));
   if(!rows.length){wrap.innerHTML=`<div style="padding:12px;font-size:12px;color:var(--dim)">No records found.</div>`;document.getElementById('up'+cap(t)).disabled=true;return;}
-  wrap.innerHTML=`<table class="ptbl"><thead><tr><th>#</th><th>Party Name</th><th>Amount</th><th>Days</th><th></th></tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${r.flag?'pw':''}"><td class="p-n">${i+1}</td><td class="p-nm" title="${esc(r.name)}">${esc(r.name)}</td><td class="p-am">₹${fmtN(r.amount)}</td><td class="p-dy">${r.days}d</td><td class="p-fl">${r.flag||'✓'}</td></tr>`).join('')+`</tbody></table>`;
+
+  // Banner for new + possible-duplicate parties
+  let missingBanner='';
+  if(maybeDuplicate.length){
+    missingBanner+=`<div style="background:#fef2f2;border:1.5px solid #f87171;border-radius:8px;padding:12px 14px;margin-bottom:10px">
+      <div style="font-size:12px;color:#7f1d1d">
+        <b style="color:#991b1b">⚠ ${maybeDuplicate.length} possible duplicate ${maybeDuplicate.length===1?'party':'parties'} — DO NOT auto-add without review</b><br>
+        These names share a base with existing MASTER parties. They might be the same party renamed in Marg, or a genuinely new branch/location.
+      </div>
+      <details style="margin-top:8px;font-size:11px;color:#7f1d1d" open><summary style="cursor:pointer;font-weight:600">Show conflicts</summary>
+        <div style="margin-top:6px;background:#fee2e2;padding:8px;border-radius:6px;max-height:200px;overflow-y:auto">
+          ${maybeDuplicate.map(m=>`
+            <div style="padding:6px 0;border-bottom:1px solid #fecaca">
+              <b>Dump:</b> ${esc(m.name)}<br>
+              <b>Similar in MASTER:</b><br>
+              ${m.similar.map(s=>`&nbsp;&nbsp;• ${esc(s.name)} <span style="color:#9a3412">(SR ${s.sr}, ${esc(s.area||'no area')})</span>`).join('<br>')}
+            </div>`).join('')}
+        </div>
+      </details>
+      <div style="margin-top:8px;font-size:11px;color:#7f1d1d">
+        <b>What to do:</b><br>
+        • If it's the <b>same party</b> — fix the name in Marg or rename the MASTER row to match the dump exactly.<br>
+        • If it's a <b>genuinely new branch</b> — add it manually in MASTER with a clearly different name (e.g. include the area).
+      </div>
+    </div>`;
+  }
+  if(definitelyNew.length){
+    missingBanner+=`<div style="background:#fff7ed;border:1.5px solid #fb923c;border-radius:8px;padding:12px 14px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="font-size:12px;color:#7c2d12">
+          <b style="color:#9a3412">🆕 ${definitelyNew.length} truly new ${definitelyNew.length===1?'party':'parties'} (no name conflict)</b><br>
+          Safe to auto-add — none of these share a name with existing MASTER parties.
+        </div>
+        <button onclick="addMissingParties('${t}')" style="height:36px;padding:0 16px;border-radius:7px;border:2px solid #ea580c;background:#ea580c;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">➕ Auto-add ${definitelyNew.length} to MASTER</button>
+      </div>
+      <details style="margin-top:8px;font-size:11px;color:#7c2d12"><summary style="cursor:pointer;font-weight:600">Show new party names</summary>
+        <div style="margin-top:6px;background:#fef3e6;padding:8px;border-radius:6px;max-height:120px;overflow-y:auto">
+          ${definitelyNew.map(n=>`<div>• ${esc(n)}</div>`).join('')}
+        </div>
+      </details>
+    </div>`;
+  }
+
+  // Build map of dump-name → category for the row table
+  const newSet=new Set(definitelyNew.map(n=>n.toUpperCase().trim()));
+  const dupSet=new Set(maybeDuplicate.map(m=>m.name.toUpperCase().trim()));
+
+  wrap.innerHTML=missingBanner+`<table class="ptbl"><thead><tr><th>#</th><th>Party Name</th><th>Amount</th><th>Days</th><th></th></tr></thead><tbody>`+rows.map((r,i)=>{
+    const nk=r.name.toUpperCase().trim();
+    let flag='✓', cls='';
+    if(r.flag){ flag=r.flag; cls='pw'; }
+    else if(dupSet.has(nk)){ flag='⚠ DUP?'; cls='pw'; }
+    else if(newSet.has(nk)){ flag='🆕 NEW'; cls='pw'; }
+    return `<tr class="${cls}"><td class="p-n">${i+1}</td><td class="p-nm" title="${esc(r.name)}">${esc(r.name)}</td><td class="p-am">₹${fmtN(r.amount)}</td><td class="p-dy">${r.days}d</td><td class="p-fl">${flag}</td></tr>`;
+  }).join('')+`</tbody></table>`;
   document.getElementById('up'+cap(t)).disabled=false;
-  toast(`✓ ${rows.length} records parsed`,'ok');
+  let parseToast=`✓ ${rows.length} records parsed`;
+  if(definitelyNew.length) parseToast+=` · ${definitelyNew.length} new`;
+  if(maybeDuplicate.length) parseToast+=` · ⚠ ${maybeDuplicate.length} possible dup`;
+  toast(parseToast, maybeDuplicate.length?'warn':'ok');
+}
+
+/* ── Auto-add missing parties to MASTER / OFFICE / SALESMAN sheets ── */
+async function addMissingParties(t){
+  const data=missingParties[t]||{definitelyNew:[],maybeDuplicate:[]};
+  const missing=data.definitelyNew||[];
+  if(!missing.length){toast('No safe-to-add parties','warn');return;}
+  if(!confirm(`Add ${missing.length} new ${missing.length===1?'party':'parties'} to MASTER, OFFICE and SALESMAN sheets?\n\nThey will be added with blank fields (mobile, area, route, office, salesman, beat). Admin can fill these later in the Google Sheet.`)) return;
+
+  dot('syncing');
+  toast(`Adding ${missing.length} parties…`,'ok');
+  try{
+    // Determine next SR number (max existing SR + 1)
+    const maxSR=allParties.reduce((m,p)=>Math.max(m,p.sr||0),0);
+    // Find first empty row across all sheets (use rowMap data — totalPartyRows)
+    const startRow=totalPartyRows+4; // header rows 1-3, data starts row 4
+    // Build new rows: SR, NAME, MOBILE, AREA, ROUTE, OFFICE, SALESMAN, BEAT
+    const newMasterRows=missing.map((name,i)=>[maxSR+i+1, name, '', '', '', '', '', '']);
+    // OFFICE and SALESMAN need same first 8 cols + then date-group VLOOKUP formulas
+    const buildSheetRow=(srNum, name)=>{
+      const base=[srNum, name, '', '', '', '', '', ''];
+      // Add VLOOKUP formulas for each existing date column group (8 cols per group)
+      allDateGroups.forEach(g=>{
+        // c is 0-indexed colIdx; convert to A1 reference for VLOOKUP
+        const di=`B${startRow}`; // placeholder; we'll use the actual row when writing
+        base.push(`=IFERROR(VLOOKUP(INDIRECT("B"&ROW()),DUMP_AUTO!$A:$C,2,0),0)`);
+        base.push(`=IFERROR(VLOOKUP(INDIRECT("B"&ROW()),DUMP_AUTO!$A:$C,3,0),0)`);
+        base.push(''); base.push('');
+        base.push(`=IFERROR(VLOOKUP(INDIRECT("B"&ROW()),HERO!$A:$C,2,0),0)`);
+        base.push(`=IFERROR(VLOOKUP(INDIRECT("B"&ROW()),HERO!$A:$C,3,0),0)`);
+        base.push(''); base.push('');
+      });
+      return base;
+    };
+    const newOfficeRows=missing.map((name,i)=>buildSheetRow(maxSR+i+1, name));
+    const newSalesmanRows=missing.map((name,i)=>buildSheetRow(maxSR+i+1, name));
+
+    // Compute column range for OFFICE/SALESMAN write (cols A through end of last date group)
+    const totalCols=8+(allDateGroups.length*8);
+    const endColLetter=colL(totalCols-1); // 0-indexed
+    const endRow=startRow+missing.length-1;
+
+    const writes=[
+      {range:`MASTER!A${startRow}:H${endRow}`, values:newMasterRows},
+      {range:`OFFICE!A${startRow}:${endColLetter}${endRow}`, values:newOfficeRows},
+      {range:`SALESMAN!A${startRow}:${endColLetter}${endRow}`, values:newSalesmanRows}
+    ];
+    await batchWriteMulti(writes);
+    dot('ok');
+    toast(`✓ ${missing.length} parties added to MASTER. Reloading…`,'ok');
+    missingParties[t]={definitelyNew:[],maybeDuplicate:[]};
+    setTimeout(()=>loadAll(),800);
+  }catch(e){
+    dot('err');
+    toast('✗ Failed to add parties: '+e.message,'err');
+  }
 }
 async function uploadDump(t){
   const rows=parsedDump[t];if(!rows||!rows.length){toast('Nothing to upload','warn');return;}
