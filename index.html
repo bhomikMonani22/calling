@@ -1045,11 +1045,19 @@ tr.pw td{background:rgba(229,122,26,.04)}
               <button id="dupDelBtn" onclick="deleteDuplicateRows()" style="height:36px;padding:0 16px;border-radius:7px;border:2px solid #dc2626;background:#dc2626;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:none">🗑 Delete Selected Duplicate Rows</button>
             </div>
           </div>
+
+          <!-- DISPATCH SHEET SETUP (admin only) -->
+          <div id="dispSetupSection" style="display:none;margin-top:28px;background:#fff7ed;border:1.5px solid #fb923c;border-radius:14px;padding:18px 22px">
+            <div style="font-size:15px;font-weight:800;color:#9a3412;margin-bottom:4px">📦 Dispatch Sheet Setup</div>
+            <div style="font-size:12px;color:#7c2d12;margin-bottom:14px">Upload a dispatch schedule (.xlsx) to auto-push to the <b>DISPATCH</b> tab. Expected columns: <code style="font-family:'IBM Plex Mono',monospace;font-size:11px">SR | PARTY_NAME | ADDRESS | ROUTE | CATEGORY | DISPATCH_DAYS | SALESMAN</code>. Existing DISPATCH data will be replaced.</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+              <input type="file" id="dispUploadFile" accept=".xlsx,.xls,.csv" style="font-size:12px"/>
+              <button id="dispUploadBtn" onclick="uploadDispatchSheet()" style="height:36px;padding:0 16px;border-radius:7px;border:2px solid #ea580c;background:#ea580c;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">⚡ Parse &amp; Push to DISPATCH</button>
+            </div>
+            <div id="dispUploadStatus" style="font-size:11px;color:#7c2d12;margin-top:8px"></div>
+          </div>
         </div>
       </div>
-
-    </div><!-- /content -->
-  </div><!-- /main -->
 </div><!-- /shell -->
 
 <div id="notifStack"></div>
@@ -1472,6 +1480,9 @@ async function loadAll(){
       const sec=document.getElementById('dupCleanupSection');
       if(sec) sec.style.display=dups.length?'block':'none';
       if(dups.length) renderDuplicatesList();
+      // Always show dispatch setup section for admin (to upload or re-upload)
+      const dispSec=document.getElementById('dispSetupSection');
+      if(dispSec) dispSec.style.display='block';
     }
     if(dups.length){
       const total=dups.reduce((s,[,arr])=>s+arr.length,0);
@@ -2201,12 +2212,15 @@ function populateDispFilters(){
 function renderDisp(){
   const wrap=document.getElementById('dispResult');
   if(!Object.keys(dispatchMap).length){
+    const adminHint=USER.role==='ADMIN'
+      ? `<div style="margin-top:14px;padding:10px 14px;background:#fff7ed;border:1px solid #fb923c;border-radius:8px;font-size:12px;color:#7c2d12"><b>🛠 Admin shortcut:</b> Go to <b>Upload Dump</b> tab → scroll to <b>📦 Dispatch Sheet Setup</b> → upload your dispatch xlsx. The app will auto-create the DISPATCH tab and push all parties.</div>`
+      : `<div style="margin-top:14px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--mid)">Ask admin to upload the dispatch schedule.</div>`;
     wrap.innerHTML=`<div class="disp-empty">
       <div style="font-size:36px;margin-bottom:10px">📦</div>
       <div style="font-weight:700;color:var(--ink);margin-bottom:6px">No Dispatch data found</div>
-      <div style="font-size:12px">Create a tab named <b>DISPATCH</b> in your Google Sheet with columns:<br>
-      <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink)">SR | PARTY_NAME | ADDRESS | ROUTE | CATEGORY | DISPATCH_DAYS | SALESMAN</code><br>
-      DISPATCH_DAYS should be comma-separated day codes (MON,THU,FRI etc).</div>
+      <div style="font-size:12px">Expected Google Sheet tab: <b>DISPATCH</b> with columns:<br>
+      <code style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink)">SR | PARTY_NAME | ADDRESS | ROUTE | CATEGORY | DISPATCH_DAYS | SALESMAN</code></div>
+      ${adminHint}
     </div>`;
     ['dispPrintBtn','dispXlBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
     return;
@@ -2374,6 +2388,121 @@ function renderDisp(){
   ['dispPrintBtn','dispXlBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-flex';});
   dispLastData={targetDay,rows,totalAuto,totalHero,total,withBalance,overdue30,isToday,todayLog,sOrdered,sNoOrder,sCallback,sPending};
 }
+
+/* ── Upload dispatch xlsx and auto-push to DISPATCH tab ── */
+async function uploadDispatchSheet(){
+  const inp=document.getElementById('dispUploadFile');
+  const status=document.getElementById('dispUploadStatus');
+  const btn=document.getElementById('dispUploadBtn');
+  const file=inp.files&&inp.files[0];
+  if(!file){toast('Select a file first','warn');return;}
+  if(typeof XLSX==='undefined'){toast('SheetJS not loaded — refresh and retry','err');return;}
+
+  btn.disabled=true; btn.textContent='⏳ Parsing…';
+  status.textContent='Reading file…';
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    // Take the first sheet by default — usually DISPATCH SHEET
+    const wsName=wb.SheetNames[0];
+    const ws=wb.Sheets[wsName];
+    // Read as array of arrays
+    const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
+    if(!aoa.length){throw new Error('Empty sheet');}
+
+    // Day code normalization
+    const dayMap={MON:'MON',MONDAY:'MON',TUE:'TUE',TUES:'TUE',TUESDAY:'TUE',WED:'WED',WEDNESDAY:'WED',
+                  THU:'THU',THUR:'THU',THURS:'THU',THURSDAY:'THU',FRI:'FRI',FRIDAY:'FRI',SAT:'SAT',SATURDAY:'SAT'};
+
+    // Detect format: simple 7-col (SR/NAME/ADDRESS/ROUTE/CATEGORY/DAYS/SALESMAN)
+    // OR original format with DELIVERY columns spread across 6 cells
+    const hdr=aoa[0].map(c=>String(c||'').trim().toUpperCase());
+    const hasDispatchDaysCol=hdr.some(h=>h.includes('DISPATCH_DAYS')||h===('DISPATCH DAYS'));
+    const isSimpleFormat = hdr.length>=7 && hasDispatchDaysCol;
+
+    const rows=[];
+    if(isSimpleFormat){
+      // Skip header row, parse rest as already-normalized
+      for(let i=1;i<aoa.length;i++){
+        const r=aoa[i]; if(!r||!r[1]) continue;
+        const name=String(r[1]||'').trim(); if(!name) continue;
+        const daysStr=String(r[5]||'').trim();
+        const days=daysStr.split(',').map(d=>d.trim().toUpperCase()).map(d=>dayMap[d]||d).filter(Boolean);
+        rows.push([
+          r[0]||(rows.length+1),
+          name,
+          String(r[2]||'').trim(),
+          String(r[3]||'').trim(),
+          String(r[4]||'').trim(),
+          days.join(','),
+          String(r[6]||'').trim()
+        ]);
+      }
+    } else {
+      // Original format: row 0 is header, row 1 is sub-header "DELIVERY DELIVERY..." across cols 5-10
+      // Data starts at row 2. Cols: 0=SR, 1=NAME, 2=ADDR, 3=ROUTE, 4=CAT, 5..10=DAY values, 11=SALESMAN
+      for(let i=2;i<aoa.length;i++){
+        const r=aoa[i]; if(!r||!r[1]) continue;
+        const name=String(r[1]||'').trim(); if(!name) continue;
+        // Collect days from columns 5..10
+        const days=[];
+        for(let c=5;c<=10;c++){
+          const v=String(r[c]||'').trim().toUpperCase();
+          if(!v) continue;
+          const d=dayMap[v]||v;
+          if(d && !days.includes(d)) days.push(d);
+        }
+        rows.push([
+          r[0]||(rows.length+1),
+          name,
+          String(r[2]||'').trim(),
+          String(r[3]||'').trim(),
+          String(r[4]||'').trim(),
+          days.join(','),
+          String(r[11]||'').trim()
+        ]);
+      }
+    }
+    if(!rows.length){throw new Error('No data rows parsed');}
+
+    status.textContent=`Parsed ${rows.length} parties. Pushing to DISPATCH sheet…`;
+    dot('syncing');
+
+    // Ensure DISPATCH sheet exists with the right headers + clear old data
+    const headers=['SR','PARTY_NAME','ADDRESS','ROUTE','CATEGORY','DISPATCH_DAYS','SALESMAN'];
+
+    // Check if sheet exists; if not, create it
+    let dispExists=true;
+    try{ await fetchSheet('DISPATCH'); }catch(e){ dispExists=false; }
+    if(!dispExists){
+      // Create the tab via batchUpdate
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}:batchUpdate`;
+      const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({requests:[{addSheet:{properties:{title:'DISPATCH'}}}]})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error('Could not create DISPATCH sheet: '+((j.error&&j.error.message)||'HTTP '+r.status));}
+    }
+
+    // Clear existing DISPATCH content
+    const clearURL=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!A:G')}:clear`;
+    await fetch(clearURL,{method:'POST',headers:await authHeader()});
+
+    // Write headers + all rows in one batched call
+    const writeURL=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!A1')}?valueInputOption=USER_ENTERED`;
+    const writeRes=await fetch(writeURL,{method:'PUT',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:[headers, ...rows]})});
+    if(!writeRes.ok){const j=await writeRes.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+writeRes.status);}
+
+    dot('ok');
+    status.innerHTML=`✓ <b>${rows.length} parties</b> pushed to DISPATCH sheet. Reloading…`;
+    toast(`✓ ${rows.length} dispatch parties pushed to Google Sheet`,'ok');
+    setTimeout(()=>loadAll(), 800);
+  }catch(e){
+    dot('err');
+    status.innerHTML=`<span style="color:#dc2626"><b>✗ Failed:</b> ${esc(e.message)}</span>`;
+    toast('✗ Upload failed: '+e.message,'err');
+  }finally{
+    btn.disabled=false; btn.textContent='⚡ Parse & Push to DISPATCH';
+  }
+}
+
 
 async function logDispatchCall(sr, status, partyName){
   if(!sr){toast('Party not in MASTER — cannot log','warn');return;}
