@@ -1327,6 +1327,9 @@ async function clearRange(sheet,rng){
 function colL(n){let s='';while(n>0){const r=(n-1)%26;s=String.fromCharCode(65+r)+s;n=Math.floor((n-1)/26);}return s;}
 
 /* ═══ LOAD ALL ═══ */
+const DISP_LOG_SHEET = 'DISPATCH_LOG';
+const DISP_LOG_HEADERS = ['id','date','sr','partyName','caller','status','remark','callbackDays','createdAt'];
+
 async function loadAll(){
   if(!CFG.sheetId) return;
   dot('syncing');
@@ -1996,8 +1999,6 @@ function renderLB(){
                   F=callbackDate, G=createdAt, H=createdBy, I=dismissed(TRUE/FALSE)
 ════════════════════════════════════════════════════════════════════════ */
 const CB_SHEET = 'CALLBACKS';
-const DISP_LOG_SHEET = 'DISPATCH_LOG';
-const DISP_LOG_HEADERS = ['id','date','sr','partyName','caller','status','remark','callbackDays','createdAt'];
 const CB_HEADERS = ['id','sr','partyName','caller','remark','callbackDate','createdAt','createdBy','dismissed','daysSet'];
 
 async function loadCallbacks(){
