@@ -2595,13 +2595,21 @@ async function logDispatchCall(sr, status, partyName){
 
   dot('syncing');
   try{
-    // Ensure sheet exists with headers
+    // Ensure sheet exists with headers — auto-create if missing
     let vals;
     try{ vals=await fetchSheet(DISP_LOG_SHEET); }
     catch(e){
-      dot('err');
-      toast(`✗ ${DISP_LOG_SHEET} sheet not found. Create a tab named "${DISP_LOG_SHEET}" in your Google Sheet first.`,'err');
-      return;
+      // Sheet doesn't exist — create it via batchUpdate
+      const createURL=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}:batchUpdate`;
+      const createRes=await fetch(createURL,{method:'POST',headers:await authHeader(),
+        body:JSON.stringify({requests:[{addSheet:{properties:{title:DISP_LOG_SHEET}}}]})});
+      if(!createRes.ok){
+        const j=await createRes.json().catch(()=>({}));
+        throw new Error('Could not auto-create '+DISP_LOG_SHEET+' tab: '+((j.error&&j.error.message)||'HTTP '+createRes.status));
+      }
+      // Write headers immediately
+      await batchWriteMulti([{range:`${DISP_LOG_SHEET}!A1:I1`, values:[DISP_LOG_HEADERS]}]);
+      vals=[DISP_LOG_HEADERS];
     }
     if(!vals||vals.length<1){
       await batchWriteMulti([{range:`${DISP_LOG_SHEET}!A1:I1`, values:[DISP_LOG_HEADERS]}]);
