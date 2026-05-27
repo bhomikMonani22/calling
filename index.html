@@ -2413,59 +2413,103 @@ async function uploadDispatchSheet(){
     // Day code normalization
     const dayMap={MON:'MON',MONDAY:'MON',TUE:'TUE',TUES:'TUE',TUESDAY:'TUE',WED:'WED',WEDNESDAY:'WED',
                   THU:'THU',THUR:'THU',THURS:'THU',THURSDAY:'THU',FRI:'FRI',FRIDAY:'FRI',SAT:'SAT',SATURDAY:'SAT'};
+    const isDayValue=v=>{
+      const s=String(v||'').trim().toUpperCase();
+      return !!dayMap[s];
+    };
 
-    // Detect format: simple 7-col (SR/NAME/ADDRESS/ROUTE/CATEGORY/DAYS/SALESMAN)
-    // OR original format with DELIVERY columns spread across 6 cells
+    // Detect format by scanning header row & data
     const hdr=aoa[0].map(c=>String(c||'').trim().toUpperCase());
-    const hasDispatchDaysCol=hdr.some(h=>h.includes('DISPATCH_DAYS')||h===('DISPATCH DAYS'));
+    const hasDispatchDaysCol=hdr.some(h=>h.includes('DISPATCH_DAYS')||h==='DISPATCH DAYS');
     const isSimpleFormat = hdr.length>=7 && hasDispatchDaysCol;
 
     const rows=[];
+    let droppedRows=0, validRows=0;
+
     if(isSimpleFormat){
-      // Skip header row, parse rest as already-normalized
+      // Simple format: skip header, parse rest
       for(let i=1;i<aoa.length;i++){
         const r=aoa[i]; if(!r||!r[1]) continue;
         const name=String(r[1]||'').trim(); if(!name) continue;
         const daysStr=String(r[5]||'').trim();
         const days=daysStr.split(',').map(d=>d.trim().toUpperCase()).map(d=>dayMap[d]||d).filter(Boolean);
         rows.push([
-          r[0]||(rows.length+1),
-          name,
-          String(r[2]||'').trim(),
-          String(r[3]||'').trim(),
-          String(r[4]||'').trim(),
-          days.join(','),
-          String(r[6]||'').trim()
+          r[0]||(rows.length+1), name,
+          String(r[2]||'').trim(), String(r[3]||'').trim(), String(r[4]||'').trim(),
+          days.join(','), String(r[6]||'').trim()
         ]);
       }
     } else {
-      // Original format: row 0 is header, row 1 is sub-header "DELIVERY DELIVERY..." across cols 5-10
-      // Data starts at row 2. Cols: 0=SR, 1=NAME, 2=ADDR, 3=ROUTE, 4=CAT, 5..10=DAY values, 11=SALESMAN
-      for(let i=2;i<aoa.length;i++){
-        const r=aoa[i]; if(!r||!r[1]) continue;
-        const name=String(r[1]||'').trim(); if(!name) continue;
-        // Collect days from columns 5..10
+      // Original Marg-style format: find where data starts AND auto-detect day-column range.
+      // Strategy: scan from row 0, for each row check if col 1 (NAME) is non-empty AND looks like a party name.
+      // Skip rows where col 1 is blank, or where col 1 contains "PARTY NAME"/"DELIVERY"/empty.
+      let dataStart=-1;
+      for(let i=0;i<Math.min(aoa.length,5);i++){
+        const r=aoa[i]||[];
+        const name=String(r[1]||'').trim().toUpperCase();
+        if(!name) continue;
+        if(name==='PARTY NAME'||name==='NAME'||name==='DELIVERY') continue;
+        // Looks like real data
+        dataStart=i; break;
+      }
+      if(dataStart===-1) throw new Error('Could not find data rows in sheet');
+
+      // Auto-detect which column holds the SALESMAN value — scan first data row from the right
+      // Salesman is text, not a day code, and is right of all the day columns.
+      const sample=aoa[dataStart]||[];
+      let salesmanCol=-1, lastDayCol=4; // defaults: salesman col 11, days end at 10
+      for(let c=sample.length-1;c>=5;c--){
+        const v=String(sample[c]||'').trim();
+        if(!v) continue;
+        if(isDayValue(v)) { lastDayCol=Math.max(lastDayCol, c); break; }
+        // Non-empty, non-day value → likely salesman
+        if(salesmanCol===-1) salesmanCol=c;
+      }
+      if(salesmanCol===-1){
+        // No salesman column detected — use the last non-empty col as salesman if it's not a day
+        for(let c=sample.length-1;c>=5;c--){
+          const v=String(sample[c]||'').trim();
+          if(v && !isDayValue(v)) { salesmanCol=c; break; }
+        }
+      }
+      const dayColStart=5;
+      // Day columns are everything between col 5 and salesmanCol-1 (or 10 if no salesman detected)
+      const dayColEnd = salesmanCol>0 ? salesmanCol-1 : Math.max(lastDayCol,10);
+
+      console.log(`Dispatch parser: dataStart=${dataStart}, dayCols=${dayColStart}-${dayColEnd}, salesmanCol=${salesmanCol}`);
+
+      for(let i=dataStart;i<aoa.length;i++){
+        const r=aoa[i]; if(!r) { droppedRows++; continue; }
+        const name=String(r[1]||'').trim();
+        if(!name) { droppedRows++; continue; }
+        // Skip junk rows that contain header text
+        if(/^party\s*name$/i.test(name) || name.toUpperCase()==='DELIVERY') { droppedRows++; continue; }
+
+        // Collect days from the detected range
         const days=[];
-        for(let c=5;c<=10;c++){
+        for(let c=dayColStart;c<=dayColEnd;c++){
           const v=String(r[c]||'').trim().toUpperCase();
           if(!v) continue;
-          const d=dayMap[v]||v;
+          const d=dayMap[v];
           if(d && !days.includes(d)) days.push(d);
         }
         rows.push([
-          r[0]||(rows.length+1),
-          name,
-          String(r[2]||'').trim(),
-          String(r[3]||'').trim(),
-          String(r[4]||'').trim(),
+          r[0]||(rows.length+1), name,
+          String(r[2]||'').trim(), String(r[3]||'').trim(), String(r[4]||'').trim(),
           days.join(','),
-          String(r[11]||'').trim()
+          salesmanCol>=0 ? String(r[salesmanCol]||'').trim() : ''
         ]);
+        validRows++;
       }
     }
     if(!rows.length){throw new Error('No data rows parsed');}
 
-    status.textContent=`Parsed ${rows.length} parties. Pushing to DISPATCH sheet…`;
+    // Quick sanity check — count parties per day
+    const dayCounts={MON:0,TUE:0,WED:0,THU:0,FRI:0,SAT:0};
+    rows.forEach(r=>{ r[5].split(',').forEach(d=>{ if(dayCounts[d]!==undefined) dayCounts[d]++; }); });
+    const dayBreakdown=Object.entries(dayCounts).map(([d,c])=>`${d}:${c}`).join(' ');
+    console.log(`Parsed ${rows.length} parties. Days: ${dayBreakdown}`);
+    status.innerHTML=`Parsed ${rows.length} parties. <span style="color:var(--mid);font-family:'IBM Plex Mono',monospace;font-size:10px">${dayBreakdown}</span><br>Pushing to DISPATCH sheet…`;
     dot('syncing');
 
     // Ensure DISPATCH sheet exists with the right headers + clear old data
