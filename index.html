@@ -2400,7 +2400,7 @@ function renderDisp(){
               <div style="font-size:10px;color:var(--dim);margin-top:2px">${esc(r.route)} · ${esc(r.address||r.area||'')}</div>
             </td>
             <td><span class="disp-cat">${esc(r.category||'—')}</span></td>
-            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${USER.role==='ADMIN' ? `<span class="disp-mob-edit" onclick="editDispatchMobile(${JSON.stringify(r.name).replace(/"/g,'&quot;')}, ${JSON.stringify(r.mobile||'').replace(/"/g,'&quot;')})">${r.mobile?esc(r.mobile):'<span style="color:var(--dim);font-style:italic">+ add</span>'}</span>` : (r.mobile?esc(r.mobile):'—')}</td>
+            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px"><span class="disp-mob-edit" onclick="editDispatchMobile(${JSON.stringify(r.name).replace(/"/g,'&quot;')}, ${JSON.stringify(r.mobile||'').replace(/"/g,'&quot;')})">${r.mobile?esc(r.mobile):'<span style="color:var(--dim);font-style:italic">+ add</span>'}</span></td>
             <td>${dayPills}</td>
             <td style="font-size:11px">${esc(r.salesman||'—')}</td>
             <td style="text-align:right">${balCell}</td>
@@ -2603,9 +2603,8 @@ async function uploadDispatchSheet(){
 }
 
 
-/* ── Inline edit mobile in DISPATCH sheet (admin only) ── */
+/* ── Inline edit mobile in DISPATCH sheet ── */
 async function editDispatchMobile(partyName, currentMob){
-  if(USER.role!=='ADMIN'){toast('Admin only','warn');return;}
   const nk=String(partyName).toUpperCase().trim();
   const entry=dispatchMap[nk] || dispatchMap[nk.replace(/\s+/g,' ')];
   if(!entry||!entry._row){toast('Could not locate party row in DISPATCH sheet','err');return;}
