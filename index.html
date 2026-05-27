@@ -430,6 +430,32 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .da-cb{border-color:var(--orange);color:var(--orange)}
 .da-cb:hover{background:var(--orange);color:#fff}
 
+/* Editable mobile cell (admin) */
+.disp-mob-edit{cursor:pointer;padding:3px 6px;border-radius:5px;border:1px dashed transparent;transition:all .12s;display:inline-block;min-width:80px}
+.disp-mob-edit:hover{background:#fef3c7;border-color:#fbbf24}
+
+/* Order placed celebration overlay */
+.order-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:10000;animation:overlayFade .25s ease-out;pointer-events:auto}
+@keyframes overlayFade{from{opacity:0}to{opacity:1}}
+.order-card{background:#fff;border-radius:24px;padding:48px 60px;box-shadow:0 30px 80px rgba(0,0,0,.35);display:flex;flex-direction:column;align-items:center;gap:18px;animation:cardPop .5s cubic-bezier(.34,1.56,.64,1) backwards;position:relative;min-width:300px;max-width:420px}
+@keyframes cardPop{0%{opacity:0;transform:scale(0.5) translateY(40px)}60%{transform:scale(1.05) translateY(-5px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+.order-check-wrap{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#10b981 0%,#059669 100%);display:flex;align-items:center;justify-content:center;position:relative;animation:checkPulse 1.2s ease-out 0.3s both}
+@keyframes checkPulse{0%{box-shadow:0 0 0 0 rgba(16,185,129,0.6)}70%{box-shadow:0 0 0 28px rgba(16,185,129,0)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
+.order-check-svg{width:56px;height:56px}
+.order-check-svg path{stroke:#fff;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:50;stroke-dashoffset:50;animation:checkDraw .5s ease-out 0.45s forwards}
+@keyframes checkDraw{to{stroke-dashoffset:0}}
+.order-title{font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.5px;text-align:center;animation:slideUp .4s ease-out 0.55s both}
+.order-sub{font-size:13px;color:var(--mid);font-weight:500;text-align:center;animation:slideUp .4s ease-out 0.65s both}
+.order-party{font-size:14px;color:var(--ink);font-weight:700;background:var(--y-dim);padding:8px 14px;border-radius:8px;border:1px solid var(--y2);animation:slideUp .4s ease-out 0.75s both}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Confetti particles */
+.confetti-piece{position:absolute;width:10px;height:14px;top:50%;left:50%;opacity:0;animation:confettiBurst 1.2s cubic-bezier(.2,.6,.4,1) 0.4s forwards}
+@keyframes confettiBurst{
+  0%{opacity:1;transform:translate(-50%,-50%) rotate(0deg)}
+  100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--r))}
+}
+
 /* MASTER REPORT */
 #pMR{overflow-y:auto}
 .mr-inner{padding:24px 28px;max-width:1200px}
@@ -1380,7 +1406,9 @@ async function loadAll(){
           route:String(r[3]||'').trim(),
           category:String(r[4]||'').trim(),
           days:String(r[5]||'').split(',').map(d=>d.trim().toUpperCase()).filter(Boolean),
-          salesman:String(r[6]||'').trim()
+          salesman:String(r[6]||'').trim(),
+          mobile:String(r[7]||'').trim().replace(/\s+/g,''),
+          _row:i+1  // 1-indexed sheet row, used for inline updates
         };
         const nk=name.toUpperCase();
         dispatchMap[nk]=entry;
@@ -2278,7 +2306,7 @@ function renderDisp(){
       autoBal, heroBal, total,
       autoDays:bal?bal.autoDays:0, heroDays:bal?bal.heroDays:0,
       maxDays:bal?bal.maxDays:0,
-      mobile:bal?bal.mobile:'',
+      mobile: d.mobile || (bal?bal.mobile:''),  // dispatch sheet mobile takes priority
       area:bal?bal.area:d.address,
       office:bal?bal.office:'',
       inMaster:!!bal
@@ -2372,7 +2400,7 @@ function renderDisp(){
               <div style="font-size:10px;color:var(--dim);margin-top:2px">${esc(r.route)} · ${esc(r.address||r.area||'')}</div>
             </td>
             <td><span class="disp-cat">${esc(r.category||'—')}</span></td>
-            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${r.mobile||'—'}</td>
+            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px">${USER.role==='ADMIN' ? `<span class="disp-mob-edit" onclick="editDispatchMobile(${JSON.stringify(r.name).replace(/"/g,'&quot;')}, ${JSON.stringify(r.mobile||'').replace(/"/g,'&quot;')})">${r.mobile?esc(r.mobile):'<span style="color:var(--dim);font-style:italic">+ add</span>'}</span>` : (r.mobile?esc(r.mobile):'—')}</td>
             <td>${dayPills}</td>
             <td style="font-size:11px">${esc(r.salesman||'—')}</td>
             <td style="text-align:right">${balCell}</td>
@@ -2429,7 +2457,13 @@ async function uploadDispatchSheet(){
     const hasCommaInDayCol = firstDataDayValue.includes(',');
     // isSimpleFormat = has DISPATCH_DAYS header AND (comma-separated in days col OR no DELIVERY sub-header)
     const isSimpleFormat = hdr.length>=7 && hasDispatchDaysCol && !hasDeliverySubHeader && hasCommaInDayCol;
-    console.log(`Dispatch parser format check: hasDispatchDaysCol=${hasDispatchDaysCol}, hasDeliverySubHeader=${hasDeliverySubHeader}, hasCommaInDayCol=${hasCommaInDayCol} → isSimpleFormat=${isSimpleFormat}`);
+    // Find mobile column index in header (looks for MOBILE/PHONE/CONTACT/NUMBER/MOB anywhere)
+    let mobileCol=-1;
+    for(let c=0;c<hdr.length;c++){
+      const h=hdr[c];
+      if(/MOBILE|PHONE|CONTACT|^MOB$|NUMBER/.test(h)){ mobileCol=c; break; }
+    }
+    console.log(`Dispatch parser format check: hasDispatchDaysCol=${hasDispatchDaysCol}, hasDeliverySubHeader=${hasDeliverySubHeader}, hasCommaInDayCol=${hasCommaInDayCol} → isSimpleFormat=${isSimpleFormat}, mobileCol=${mobileCol}`);
 
     const rows=[];
     let droppedRows=0, validRows=0;
@@ -2441,10 +2475,12 @@ async function uploadDispatchSheet(){
         const name=String(r[1]||'').trim(); if(!name) continue;
         const daysStr=String(r[5]||'').trim();
         const days=daysStr.split(',').map(d=>d.trim().toUpperCase()).map(d=>dayMap[d]||d).filter(Boolean);
+        const mob = mobileCol>=0 ? String(r[mobileCol]||'').trim().replace(/\s+/g,'') : '';
         rows.push([
           r[0]||(rows.length+1), name,
           String(r[2]||'').trim(), String(r[3]||'').trim(), String(r[4]||'').trim(),
-          days.join(','), String(r[6]||'').trim()
+          days.join(','), String(r[6]||'').trim(),
+          mob
         ]);
       }
     } else {
@@ -2513,7 +2549,8 @@ async function uploadDispatchSheet(){
           r[0]||(rows.length+1), name,
           String(r[2]||'').trim(), String(r[3]||'').trim(), String(r[4]||'').trim(),
           days.join(','),
-          salesmanCol>=0 ? String(r[salesmanCol]||'').trim() : ''
+          salesmanCol>=0 ? String(r[salesmanCol]||'').trim() : '',
+          mobileCol>=0 ? String(r[mobileCol]||'').trim().replace(/\s+/g,'') : ''
         ]);
         validRows++;
       }
@@ -2531,7 +2568,7 @@ async function uploadDispatchSheet(){
     dot('syncing');
 
     // Ensure DISPATCH sheet exists with the right headers + clear old data
-    const headers=['SR','PARTY_NAME','ADDRESS','ROUTE','CATEGORY','DISPATCH_DAYS','SALESMAN'];
+    const headers=['SR','PARTY_NAME','ADDRESS','ROUTE','CATEGORY','DISPATCH_DAYS','SALESMAN','MOBILE'];
 
     // Check if sheet exists; if not, create it
     let dispExists=true;
@@ -2544,7 +2581,7 @@ async function uploadDispatchSheet(){
     }
 
     // Clear existing DISPATCH content
-    const clearURL=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!A:G')}:clear`;
+    const clearURL=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!A:H')}:clear`;
     await fetch(clearURL,{method:'POST',headers:await authHeader()});
 
     // Write headers + all rows in one batched call
@@ -2565,6 +2602,84 @@ async function uploadDispatchSheet(){
   }
 }
 
+
+/* ── Inline edit mobile in DISPATCH sheet (admin only) ── */
+async function editDispatchMobile(partyName, currentMob){
+  if(USER.role!=='ADMIN'){toast('Admin only','warn');return;}
+  const nk=String(partyName).toUpperCase().trim();
+  const entry=dispatchMap[nk] || dispatchMap[nk.replace(/\s+/g,' ')];
+  if(!entry||!entry._row){toast('Could not locate party row in DISPATCH sheet','err');return;}
+  const newMob=prompt(`Mobile number for:\n${partyName}\n\n(10 digits, no spaces. Leave blank to clear.)`, currentMob||'');
+  if(newMob===null) return;
+  const clean=String(newMob).trim().replace(/[^\d+]/g,'');
+  if(clean && !/^\+?\d{7,15}$/.test(clean)){
+    toast('Invalid number — use 7-15 digits','warn');
+    return;
+  }
+  dot('syncing');
+  try{
+    // Write to column H of the entry's row
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!H'+entry._row)}?valueInputOption=USER_ENTERED`;
+    const r=await fetch(url,{method:'PUT',headers:await authHeader(),body:JSON.stringify({range:'DISPATCH!H'+entry._row, majorDimension:'ROWS', values:[[clean]]})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+    // Update in-memory entry and all aliased keys
+    entry.mobile=clean;
+    dot('ok');
+    toast(`✓ Mobile saved for ${partyName}`,'ok');
+    renderDisp();
+  }catch(e){
+    dot('err');
+    toast('✗ Save failed: '+e.message,'err');
+  }
+}
+
+/* ── Zomato/Zepto-style order placed celebration overlay ── */
+function showOrderCelebration(partyName, statusLabel, subtitle){
+  // Remove any existing
+  const existing=document.querySelector('.order-overlay');
+  if(existing) existing.remove();
+
+  const colors=['#F5C518','#10b981','#3b82f6','#ef4444','#f97316','#8b5cf6','#ec4899','#06b6d4'];
+  let confettiHTML='';
+  // 36 pieces — they fly outward in all directions
+  for(let i=0;i<36;i++){
+    const angle=(i/36)*2*Math.PI + (Math.random()*0.3);
+    const distance=180+Math.random()*220;
+    const tx=Math.cos(angle)*distance;
+    const ty=Math.sin(angle)*distance;
+    const rot=(Math.random()*720-360)+'deg';
+    const color=colors[i%colors.length];
+    const w=6+Math.random()*8;
+    const h=10+Math.random()*8;
+    confettiHTML+=`<span class="confetti-piece" style="--tx:${tx}px;--ty:${ty}px;--r:${rot};background:${color};width:${w}px;height:${h}px;border-radius:2px;animation-delay:${0.35+Math.random()*0.15}s"></span>`;
+  }
+
+  const overlay=document.createElement('div');
+  overlay.className='order-overlay';
+  overlay.innerHTML=`
+    <div class="order-card">
+      ${confettiHTML}
+      <div class="order-check-wrap">
+        <svg class="order-check-svg" viewBox="0 0 56 56">
+          <path d="M12 28 L24 40 L44 18" />
+        </svg>
+      </div>
+      <div class="order-title">${esc(statusLabel)}</div>
+      <div class="order-sub">${esc(subtitle||'')}</div>
+      <div class="order-party">${esc(partyName)}</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  // Click anywhere to dismiss early
+  overlay.addEventListener('click', ()=>overlay.remove());
+  // Auto-dismiss after 1.8s
+  setTimeout(()=>{
+    if(overlay.parentNode){
+      overlay.style.animation='overlayFade .3s ease-in reverse';
+      setTimeout(()=>overlay.remove(), 280);
+    }
+  }, 1800);
+}
 
 async function logDispatchCall(sr, status, partyName){
   if(!sr){toast('Party not in MASTER — cannot log','warn');return;}
@@ -2648,8 +2763,15 @@ async function logDispatchCall(sr, status, partyName){
       }
     }
     dot('ok');
-    const lbl=status==='ORDERED'?'✓ Order logged':status==='NO_ORDER'?'✗ Marked no order':`📅 Callback set for ${days}d`;
-    toast(`${lbl}: ${partyName}`,'ok');
+    // Celebrate orders with full-screen animation; quieter feedback for others
+    if(status==='ORDERED'){
+      showOrderCelebration(partyName, 'Order Placed! 🎉', 'Marked as ordered today');
+    } else if(status==='CALLBACK'){
+      showOrderCelebration(partyName, `Callback Scheduled 📅`, `Will follow up in ${days} day${days!==1?'s':''}`);
+    } else {
+      const lbl='✗ Marked no order';
+      toast(`${lbl}: ${partyName}`,'ok');
+    }
     renderDisp(); // re-render to show new status
   }catch(e){
     dot('err');
