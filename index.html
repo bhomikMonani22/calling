@@ -183,6 +183,9 @@ body{color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px}
 .mpill.aS{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
 .mpill.selO{border-color:var(--blue);color:#fff;background:var(--blue)}
 .mpill.selS{border-color:var(--orange);color:#fff;background:var(--orange)}
+.mpill.unassigned{border-color:#dc2626;color:#dc2626;background:#fef2f2;font-weight:700}
+.mpill.unassigned:hover{border-color:#b91c1c;color:#fff;background:#dc2626}
+.mpill.unassigned.selO,.mpill.unassigned.selS{border-color:#dc2626;color:#fff;background:#dc2626}
 
 /* DATE BAR (admin) */
 .datebar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;flex-shrink:0}
@@ -1082,6 +1085,19 @@ tr.pw td{background:rgba(229,122,26,.04)}
             </div>
             <div id="dispUploadStatus" style="font-size:11px;color:#7c2d12;margin-top:8px"></div>
           </div>
+
+          <!-- MASTER RESTORE FROM PERMANENT LIST (admin only) -->
+          <div id="masterRestoreSection" style="display:none;margin-top:28px;background:#eff6ff;border:1.5px solid #60a5fa;border-radius:14px;padding:18px 22px">
+            <div style="font-size:15px;font-weight:800;color:#1e3a8a;margin-bottom:4px">🗂 Restore MASTER from Permanent List</div>
+            <div style="font-size:12px;color:#1e40af;margin-bottom:14px">Upload your <b>permanent party list</b> (.xlsx). For each matching party name in MASTER, blank fields will be filled in with Book1 values. Existing non-blank values won't be touched. Expected columns: <code style="font-family:'IBM Plex Mono',monospace;font-size:11px">SR | PARTY NAME | MOBILE | AREA | ROUTE | OFFICE | SALESMAN | BEAT</code> (data starts row 4 or auto-detected).</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+              <input type="file" id="masterRestoreFile" accept=".xlsx,.xls,.csv" style="font-size:12px"/>
+              <button id="masterRestorePreviewBtn" onclick="previewMasterRestore()" style="height:36px;padding:0 16px;border-radius:7px;border:2px solid #2563eb;background:#fff;color:#2563eb;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">🔍 Preview Changes</button>
+              <button id="masterRestoreApplyBtn" onclick="applyMasterRestore()" style="height:36px;padding:0 16px;border-radius:7px;border:2px solid #2563eb;background:#2563eb;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:none">✓ Apply Restore</button>
+            </div>
+            <div id="masterRestoreStatus" style="font-size:11px;color:#1e40af;margin-top:8px"></div>
+            <div id="masterRestorePreview" style="margin-top:12px;display:none"></div>
+          </div>
         </div>
       </div>
 </div><!-- /shell -->
@@ -1511,12 +1527,21 @@ async function loadAll(){
       // Always show dispatch setup section for admin (to upload or re-upload)
       const dispSec=document.getElementById('dispSetupSection');
       if(dispSec) dispSec.style.display='block';
+      const restoreSec=document.getElementById('masterRestoreSection');
+      if(restoreSec) restoreSec.style.display='block';
     }
     if(dups.length){
       const total=dups.reduce((s,[,arr])=>s+arr.length,0);
       const lines=dups.map(([name,arr])=>`  • ${name}: rows ${arr.map(p=>'SR '+p.sr).join(', ')}`).join('\n');
       console.warn(`Found ${dups.length} duplicate party names (${total} rows):\n${lines}`);
       toast(`⚠ ${dups.length} duplicate party ${dups.length===1?'name':'names'} in MASTER. ${USER.role==='ADMIN'?'Open Upload Dump tab to clean up.':'Ask admin to clean up.'}`,'warn');
+    }
+    // Warn about unassigned parties (only admin)
+    if(USER.role==='ADMIN'){
+      const unassignedCount=allParties.filter(p=>(p.office||'').toUpperCase()==='UNASSIGNED' || (p.salesman||'').toUpperCase()==='UNASSIGNED').length;
+      if(unassignedCount){
+        toast(`⚠ ${unassignedCount} ${unassignedCount===1?'party has':'parties have'} no office/salesman assigned. Filter the UNASSIGNED pill to see them.`,'warn');
+      }
     }
     buildSelects(); buildMemberBars(); buildDateBar();
     adminDateCol=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
@@ -1648,9 +1673,17 @@ function mkBar(t,members,label){
   const all=document.createElement('button');
   all.className='mpill a'+t; all.textContent='ALL'; all.dataset.v='ALL';
   all.onclick=()=>{memberSel[t]='ALL';hilPills(t);render(t);}; bar.appendChild(all);
-  members.forEach(m=>{
+  // Sort: real names first alphabetically, UNASSIGNED last with special styling
+  const sortedMembers=[...members].sort((a,b)=>{
+    if(a==='UNASSIGNED' && b!=='UNASSIGNED') return 1;
+    if(b==='UNASSIGNED' && a!=='UNASSIGNED') return -1;
+    return a.localeCompare(b);
+  });
+  sortedMembers.forEach(m=>{
     const p=document.createElement('button');
-    p.className='mpill'; p.textContent=m; p.dataset.v=m;
+    p.className='mpill'+(m==='UNASSIGNED'?' unassigned':'');
+    p.textContent = m==='UNASSIGNED' ? '⚠ UNASSIGNED' : m;
+    p.dataset.v=m;
     p.onclick=()=>{memberSel[t]=m;hilPills(t);render(t);}; bar.appendChild(p);
   });
 }
@@ -2418,6 +2451,245 @@ function renderDisp(){
 }
 
 /* ── Upload dispatch xlsx and auto-push to DISPATCH tab ── */
+/* ═══ MASTER RESTORE FROM BOOK1 (PERMANENT LIST) ═══ */
+let masterRestorePending=null; // {plan: [{sr, name, row, updates:{col:val,...}}, ...], stats}
+
+// Parse the uploaded Book1.xlsx into a name → {mobile, area, route, office, salesman, beat} map
+async function parsePermanentList(file){
+  if(typeof XLSX==='undefined') throw new Error('SheetJS not loaded');
+  const buf=await file.arrayBuffer();
+  const wb=XLSX.read(buf,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const aoa=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
+  if(!aoa.length) throw new Error('Empty sheet');
+
+  // Auto-detect header row — scan first 6 rows for one containing PARTY NAME / ROUTE / SALESMAN
+  let hdrRow=-1;
+  for(let i=0;i<Math.min(aoa.length,8);i++){
+    const r=aoa[i]||[];
+    const upper=r.map(c=>String(c||'').trim().toUpperCase());
+    if(upper.some(v=>v==='PARTY NAME'||v==='PARTYNAME') && upper.some(v=>/^ROUTE/.test(v))){
+      hdrRow=i; break;
+    }
+  }
+  if(hdrRow===-1) throw new Error('Could not find header row with PARTY NAME and ROUTE');
+
+  // Map column names to indices
+  const hdr=aoa[hdrRow].map(c=>String(c||'').trim().toUpperCase());
+  const findCol=(...patterns)=>{
+    for(const p of patterns){
+      for(let c=0;c<hdr.length;c++){
+        if(hdr[c]===p || hdr[c].startsWith(p)) return c;
+      }
+    }
+    return -1;
+  };
+  const cols={
+    name: findCol('PARTY NAME','PARTYNAME','NAME'),
+    mobile: findCol('MOBILE NO','MOBILE','PHONE','CONTACT'),
+    area: findCol('AREA','LOCATION'),
+    route: findCol('ROUTE'),
+    office: findCol('OFFICE'),
+    salesman: findCol('SALES MAN','SALESMAN'),
+    beat: findCol('BEAT PLAN','BEAT')
+  };
+  if(cols.name===-1) throw new Error('PARTY NAME column not found');
+
+  const map={};
+  let count=0;
+  for(let i=hdrRow+1;i<aoa.length;i++){
+    const r=aoa[i]||[];
+    const name=String(r[cols.name]||'').trim();
+    if(!name) continue;
+    const get=(c)=>c>=0?String(r[c]||'').trim():'';
+    map[name.toUpperCase()]={
+      name,
+      mobile: get(cols.mobile).replace(/\s+/g,''),
+      area: get(cols.area),
+      route: get(cols.route),
+      office: get(cols.office),
+      salesman: get(cols.salesman),
+      beat: get(cols.beat)
+    };
+    count++;
+  }
+  return {map, count, headerRow:hdrRow, cols};
+}
+
+// Preview which MASTER rows would be updated (fill blanks only)
+async function previewMasterRestore(){
+  const inp=document.getElementById('masterRestoreFile');
+  const status=document.getElementById('masterRestoreStatus');
+  const previewEl=document.getElementById('masterRestorePreview');
+  const previewBtn=document.getElementById('masterRestorePreviewBtn');
+  const applyBtn=document.getElementById('masterRestoreApplyBtn');
+  const file=inp.files&&inp.files[0];
+  if(!file){toast('Select a permanent list file first','warn');return;}
+
+  previewBtn.disabled=true; previewBtn.textContent='⏳ Parsing…';
+  status.textContent='Reading file…';
+  try{
+    const {map: permMap, count: permCount} = await parsePermanentList(file);
+    status.innerHTML=`Parsed <b>${permCount}</b> parties from permanent list. Comparing to MASTER…`;
+
+    // For each party in MASTER, see if permanent list has matching name. Compute which columns to fill.
+    // MASTER row schema is from allParties — we have sr, name, mobile, area, route, office, salesman, beat
+    // and need the actual sheet row index = rowMap[sr]
+    const plan=[];
+    const colMap={mobile:'C', area:'D', route:'E', office:'F', salesman:'G', beat:'H'};
+    let exact=0, fuzzy=0, notFound=0, alreadyComplete=0;
+    let totalFieldsFilled={mobile:0,area:0,route:0,office:0,salesman:0,beat:0};
+
+    allParties.forEach(p=>{
+      const nk=p.name.toUpperCase().trim();
+      let perm=permMap[nk];
+      let matchType='exact';
+      if(!perm){
+        // Try normalized fuzzy match
+        const nkNorm=nk.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')');
+        for(const k in permMap){
+          const kNorm=k.replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')');
+          if(kNorm===nkNorm){ perm=permMap[k]; matchType='fuzzy'; break; }
+        }
+      }
+      if(!perm){ notFound++; return; }
+      matchType==='exact' ? exact++ : fuzzy++;
+
+      // Find which MASTER fields are blank and fillable
+      const updates={}; // {colLetter: value}
+      const fields=['mobile','area','route','office','salesman','beat'];
+      let anyFilled=false;
+      fields.forEach(f=>{
+        const currentBlank = !p[f] || String(p[f]).trim()==='';
+        if(currentBlank && perm[f]){
+          updates[colMap[f]] = perm[f];
+          totalFieldsFilled[f]++;
+          anyFilled=true;
+        }
+      });
+      if(anyFilled){
+        const row=rowMap[p.sr];
+        if(row){
+          plan.push({sr:p.sr, name:p.name, row, updates, matchType, currentVals:{mobile:p.mobile,area:p.area,route:p.route,office:p.office,salesman:p.salesman,beat:p.beat}, newVals:perm});
+        }
+      } else {
+        alreadyComplete++;
+      }
+    });
+
+    masterRestorePending={plan, stats:{exact, fuzzy, notFound, alreadyComplete, totalFieldsFilled, permCount}};
+
+    // Render preview
+    const totalFields = Object.values(totalFieldsFilled).reduce((s,n)=>s+n,0);
+    let html=`<div style="background:#fff;border:1px solid #93c5fd;border-radius:8px;padding:12px 14px;font-size:12px">
+      <div style="font-weight:700;color:#1e3a8a;margin-bottom:8px">📊 Restore Plan</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-bottom:10px">
+        <div><b style="color:#15803d">${exact}</b> exact matches</div>
+        <div><b style="color:#a16207">${fuzzy}</b> fuzzy matches</div>
+        <div><b style="color:#dc2626">${notFound}</b> not in MASTER</div>
+        <div><b style="color:#6b7280">${alreadyComplete}</b> already complete</div>
+        <div><b style="color:#2563eb">${plan.length}</b> rows to update</div>
+        <div><b style="color:#2563eb">${totalFields}</b> total fields to fill</div>
+      </div>
+      <div style="font-size:11px;color:#1e40af;margin-bottom:8px">By field: ${Object.entries(totalFieldsFilled).map(([k,v])=>`${k}:${v}`).join(' · ')}</div>`;
+
+    if(plan.length===0){
+      html+=`<div style="padding:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;color:#15803d;font-weight:600">🎉 Nothing to do — all matched MASTER parties already have complete data.</div>`;
+    } else {
+      html+=`<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:600;color:#1e3a8a">Show first 20 rows being updated</summary>
+        <div style="margin-top:8px;max-height:340px;overflow-y:auto;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:8px">
+          ${plan.slice(0,20).map(p=>{
+            const fillList=Object.entries(p.updates).map(([col,v])=>{
+              const fieldName={C:'mobile',D:'area',E:'route',F:'office',G:'salesman',H:'beat'}[col];
+              return `<div style="font-size:10px;margin-left:12px"><b>${fieldName}</b>: <span style="color:var(--dim)">(blank)</span> → <span style="color:#15803d"><b>${esc(v)}</b></span></div>`;
+            }).join('');
+            return `<div style="padding:6px 0;border-bottom:1px solid #e2e8f0">
+              <b style="font-size:11px">SR ${p.sr}</b> · ${esc(p.name)} ${p.matchType==='fuzzy'?'<span style="font-size:9px;background:#fef3c7;color:#a16207;padding:1px 5px;border-radius:8px">fuzzy</span>':''}
+              ${fillList}
+            </div>`;
+          }).join('')}
+          ${plan.length>20?`<div style="padding:8px;text-align:center;color:var(--dim);font-style:italic">…and ${plan.length-20} more</div>`:''}
+        </div>
+      </details>`;
+    }
+    html+=`</div>`;
+    previewEl.innerHTML=html;
+    previewEl.style.display='block';
+
+    if(plan.length>0){
+      applyBtn.style.display='inline-flex';
+      applyBtn.textContent=`✓ Apply Restore (${plan.length} rows, ${totalFields} fields)`;
+      status.innerHTML=`<span style="color:#15803d"><b>✓ Preview ready.</b></span> Review changes below, then click Apply.`;
+    } else {
+      applyBtn.style.display='none';
+      status.innerHTML=`<span style="color:#15803d"><b>Nothing to update</b></span> — no blank fields found in matched parties.`;
+    }
+  }catch(e){
+    status.innerHTML=`<span style="color:#dc2626"><b>✗ Failed:</b> ${esc(e.message)}</span>`;
+    toast('✗ Preview failed: '+e.message,'err');
+  }finally{
+    previewBtn.disabled=false; previewBtn.textContent='🔍 Preview Changes';
+  }
+}
+
+// Apply the queued restore plan — batched API call per sheet
+async function applyMasterRestore(){
+  if(!masterRestorePending||!masterRestorePending.plan.length){toast('No pending restore — run Preview first','warn');return;}
+  const {plan, stats}=masterRestorePending;
+  const totalFields=plan.reduce((s,p)=>s+Object.keys(p.updates).length,0);
+  if(!confirm(`Apply restore to ${plan.length} MASTER rows?\n\nWill fill in ${totalFields} blank field${totalFields!==1?'s':''}.\n\nExisting non-blank values will NOT be touched.\nThis updates MASTER, OFFICE, and SALESMAN sheets.`)) return;
+
+  const applyBtn=document.getElementById('masterRestoreApplyBtn');
+  const status=document.getElementById('masterRestoreStatus');
+  applyBtn.disabled=true; applyBtn.textContent='⏳ Applying…';
+  status.innerHTML='Writing updates to MASTER, OFFICE, SALESMAN…';
+
+  dot('syncing');
+  try{
+    // Build update requests for all three sheets. Each plan item produces multiple cell writes.
+    // Use batchUpdate values endpoint with ValueRange[]
+    const buildRanges=(sheetName)=>{
+      const ranges=[];
+      plan.forEach(p=>{
+        Object.entries(p.updates).forEach(([col,val])=>{
+          ranges.push({range:`${sheetName}!${col}${p.row}`, majorDimension:'ROWS', values:[[val]]});
+        });
+      });
+      return ranges;
+    };
+
+    const allRanges=[
+      ...buildRanges('MASTER'),
+      ...buildRanges('OFFICE'),
+      ...buildRanges('SALESMAN')
+    ];
+    // Chunk into batches of 500 ranges max (Sheets API limit is high but be safe)
+    const CHUNK=500;
+    for(let i=0;i<allRanges.length;i+=CHUNK){
+      const chunk=allRanges.slice(i,i+CHUNK);
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values:batchUpdate`;
+      const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({valueInputOption:'USER_ENTERED', data:chunk})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+      status.innerHTML=`Writing batch ${Math.min(i+CHUNK,allRanges.length)} / ${allRanges.length}…`;
+    }
+
+    dot('ok');
+    status.innerHTML=`<span style="color:#15803d"><b>✓ Restored ${plan.length} rows (${totalFields} fields).</b></span> Reloading…`;
+    toast(`✓ Master restored: ${plan.length} rows, ${totalFields} fields filled`,'ok');
+    masterRestorePending=null;
+    applyBtn.style.display='none';
+    document.getElementById('masterRestorePreview').style.display='none';
+    setTimeout(()=>loadAll(), 800);
+  }catch(e){
+    dot('err');
+    status.innerHTML=`<span style="color:#dc2626"><b>✗ Apply failed:</b> ${esc(e.message)}</span>`;
+    toast('✗ Restore failed: '+e.message,'err');
+  }finally{
+    applyBtn.disabled=false;
+    applyBtn.textContent=`✓ Apply Restore`;
+  }
+}
+
 async function uploadDispatchSheet(){
   const inp=document.getElementById('dispUploadFile');
   const status=document.getElementById('dispUploadStatus');
@@ -3746,7 +4018,7 @@ async function addMissingParties(t){
   }
   missing=filtered;
 
-  if(!confirm(`Add ${missing.length} new ${missing.length===1?'party':'parties'} to MASTER, OFFICE and SALESMAN sheets?\n\nThey will be added with blank fields (mobile, area, route, office, salesman, beat). Admin can fill these later in the Google Sheet.`)) return;
+  if(!confirm(`Add ${missing.length} new ${missing.length===1?'party':'parties'} to MASTER, OFFICE and SALESMAN sheets?\n\nOffice and Salesman will be set to "UNASSIGNED" — they'll show up in the UNASSIGNED filter. Admin can reassign later by editing the Google Sheet directly.`)) return;
 
   dot('syncing');
   toast(`Adding ${missing.length} parties…`,'ok');
@@ -3756,14 +4028,12 @@ async function addMissingParties(t){
     // Find first empty row across all sheets (use rowMap data — totalPartyRows)
     const startRow=totalPartyRows+4; // header rows 1-3, data starts row 4
     // Build new rows: SR, NAME, MOBILE, AREA, ROUTE, OFFICE, SALESMAN, BEAT
-    const newMasterRows=missing.map((name,i)=>[maxSR+i+1, name, '', '', '', '', '', '']);
-    // OFFICE and SALESMAN need same first 8 cols + then date-group VLOOKUP formulas
+    // Office and Salesman are set to UNASSIGNED so they show up in the dedicated bucket
+    const newMasterRows=missing.map((name,i)=>[maxSR+i+1, name, '', '', '', 'UNASSIGNED', 'UNASSIGNED', '']);
     const buildSheetRow=(srNum, name)=>{
-      const base=[srNum, name, '', '', '', '', '', ''];
+      const base=[srNum, name, '', '', '', 'UNASSIGNED', 'UNASSIGNED', ''];
       // Add VLOOKUP formulas for each existing date column group (8 cols per group)
       allDateGroups.forEach(g=>{
-        // c is 0-indexed colIdx; convert to A1 reference for VLOOKUP
-        const di=`B${startRow}`; // placeholder; we'll use the actual row when writing
         base.push(`=IFERROR(VLOOKUP(INDIRECT("B"&ROW()),DUMP_AUTO!$A:$C,2,0),0)`);
         base.push(`=IFERROR(VLOOKUP(INDIRECT("B"&ROW()),DUMP_AUTO!$A:$C,3,0),0)`);
         base.push(''); base.push('');
