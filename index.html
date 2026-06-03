@@ -376,8 +376,10 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .cb-card-name{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cb-card-meta{font-size:11px;color:var(--dim);margin-bottom:7px;font-weight:500}
 .cb-card-rem{font-size:12px;color:var(--ink2);background:var(--bg3);border-radius:6px;padding:8px 10px;line-height:1.5;border-left:3px solid var(--y)}
-.cb-done{height:28px;padding:0 12px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;margin-top:8px;display:inline-flex;align-items:center;gap:4px}
+.cb-done{height:28px;padding:0 12px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
 .cb-done:hover{border-color:var(--green);color:var(--green)}
+.cb-noans{height:28px;padding:0 12px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.cb-noans:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-dim)}
 .cb-card-date{flex-shrink:0;text-align:right;padding-top:2px}
 .cb-card-date-main{font-size:12px;font-weight:700}
 .cb-card-date-main.overdue{color:var(--red)}.cb-card-date-main.today{color:var(--orange)}.cb-card-date-main.upcoming{color:var(--green)}
@@ -406,8 +408,8 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .disp-table thead th.right{text-align:right}
 .disp-table tbody td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink)}
 .disp-table tbody tr:hover td{background:var(--bg3)}
-.disp-table .num{font-family:'IBM Plex Mono',monospace;font-weight:600;text-align:right;white-space:nowrap}
-.disp-table .num.auto{color:var(--blue)}.disp-table .num.hero{color:var(--orange)}.disp-table .num.total{color:var(--red)}
+.disp-table .num{font-family:'IBM Plex Mono',monospace;font-weight:700;text-align:right;white-space:nowrap;color:var(--ink);font-size:13px}
+.disp-table .num.auto{color:#1e3a8a}.disp-table .num.hero{color:#9a3412}.disp-table .num.total{color:#0f172a;font-size:14px}
 .disp-cat{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:10px;background:var(--y-dim);color:var(--ink);border:1px solid var(--y2)}
 .disp-day-pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.3px;padding:2px 6px;border-radius:8px;margin-right:3px;background:var(--bg3);border:1px solid var(--border);color:var(--mid)}
 .disp-day-pill.today{background:var(--green);border-color:var(--green);color:#fff}
@@ -421,6 +423,8 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .disp-status.ok{background:#dcfce7;color:#15803d;border:1px solid #86efac}
 .disp-status.no{background:#f3f4f6;color:#4b5563;border:1px solid #d1d5db}
 .disp-status.cb{background:#fef3c7;color:#a16207;border:1px solid #fde68a}
+.disp-status.pay{background:#f3e8ff;color:#7e22ce;border:1px solid #d8b4fe}
+.disp-status.rt{background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc}
 .disp-acts{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
 .da-btn{height:28px;padding:0 10px;border-radius:6px;border:1.5px solid;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:3px;line-height:1;background:#fff;transition:all .12s}
 .da-btn:hover{transform:translateY(-1px);box-shadow:0 2px 4px rgba(0,0,0,.08)}
@@ -432,6 +436,10 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .da-no:hover{background:var(--mid);color:#fff}
 .da-cb{border-color:var(--orange);color:var(--orange)}
 .da-cb:hover{background:var(--orange);color:#fff}
+.da-pay{border-color:#a855f7;color:#a855f7}
+.da-pay:hover{background:#a855f7;color:#fff}
+.da-rt{border-color:#0ea5e9;color:#0ea5e9}
+.da-rt:hover{background:#0ea5e9;color:#fff}
 
 /* Editable mobile cell (admin) */
 .disp-mob-edit{cursor:pointer;padding:3px 6px;border-radius:5px;border:1px dashed transparent;transition:all .12s;display:inline-block;min-width:80px}
@@ -977,13 +985,14 @@ tr.pw td{background:rgba(229,122,26,.04)}
           <div class="disp-controls no-print">
             <label>Day</label>
             <select class="disp-day" id="dispDay" onchange="renderDisp()">
-              <option value="AUTO">Today (auto)</option>
-              <option value="MON">Monday</option>
-              <option value="TUE">Tuesday</option>
-              <option value="WED">Wednesday</option>
-              <option value="THU">Thursday</option>
-              <option value="FRI">Friday</option>
-              <option value="SAT">Saturday</option>
+              <option value="AUTO">Call Today (auto)</option>
+              <option value="ALL">All Parties (no day filter)</option>
+              <option value="MON">For Monday dispatch</option>
+              <option value="TUE">For Tuesday dispatch</option>
+              <option value="WED">For Wednesday dispatch</option>
+              <option value="THU">For Thursday dispatch</option>
+              <option value="FRI">For Friday dispatch</option>
+              <option value="SAT">For Saturday dispatch</option>
             </select>
             <label style="margin-left:12px">Route</label>
             <select class="disp-route" id="dispRoute" onchange="renderDisp()">
@@ -1251,7 +1260,7 @@ function sw(t){
   const pane=document.getElementById(paneId);
   if(pane) pane.classList.add('active');
   const titles={O:'Office Team',S:'Salesman Team',A:'All Data (Admin)',Dash:'Dashboard',LB:'Leaderboard',CB:'Callbacks',UP:'Upload Dump',SumO:'My Summary',SumS:'My Summary',PH:'Party Balance History',MR:'Daily Master Report',DISP:'Dispatch Calls — Today'};
-  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',MR:'All-in-one daily report — calls, outstanding, staff performance',DISP:'Call parties for order pickup — see outstanding alongside'};
+  const subs={O:'Today\'s outstanding — office-assigned parties',S:'Today\'s outstanding — salesman-assigned parties',A:'Full history — read-only view',Dash:'Real-time performance insights',LB:'Call volume ranking by date range',CB:'Scheduled follow-up calls',UP:'Upload Marg daily dump files',SumO:'Your overdue and outstanding overview',SumS:'Your overdue and outstanding overview',PH:'Select a party to view balance on any date',MR:'All-in-one daily report — calls, outstanding, staff performance',DISP:'Call one day before pickup — see outstanding & order in one call'};
   document.getElementById('tbTitle').textContent=titles[t]||t;
   document.getElementById('tbSub').textContent=subs[t]||'';
   if(t==='CB') renderCB();
@@ -2177,6 +2186,47 @@ async function dismissCB(id){
   }catch(e){dot('err');toast('✗ '+e.message,'err');}
 }
 
+async function markCBNotAnswered(id){
+  const cb=callbacks.find(c=>c.id===id); if(!cb) return;
+  // Ask how many days to push
+  const pushDays=prompt(`${cb.partyName}\n\nMarked as Not Answered. Reschedule for how many days later? (default: tomorrow)`, '1');
+  if(pushDays===null) return;
+  const days=parseInt(pushDays)||1;
+  const newDate=new Date();
+  newDate.setDate(newDate.getDate()+days);
+  const newDateISO=isoDate(newDate);
+  dot('syncing');
+  try{
+    // Mark existing CB as dismissed (closed)
+    await dismissCBRow(cb);
+    // Create a new CB entry for the new date
+    const newCB={
+      id:Date.now()+'-NA-'+(cb.sr||'NM'),
+      sr:cb.sr||0,
+      partyName:cb.partyName,
+      caller:cb.caller||USER.name,
+      remark:`[⏳ Not Answered] ${cb.remark||''}`.trim(),
+      callbackDate:newDateISO,
+      createdAt:TODAYISO,
+      createdBy:USER.name,
+      dismissed:false,
+      daysSet:days
+    };
+    const cbVals=await fetchSheet(CB_SHEET).catch(()=>[]);
+    if(!cbVals||cbVals.length<1){
+      await batchWriteMulti([{range:`${CB_SHEET}!A1:J1`, values:[CB_HEADERS]}]);
+    }
+    const cbURL=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(CB_SHEET+'!A:J')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    const cbRow=[[newCB.id,newCB.sr,newCB.partyName,newCB.caller,newCB.remark,newCB.callbackDate,newCB.createdAt,newCB.createdBy,'FALSE',newCB.daysSet]];
+    await fetch(cbURL,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:cbRow})});
+    dot('ok');
+    await loadCallbacks();
+    render('O'); render('S');
+    if(curPane==='CB') renderCB();
+    toast(`⏳ Not answered — rescheduled for ${fmtDispISO(newDateISO)}`,'ok');
+  }catch(e){dot('err');toast('✗ '+e.message,'err');}
+}
+
 function updateCBBadge(){
   const due=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO);
   const el=document.getElementById('navCBBadge');
@@ -2218,7 +2268,10 @@ function renderCB(){
             <div class="cb-card-name">${esc(cb.partyName)}</div>
             <div class="cb-card-meta">By: <b>${esc(cb.createdBy||'—')}</b> &nbsp;·&nbsp; Caller assigned: <b>${esc(cb.caller||'—')}</b> &nbsp;·&nbsp; ${setLbl}</div>
             <div class="cb-card-rem"><b>📝 Note:</b> ${esc(cb.remark||'(no note added)')}</div>
-            <button class="cb-done" onclick="dismissCB('${cb.id}')">✓ Mark Done</button>
+            <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+              <button class="cb-done" onclick="dismissCB('${cb.id}')">✓ Mark Done</button>
+              <button class="cb-noans" onclick="markCBNotAnswered('${cb.id}')">⏳ Not Answered</button>
+            </div>
           </div>
           <div class="cb-card-date">
             <div class="cb-card-date-main ${cls}" style="font-size:14px;font-weight:800">${bigLbl}</div>
@@ -2290,8 +2343,14 @@ function renderDisp(){
   // Determine target day
   const daySel=document.getElementById('dispDay').value||'AUTO';
   const todayDay=DAY_CODES[new Date().getDay()];
-  const targetDay = daySel==='AUTO' ? todayDay : daySel;
-  const isToday = targetDay===todayDay;
+  // Call day-prior: if today is MON, call parties scheduled for TUE; today TUE → call WED parties; etc.
+  // Sunday → call MON parties (next working day)
+  const NEXT_DAY={SUN:'MON',MON:'TUE',TUE:'WED',WED:'THU',THU:'FRI',FRI:'SAT',SAT:'MON'};
+  const callForDay = NEXT_DAY[todayDay];
+  // ALL bypasses day filter entirely
+  const showAll = daySel==='ALL';
+  const targetDay = daySel==='AUTO' ? callForDay : daySel;
+  const isToday = daySel==='AUTO';
   const routeFilter=document.getElementById('dispRoute').value;
   const smFilter=document.getElementById('dispSM').value;
   const onlyOutstanding=document.getElementById('dispOnlyOutstanding').checked;
@@ -2327,7 +2386,7 @@ function renderDisp(){
     if(!d||!d.name) return;
     if(seen.has(d.name)) return;
     seen.add(d.name);
-    if(!d.days.includes(targetDay)) return;
+    if(!showAll && !d.days.includes(targetDay)) return;
     if(routeFilter && d.route!==routeFilter) return;
     if(smFilter && d.salesman!==smFilter) return;
     const bal=getBal(d.name);
@@ -2355,7 +2414,7 @@ function renderDisp(){
   if(!rows.length){
     wrap.innerHTML=`<div class="disp-empty">
       <div style="font-size:36px;margin-bottom:10px">📭</div>
-      <div style="font-weight:700;color:var(--ink);margin-bottom:6px">No parties scheduled for ${DAY_NAMES[targetDay]||targetDay}${isToday?' (today)':''}</div>
+      <div style="font-weight:700;color:var(--ink);margin-bottom:6px">No parties to call${showAll?'':` for ${DAY_NAMES[targetDay]||targetDay}`}${isToday?` (today → ${DAY_NAMES[targetDay]} dispatch)`:''}</div>
       <div style="font-size:12px">Try a different day or remove filters.</div>
     </div>`;
     ['dispPrintBtn','dispXlBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-flex';});
@@ -2370,23 +2429,33 @@ function renderDisp(){
   const withBalance=rows.filter(r=>r.total>0).length;
   const overdue30=rows.filter(r=>r.maxDays>30).length;
 
-  // Today's dispatch log entries map: sr → latest entry for today
-  const todayLog={};
+  // Today's dispatch log entries map: sr → latest entry for today; also by name
+  const todayLog={}, todayLogByName={};
   dispatchLog.filter(L=>L.date===TODAYISO).forEach(L=>{
-    // Keep latest by createdAt
-    const ex=todayLog[L.sr];
-    if(!ex || (L.createdAt||'') > (ex.createdAt||'')) todayLog[L.sr]=L;
+    if(L.sr){
+      const ex=todayLog[L.sr];
+      if(!ex || (L.createdAt||'') > (ex.createdAt||'')) todayLog[L.sr]=L;
+    }
+    const nk=String(L.partyName||'').toUpperCase().trim();
+    if(nk){
+      const exN=todayLogByName[nk];
+      if(!exN || (L.createdAt||'') > (exN.createdAt||'')) todayLogByName[nk]=L;
+    }
   });
   // Status counts
-  const sOrdered=Object.values(todayLog).filter(L=>L.status==='ORDERED').length;
-  const sNoOrder=Object.values(todayLog).filter(L=>L.status==='NO_ORDER').length;
-  const sCallback=Object.values(todayLog).filter(L=>L.status==='CALLBACK').length;
-  const sPending=rows.length-sOrdered-sNoOrder-sCallback;
+  const allTodayLogs=[...Object.values(todayLog), ...Object.values(todayLogByName).filter(L=>!L.sr)];
+  const seenIds=new Set(); const uniqLogs=allTodayLogs.filter(L=>{if(seenIds.has(L.id))return false;seenIds.add(L.id);return true;});
+  const sOrdered=uniqLogs.filter(L=>L.status==='ORDERED').length;
+  const sPayment=uniqLogs.filter(L=>L.status==='PAYMENT_CALLED').length;
+  const sNoOrder=uniqLogs.filter(L=>L.status==='NO_ORDER').length;
+  const sCallback=uniqLogs.filter(L=>L.status==='CALLBACK').length;
+  const sRerouted=uniqLogs.filter(L=>L.status==='REROUTED').length;
+  const sPending=Math.max(0,rows.length-sOrdered-sPayment-sNoOrder-sCallback);
 
   let html=`<div class="disp-kpis">
-    <div class="disp-kpi"><div class="disp-kpi-lbl">${DAY_NAMES[targetDay]||targetDay}${isToday?' (today)':''}</div><div class="disp-kpi-val blue">${rows.length}</div><div style="font-size:10px;color:var(--dim)">parties to call</div></div>
+    <div class="disp-kpi"><div class="disp-kpi-lbl">${showAll?'All Parties':`For ${DAY_NAMES[targetDay]||targetDay} Dispatch`}${isToday?` (call today)`:''}</div><div class="disp-kpi-val blue">${rows.length}</div><div style="font-size:10px;color:var(--dim)">parties to call</div></div>
     <div class="disp-kpi"><div class="disp-kpi-lbl">✓ Ordered</div><div class="disp-kpi-val green">${sOrdered}</div></div>
-    <div class="disp-kpi"><div class="disp-kpi-lbl">✗ No Order</div><div class="disp-kpi-val" style="color:var(--mid)">${sNoOrder}</div></div>
+    <div class="disp-kpi"><div class="disp-kpi-lbl">💰 Payment</div><div class="disp-kpi-val" style="color:#a855f7">${sPayment}</div></div>
     <div class="disp-kpi"><div class="disp-kpi-lbl">📅 Callback</div><div class="disp-kpi-val orange">${sCallback}</div></div>
     <div class="disp-kpi"><div class="disp-kpi-lbl">⏳ Pending</div><div class="disp-kpi-val red">${sPending}</div></div>
   </div>
@@ -2408,32 +2477,42 @@ function renderDisp(){
         ${rows.map((r,i)=>{
           const dayPills=r.days.map(d=>`<span class="disp-day-pill ${d===todayDay?'today':''}">${d}</span>`).join('');
           const overTag=r.maxDays>60?`<span class="disp-overdue-tag over">${r.maxDays}d</span>`:r.maxDays>30?`<span class="disp-overdue-tag warn">${r.maxDays}d</span>`:'';
-          const log=r.sr?todayLog[r.sr]:null;
+          // Look up log: by sr if available, else by partyName
+          const log = r.sr ? todayLog[r.sr] : (todayLogByName[r.name.toUpperCase().trim()]||null);
           let statusBadge='<span style="font-size:10px;color:var(--dim);font-style:italic">Pending</span>';
           if(log){
-            const cls=log.status==='ORDERED'?'ok':log.status==='NO_ORDER'?'no':log.status==='CALLBACK'?'cb':'';
-            const lbl=log.status==='ORDERED'?'✓ Ordered':log.status==='NO_ORDER'?'✗ No Order':log.status==='CALLBACK'?`📅 Callback +${log.callbackDays||0}d`:log.status;
-            statusBadge=`<div><span class="disp-status ${cls}">${lbl}</span><div style="font-size:10px;color:var(--mid);margin-top:2px">by <b>${esc(log.caller)}</b>${log.remark?'<br>“'+esc(log.remark)+'”':''}</div></div>`;
+            const statusCfg={
+              ORDERED:{cls:'ok',lbl:'✓ Ordered'},
+              PAYMENT_CALLED:{cls:'pay',lbl:'💰 Payment Called'},
+              NO_ORDER:{cls:'no',lbl:'✗ No Order'},
+              CALLBACK:{cls:'cb',lbl:`📅 Callback +${log.callbackDays||0}d`},
+              REROUTED:{cls:'rt',lbl:'🔀 Rerouted'}
+            };
+            const cfg=statusCfg[log.status]||{cls:'',lbl:log.status};
+            const timeStr=log.createdAt?new Date(log.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):'';
+            statusBadge=`<div><span class="disp-status ${cfg.cls}">${cfg.lbl}</span><div style="font-size:10px;color:var(--mid);margin-top:2px">by <b>${esc(log.caller)}</b>${timeStr?' at '+timeStr:''}${log.remark?'<br>“'+esc(log.remark)+'”':''}</div></div>`;
           }
           const balCell = r.total>0
-            ? `<div class="disp-bal-cell"><span class="num total"><b>₹${fmtN(r.total)}</b></span>${overTag}<div style="font-size:9px;color:var(--dim);font-weight:500">A:₹${fmtN(r.autoBal)} · H:₹${fmtN(r.heroBal)}</div></div>`
+            ? `<div class="disp-bal-cell"><span class="num total"><b>₹${fmtN(r.total)}</b></span>${overTag}<div style="font-size:11px;color:var(--ink2);font-weight:600">A:₹${fmtN(r.autoBal)} · H:₹${fmtN(r.heroBal)}</div></div>`
             : '<span style="color:var(--dim);font-size:11px">—</span>';
-          const actions = r.inMaster
-            ? `<div class="disp-acts">
+          const nameJson=JSON.stringify(r.name).replace(/"/g,'&quot;');
+          const srArg=r.sr||0;
+          const actions = `<div class="disp-acts">
                 ${r.mobile?`<a href="tel:${r.mobile}" class="da-btn da-call" title="Dial ${r.mobile}">📞</a>`:''}
-                <button class="da-btn da-ok" onclick="logDispatchCall(${r.sr},'ORDERED', ${JSON.stringify(r.name).replace(/"/g,'&quot;')})">✓ Ordered</button>
-                <button class="da-btn da-no" onclick="logDispatchCall(${r.sr},'NO_ORDER', ${JSON.stringify(r.name).replace(/"/g,'&quot;')})">✗ No</button>
-                <button class="da-btn da-cb" onclick="logDispatchCall(${r.sr},'CALLBACK', ${JSON.stringify(r.name).replace(/"/g,'&quot;')})">📅 CB</button>
-              </div>`
-            : '<span style="font-size:10px;color:var(--red)">Add to MASTER first</span>';
+                <button class="da-btn da-ok" onclick="logDispatchCall(${srArg},'ORDERED', ${nameJson})" title="Ordered">✓</button>
+                <button class="da-btn da-pay" onclick="logDispatchCall(${srArg},'PAYMENT_CALLED', ${nameJson})" title="Called for Payment">💰</button>
+                <button class="da-btn da-no" onclick="logDispatchCall(${srArg},'NO_ORDER', ${nameJson})" title="No Order">✗</button>
+                <button class="da-btn da-cb" onclick="logDispatchCall(${srArg},'CALLBACK', ${nameJson})" title="Schedule Callback">📅</button>
+                <button class="da-btn da-rt" onclick="rerouteCall(${srArg}, ${nameJson})" title="Reroute call to staff member">🔀</button>
+              </div>`;
           return `<tr>
             <td style="color:var(--dim);font-family:'IBM Plex Mono',monospace">${i+1}</td>
             <td>
-              <b>${esc(r.name)}</b>${!r.inMaster?'<span style="font-size:9px;background:#fef2f2;color:#dc2626;padding:1px 5px;border-radius:6px;margin-left:6px;font-weight:700">⚠ NOT IN MASTER</span>':''}
+              <b>${esc(r.name)}</b>
               <div style="font-size:10px;color:var(--dim);margin-top:2px">${esc(r.route)} · ${esc(r.address||r.area||'')}</div>
             </td>
             <td><span class="disp-cat">${esc(r.category||'—')}</span></td>
-            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px"><span class="disp-mob-edit" onclick="editDispatchMobile(${JSON.stringify(r.name).replace(/"/g,'&quot;')}, ${JSON.stringify(r.mobile||'').replace(/"/g,'&quot;')})">${r.mobile?esc(r.mobile):'<span style="color:var(--dim);font-style:italic">+ add</span>'}</span></td>
+            <td style="font-family:'IBM Plex Mono',monospace;font-size:11px"><span class="disp-mob-edit" onclick="editDispatchMobile(${nameJson}, ${JSON.stringify(r.mobile||'').replace(/"/g,'&quot;')})">${r.mobile?esc(r.mobile):'<span style="color:var(--dim);font-style:italic">+ add</span>'}</span></td>
             <td>${dayPills}</td>
             <td style="font-size:11px">${esc(r.salesman||'—')}</td>
             <td style="text-align:right">${balCell}</td>
@@ -2447,7 +2526,7 @@ function renderDisp(){
 
   wrap.innerHTML=html;
   ['dispPrintBtn','dispXlBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-flex';});
-  dispLastData={targetDay,rows,totalAuto,totalHero,total,withBalance,overdue30,isToday,todayLog,sOrdered,sNoOrder,sCallback,sPending};
+  dispLastData={targetDay,rows,totalAuto,totalHero,total,withBalance,overdue30,isToday,todayLog,todayLogByName,sOrdered,sPayment,sNoOrder,sCallback,sRerouted,sPending};
 }
 
 /* ── Upload dispatch xlsx and auto-push to DISPATCH tab ── */
@@ -2952,25 +3031,116 @@ function showOrderCelebration(partyName, statusLabel, subtitle){
   }, 1800);
 }
 
+/* ── Log a payment call to the outstanding sheets (Auto + Hero remark cols) for today ── */
+async function logPaymentToOutstanding(sr, partyName, remark){
+  const sheetRow=rowMap[sr];
+  const ci=todayColIdx>=0?todayColIdx:(allDateGroups[0]?allDateGroups[0].colIdx:-1);
+  if(!sheetRow||ci<0){
+    console.warn('Could not link payment call to outstanding (no row/date)', sr, partyName);
+    return;
+  }
+  // We'll write the remark + caller into the AUTO REMARK / NAME(A) cells in OFFICE sheet
+  // ci is 0-indexed column position in the date group. remA=ci+2+1, nameA=ci+3+1 (1-indexed col)
+  const remCol=ci+COL_OFF.remA+1;
+  const nameCol=ci+COL_OFF.nameA+1;
+  const payRemark = `[💰 PAYMENT CALL] ${remark||''}`.trim();
+  // Update local data so UI shows it immediately
+  if(!dateData[ci]) dateData[ci]={};
+  if(!dateData[ci][sr]) dateData[ci][sr]={};
+  // Append (don't overwrite existing remark)
+  const existing=dateData[ci][sr].remA||'';
+  const combined=existing ? `${existing} | ${payRemark}` : payRemark;
+  dateData[ci][sr].remA=combined;
+  dateData[ci][sr].nameA=USER.name;
+  try{
+    await Promise.all([
+      writeCell('OFFICE', sheetRow, remCol, combined),
+      writeCell('OFFICE', sheetRow, nameCol, USER.name)
+    ]);
+  }catch(e){
+    console.warn('Failed to mirror payment call to outstanding sheet:', e);
+  }
+}
+
+/* ── Reroute call to another staff member ── */
+async function rerouteCall(sr, partyName){
+  // Show simple prompt; could be a dropdown of ALL_CALLERS later
+  const suggested = ALL_CALLERS.join(', ');
+  const target = prompt(`Reroute "${partyName}" to which staff member?\n\nValid options: ${suggested}\n\n(Enter name — fuzzy match is OK)`);
+  if(!target) return;
+  const cleaned = String(target).trim().toUpperCase();
+  // Try to match against ALL_CALLERS
+  let matched = ALL_CALLERS.find(c=>c===cleaned);
+  if(!matched){
+    matched = ALL_CALLERS.find(c=>c.startsWith(cleaned));
+  }
+  if(!matched){
+    matched = ALL_CALLERS.find(c=>c.includes(cleaned));
+  }
+  if(!matched){
+    if(!confirm(`"${target}" is not in the known caller list:\n${suggested}\n\nLog it anyway?`)) return;
+    matched = String(target).trim().toUpperCase();
+  }
+  const note = prompt(`Optional note for the reroute (e.g. "wants to talk about credit limit"):`, '');
+  if(note===null) return;
+  const entry={
+    id:Date.now()+'-RT-'+(sr||'NM'),
+    date:TODAYISO,
+    sr:sr||0,
+    partyName,
+    caller:USER.name,
+    status:'REROUTED',
+    remark:`→ ${matched}${note?': '+note:''}`,
+    callbackDays:0,
+    createdAt:new Date().toISOString()
+  };
+  dot('syncing');
+  try{
+    // Ensure DISP_LOG sheet exists
+    let vals;
+    try{ vals=await fetchSheet(DISP_LOG_SHEET); }
+    catch(e){
+      const createURL=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}:batchUpdate`;
+      const createRes=await fetch(createURL,{method:'POST',headers:await authHeader(),
+        body:JSON.stringify({requests:[{addSheet:{properties:{title:DISP_LOG_SHEET}}}]})});
+      if(!createRes.ok){const j=await createRes.json().catch(()=>({}));throw new Error('Could not auto-create '+DISP_LOG_SHEET+': '+((j.error&&j.error.message)||'HTTP '+createRes.status));}
+      await batchWriteMulti([{range:`${DISP_LOG_SHEET}!A1:I1`, values:[DISP_LOG_HEADERS]}]);
+    }
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(DISP_LOG_SHEET+'!A:I')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    const row=[[entry.id, entry.date, entry.sr, entry.partyName, entry.caller, entry.status, entry.remark, entry.callbackDays, entry.createdAt]];
+    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:row})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+    dispatchLog.push({...entry, _row:dispatchLog.length+2});
+    dot('ok');
+    toast(`🔀 Rerouted ${partyName} → ${matched}`,'ok');
+    renderDisp();
+  }catch(e){
+    dot('err');
+    toast('✗ Reroute failed: '+e.message,'err');
+  }
+}
+
 async function logDispatchCall(sr, status, partyName){
-  if(!sr){toast('Party not in MASTER — cannot log','warn');return;}
+  // sr can be 0 for parties not in MASTER — log by name only
   // Build the prompt based on status
   let defaultRem='', days=0;
   if(status==='ORDERED') defaultRem='Order placed';
   else if(status==='NO_ORDER') defaultRem='Not ordering today';
+  else if(status==='PAYMENT_CALLED') defaultRem='Called for payment';
   else if(status==='CALLBACK'){
     const dInp=prompt(`Set callback for ${partyName}\n\nAfter how many days?`, '2');
     if(dInp===null) return;
     days=parseInt(dInp)||2;
     defaultRem=`Callback in ${days} day${days!==1?'s':''}`;
   }
-  const rem=prompt(`Remark for this ${status==='ORDERED'?'order':status==='NO_ORDER'?'declined call':'callback'}:`, defaultRem);
+  const promptLabel=status==='ORDERED'?'order':status==='NO_ORDER'?'declined call':status==='PAYMENT_CALLED'?'payment call':'callback';
+  const rem=prompt(`Remark for this ${promptLabel}:`, defaultRem);
   if(rem===null) return;
 
   const entry={
-    id:Date.now()+'-'+sr,
+    id:Date.now()+'-'+(sr||'NM'),
     date:TODAYISO,
-    sr,
+    sr:sr||0,
     partyName,
     caller:USER.name,
     status,
@@ -3034,9 +3204,13 @@ async function logDispatchCall(sr, status, partyName){
       }
     }
     dot('ok');
-    // Celebrate orders with full-screen animation; quieter feedback for others
+    // Celebrate orders/payment with full-screen animation; quieter feedback for others
     if(status==='ORDERED'){
       showOrderCelebration(partyName, 'Order Placed! 🎉', 'Marked as ordered today');
+    } else if(status==='PAYMENT_CALLED'){
+      showOrderCelebration(partyName, 'Payment Call Logged 💰', 'Logged in both Dispatch & Outstanding logs');
+      // Also add an entry to the outstanding remark column for today (so it shows in Outstanding Calls report)
+      if(sr) logPaymentToOutstanding(sr, partyName, entry.remark);
     } else if(status==='CALLBACK'){
       showOrderCelebration(partyName, `Callback Scheduled 📅`, `Will follow up in ${days} day${days!==1?'s':''}`);
     } else {
@@ -3060,24 +3234,26 @@ function downloadDispExcel(){
   aoa.push(['By', `${USER.name} (${USER.role})`]);
   aoa.push([]);
   aoa.push(['Summary']);
-  aoa.push(['Parties to call', d.rows.length, 'Ordered', d.sOrdered||0, 'No Order', d.sNoOrder||0, 'Callbacks', d.sCallback||0, 'Pending', d.sPending||0, 'Total ₹', d.total]);
+  aoa.push(['Parties to call', d.rows.length, 'Ordered', d.sOrdered||0, 'Payment', d.sPayment||0, 'No Order', d.sNoOrder||0, 'Callbacks', d.sCallback||0, 'Pending', d.sPending||0, 'Total ₹', d.total]);
   aoa.push([]);
-  aoa.push(['#','Party Name','Category','Address','Mobile','Dispatch Days','Salesman','Auto ₹','Auto Days','Hero ₹','Hero Days','Total ₹','Call Status','Caller','Remark','In MASTER?']);
+  aoa.push(['#','Party Name','Category','Address','Mobile','Dispatch Days','Salesman','Auto ₹','Auto Days','Hero ₹','Hero Days','Total ₹','Call Status','Caller','Call Time','Remark','In MASTER?']);
   d.rows.forEach((r,i)=>{
-    const log=r.sr?(d.todayLog||{})[r.sr]:null;
+    const log=r.sr?(d.todayLog||{})[r.sr]:(d.todayLogByName||{})[r.name.toUpperCase().trim()];
+    const callTime=log&&log.createdAt?new Date(log.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}):'';
     aoa.push([
       i+1, r.name, r.category, r.address||r.area||'', r.mobile||'',
       r.days.join(','), r.salesman,
       r.autoBal||0, r.autoDays||0, r.heroBal||0, r.heroDays||0, r.total||0,
       log?log.status:'PENDING',
       log?log.caller:'',
+      callTime,
       log?log.remark:'',
       r.inMaster?'Yes':'NO'
     ]);
   });
   const ws=XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols']=[{wch:5},{wch:35},{wch:8},{wch:18},{wch:14},{wch:14},{wch:12},{wch:13},{wch:8},{wch:13},{wch:8},{wch:13},{wch:13},{wch:14},{wch:35},{wch:10}];
-  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:15}}];
+  ws['!cols']=[{wch:5},{wch:35},{wch:8},{wch:18},{wch:14},{wch:14},{wch:12},{wch:13},{wch:8},{wch:13},{wch:8},{wch:13},{wch:15},{wch:14},{wch:20},{wch:35},{wch:10}];
+  ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:16}}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `Dispatch ${d.targetDay}`);
   XLSX.writeFile(wb, `Dispatch_${d.targetDay}_${TODAYISO}.xlsx`);
@@ -3231,26 +3407,31 @@ function renderMR(){
   });
   // Actual dispatch calls logged for this date
   const dispCallsToday=dispatchLog.filter(L=>L.date===dateISO);
-  // Latest per SR (one party can have multiple log entries)
-  const dispBySR={};
+  // Latest per party (key by sr if present, else by name) — handles non-MASTER parties
+  const dispByKey={};
   dispCallsToday.forEach(L=>{
-    const ex=dispBySR[L.sr];
-    if(!ex || (L.createdAt||'')>(ex.createdAt||'')) dispBySR[L.sr]=L;
+    const key = L.sr ? 'sr:'+L.sr : 'nm:'+String(L.partyName||'').toUpperCase().trim();
+    const ex=dispByKey[key];
+    if(!ex || (L.createdAt||'')>(ex.createdAt||'')) dispByKey[key]=L;
   });
-  const dispEntries=Object.values(dispBySR);
+  const dispEntries=Object.values(dispByKey);
   // Per-caller breakdown
   const dispByCaller={};
   dispEntries.forEach(L=>{
-    if(!dispByCaller[L.caller]) dispByCaller[L.caller]={ordered:0, noOrder:0, callback:0, calls:[]};
+    if(!dispByCaller[L.caller]) dispByCaller[L.caller]={ordered:0, payment:0, noOrder:0, callback:0, rerouted:0, calls:[]};
     if(L.status==='ORDERED') dispByCaller[L.caller].ordered++;
+    else if(L.status==='PAYMENT_CALLED') dispByCaller[L.caller].payment++;
     else if(L.status==='NO_ORDER') dispByCaller[L.caller].noOrder++;
     else if(L.status==='CALLBACK') dispByCaller[L.caller].callback++;
+    else if(L.status==='REROUTED') dispByCaller[L.caller].rerouted++;
     dispByCaller[L.caller].calls.push(L);
   });
   const dispCallers=Object.keys(dispByCaller).sort((a,b)=>dispByCaller[b].calls.length-dispByCaller[a].calls.length);
   const dispOrderedTotal=dispEntries.filter(L=>L.status==='ORDERED').length;
+  const dispPaymentTotal=dispEntries.filter(L=>L.status==='PAYMENT_CALLED').length;
   const dispNoOrderTotal=dispEntries.filter(L=>L.status==='NO_ORDER').length;
   const dispCallbackTotal=dispEntries.filter(L=>L.status==='CALLBACK').length;
+  const dispReroutedTotal=dispEntries.filter(L=>L.status==='REROUTED').length;
   const dispPending=Math.max(0, dispScheduled.length - dispEntries.length);
 
   const chgArrow=v=>v===0?'→ No change':v>0?`▲ +₹${fmtN(Math.abs(v))}`:`▼ -₹${fmtN(Math.abs(v))}`;
@@ -3365,23 +3546,30 @@ function renderMR(){
         <div class="mr-kpi-grid">
           <div class="mr-kpi"><div class="mr-kpi-label">Scheduled</div><div class="mr-kpi-val blue">${dispScheduled.length}</div></div>
           <div class="mr-kpi"><div class="mr-kpi-label">✓ Ordered</div><div class="mr-kpi-val green">${dispOrderedTotal}</div></div>
-          <div class="mr-kpi"><div class="mr-kpi-label">✗ No Order</div><div class="mr-kpi-val" style="color:var(--mid)">${dispNoOrderTotal}</div></div>
-          <div class="mr-kpi"><div class="mr-kpi-label">📅 Callback / ⏳ Pending</div><div class="mr-kpi-val orange">${dispCallbackTotal} / ${dispPending}</div></div>
+          <div class="mr-kpi"><div class="mr-kpi-label">💰 Payment</div><div class="mr-kpi-val" style="color:#a855f7">${dispPaymentTotal}</div></div>
+          <div class="mr-kpi"><div class="mr-kpi-label">📅 CB / 🔀 RT / ⏳ Pend</div><div class="mr-kpi-val orange">${dispCallbackTotal} / ${dispReroutedTotal} / ${dispPending}</div></div>
         </div>
         ${dispCallers.length?dispCallers.map(caller=>{
           const data=dispByCaller[caller];
           const calls=data.calls.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+          const parts=[`${data.ordered} ordered`];
+          if(data.payment) parts.push(`${data.payment} payment`);
+          if(data.noOrder) parts.push(`${data.noOrder} declined`);
+          if(data.callback) parts.push(`${data.callback} callback`);
+          if(data.rerouted) parts.push(`${data.rerouted} rerouted`);
           return `<div class="mr-staff-block">
             <div class="mr-staff-head office">
               <div><span class="mr-staff-name office">${esc(caller)}</span><span class="mr-staff-team-badge office">DISPATCH</span></div>
-              <div class="mr-staff-meta">${calls.length} calls · ${data.ordered} ordered · ${data.noOrder} declined · ${data.callback} callback</div>
+              <div class="mr-staff-meta">${calls.length} calls · ${parts.join(' · ')}</div>
             </div>
-            <table class="mr-table"><thead><tr><th>Party</th><th>Status</th><th>Remark</th></tr></thead><tbody>
+            <table class="mr-table"><thead><tr><th>Time</th><th>Party</th><th>Status</th><th>Remark</th></tr></thead><tbody>
               ${calls.map(L=>{
-                const lbl=L.status==='ORDERED'?'<span class="disp-status ok">✓ Ordered</span>':L.status==='NO_ORDER'?'<span class="disp-status no">✗ No Order</span>':L.status==='CALLBACK'?`<span class="disp-status cb">📅 CB +${L.callbackDays||0}d</span>`:L.status;
+                const sc={ORDERED:['ok','✓ Ordered'],PAYMENT_CALLED:['pay','💰 Payment'],NO_ORDER:['no','✗ No Order'],CALLBACK:['cb',`📅 CB +${L.callbackDays||0}d`],REROUTED:['rt','🔀 Rerouted']}[L.status]||['',L.status];
+                const tm=L.createdAt?new Date(L.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):'';
                 return `<tr>
+                  <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mid);white-space:nowrap">${tm}</td>
                   <td><b>${esc(L.partyName)}</b></td>
-                  <td>${lbl}</td>
+                  <td><span class="disp-status ${sc[0]}">${sc[1]}</span></td>
                   <td style="font-size:11px;color:var(--mid)">${esc(L.remark)||'<span style="color:var(--border2)">(no remark)</span>'}</td>
                 </tr>`;
               }).join('')}
@@ -3429,7 +3617,7 @@ function renderMR(){
     offCount,salCount,offLog,salLog,offCallers,salCallers,totalCalls,curOff,prevOff,curSal,prevSal,
     overdueList,routeRows,selData,
     // Dispatch summary
-    dispScheduled,dispEntries,dispByCaller,dispCallers,dispOrderedTotal,dispNoOrderTotal,dispCallbackTotal,dispPending,reportDayCode};
+    dispScheduled,dispEntries,dispByCaller,dispCallers,dispOrderedTotal,dispPaymentTotal,dispNoOrderTotal,dispCallbackTotal,dispReroutedTotal,dispPending,reportDayCode};
 }
 
 function buildMRText(){
@@ -3498,17 +3686,25 @@ function buildMRText(){
   } else {
     t+=`Scheduled    : ${d.dispScheduled.length}\n`;
     t+=`✓ Ordered    : ${d.dispOrderedTotal||0}\n`;
+    t+=`💰 Payment   : ${d.dispPaymentTotal||0}\n`;
     t+=`✗ No Order   : ${d.dispNoOrderTotal||0}\n`;
     t+=`📅 Callback  : ${d.dispCallbackTotal||0}\n`;
+    t+=`🔀 Rerouted  : ${d.dispReroutedTotal||0}\n`;
     t+=`⏳ Pending   : ${d.dispPending||0}\n`;
     if(d.dispCallers && d.dispCallers.length){
       d.dispCallers.forEach(caller=>{
         const data=d.dispByCaller[caller];
         const calls=data.calls.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
-        t+=`\nDISPATCH: ${caller.toUpperCase()}  —  ${calls.length} call${calls.length!==1?'s':''} (${data.ordered} ordered, ${data.noOrder} declined, ${data.callback} CB)\n${sub}\n`;
+        const parts=[`${data.ordered} ordered`];
+        if(data.payment) parts.push(`${data.payment} payment`);
+        if(data.noOrder) parts.push(`${data.noOrder} declined`);
+        if(data.callback) parts.push(`${data.callback} CB`);
+        if(data.rerouted) parts.push(`${data.rerouted} rerouted`);
+        t+=`\nDISPATCH: ${caller.toUpperCase()}  —  ${calls.length} call${calls.length!==1?'s':''} (${parts.join(', ')})\n${sub}\n`;
         calls.forEach((L,i)=>{
-          const lbl=L.status==='ORDERED'?'✓ ORDERED':L.status==='NO_ORDER'?'✗ NO ORDER':L.status==='CALLBACK'?`📅 CALLBACK +${L.callbackDays||0}d`:L.status;
-          t+=`  ${String(i+1).padStart(2)}. ${L.partyName}  [${lbl}]\n`;
+          const lbl=L.status==='ORDERED'?'✓ ORDERED':L.status==='PAYMENT_CALLED'?'💰 PAYMENT':L.status==='NO_ORDER'?'✗ NO ORDER':L.status==='CALLBACK'?`📅 CALLBACK +${L.callbackDays||0}d`:L.status==='REROUTED'?'🔀 REROUTED':L.status;
+          const tm=L.createdAt?new Date(L.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):'';
+          t+=`  ${String(i+1).padStart(2)}. [${tm}] ${L.partyName}  [${lbl}]\n`;
           if(L.remark) t+=`      Remark: ${L.remark}\n`;
         });
       });
@@ -3633,21 +3829,24 @@ function downloadMRExcel(){
   // Sheet 6: Dispatch Calls Log
   const disp=[];
   disp.push([`Dispatch Calls — ${d.reportDayCode||''} (${(d.dispEntries||[]).length} of ${(d.dispScheduled||[]).length} contacted)`]);
-  disp.push(['Day','Scheduled','Ordered','No Order','Callback','Pending']);
-  disp.push([d.reportDayCode||'', (d.dispScheduled||[]).length, d.dispOrderedTotal||0, d.dispNoOrderTotal||0, d.dispCallbackTotal||0, d.dispPending||0]);
+  disp.push(['Day','Scheduled','Ordered','Payment','No Order','Callback','Rerouted','Pending']);
+  disp.push([d.reportDayCode||'', (d.dispScheduled||[]).length, d.dispOrderedTotal||0, d.dispPaymentTotal||0, d.dispNoOrderTotal||0, d.dispCallbackTotal||0, d.dispReroutedTotal||0, d.dispPending||0]);
   disp.push([]);
-  disp.push(['#','Caller','Party Name','Status','Remark','Callback Days','Logged At']);
+  disp.push(['#','Caller','Party Name','Status','Remark','Callback Days','Call Date','Call Time']);
   let dRow=1;
   (d.dispCallers||[]).forEach(caller=>{
     const data=d.dispByCaller[caller];
     const calls=data.calls.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
     calls.forEach(L=>{
-      disp.push([dRow++, caller, L.partyName, L.status, L.remark||'', L.callbackDays||'', L.createdAt||'']);
+      const dt=L.createdAt?new Date(L.createdAt):null;
+      const callDate=dt?dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'';
+      const callTime=dt?dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}):'';
+      disp.push([dRow++, caller, L.partyName, L.status, L.remark||'', L.callbackDays||'', callDate, callTime]);
     });
   });
   const ws6=XLSX.utils.aoa_to_sheet(disp);
-  ws6['!cols']=[{wch:5},{wch:15},{wch:35},{wch:12},{wch:35},{wch:8},{wch:24}];
-  ws6['!merges']=[{s:{r:0,c:0},e:{r:0,c:6}}];
+  ws6['!cols']=[{wch:5},{wch:15},{wch:35},{wch:16},{wch:35},{wch:8},{wch:16},{wch:14}];
+  ws6['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}}];
   XLSX.utils.book_append_sheet(wb, ws6, 'Dispatch Calls');
 
   XLSX.writeFile(wb, `Master_Report_${d.dateISO}.xlsx`);
