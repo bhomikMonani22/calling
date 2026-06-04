@@ -413,6 +413,34 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .disp-cat{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:10px;background:var(--y-dim);color:var(--ink);border:1px solid var(--y2)}
 .disp-day-pill{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.3px;padding:2px 6px;border-radius:8px;margin-right:3px;background:var(--bg3);border:1px solid var(--border);color:var(--mid)}
 .disp-day-pill.today{background:var(--green);border-color:var(--green);color:#fff}
+.disp-days-edit{cursor:pointer;padding:3px 5px;border-radius:6px;border:1px dashed transparent;transition:all .12s;display:inline-block}
+.disp-days-edit:hover{background:#eff6ff;border-color:#60a5fa}
+.da-add-party{height:36px;padding:0 16px;border-radius:8px;border:2px solid var(--green);background:var(--green);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .12s}
+.da-add-party:hover{background:#15803d;border-color:#15803d;transform:translateY(-1px)}
+
+/* Dispatch Party Modal */
+.dp-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:10000;animation:overlayFade .2s ease-out;padding:20px}
+.dp-modal{background:var(--bg);border-radius:18px;box-shadow:0 24px 60px rgba(0,0,0,.3);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:cardPop .35s cubic-bezier(.34,1.56,.64,1) backwards}
+.dp-modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);font-size:18px;font-weight:800;color:var(--ink);position:sticky;top:0;background:var(--bg);border-radius:18px 18px 0 0;z-index:1}
+.dp-modal-x{width:30px;height:30px;border-radius:8px;border:none;background:var(--bg3);color:var(--mid);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dp-modal-x:hover{background:var(--border);color:var(--ink)}
+.dp-modal-body{padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.dp-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:480px){.dp-row{grid-template-columns:1fr}}
+.dp-field{display:flex;flex-direction:column;gap:6px}
+.dp-field>span{font-size:12px;font-weight:700;color:var(--mid);letter-spacing:.3px}
+.dp-field input{height:42px;padding:0 14px;border-radius:9px;border:1.5px solid var(--border);font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;background:var(--bg2);transition:border-color .12s}
+.dp-field input:focus{border-color:var(--y)}
+.dp-day-toggles{display:flex;gap:6px;flex-wrap:wrap}
+.dp-day-tog{flex:1;min-width:56px;height:42px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg2);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .12s}
+.dp-day-tog:hover{border-color:var(--border2)}
+.dp-day-tog.on{background:var(--y);border-color:var(--y2);color:var(--ink)}
+.dp-modal-foot{display:flex;gap:10px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--bg);border-radius:0 0 18px 18px}
+.dp-cancel{height:40px;padding:0 18px;border-radius:9px;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.dp-cancel:hover{border-color:var(--border2);color:var(--ink)}
+.dp-save{height:40px;padding:0 22px;border-radius:9px;border:2px solid var(--green);background:var(--green);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.dp-save:hover{background:#15803d;border-color:#15803d}
+.dp-save:disabled{opacity:.5;cursor:not-allowed}
 .disp-empty{padding:40px;text-align:center;font-size:14px;color:var(--dim)}
 .disp-bal-cell{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
 .disp-bal-cell .num.zero{color:var(--border2);font-weight:400}
@@ -1006,7 +1034,8 @@ tr.pw td{background:rgba(229,122,26,.04)}
               <input type="checkbox" id="dispOnlyOutstanding" onchange="renderDisp()" style="margin-right:5px">
               Only parties with outstanding
             </label>
-            <button class="rp-btn print" onclick="window.print()" id="dispPrintBtn" style="display:none;margin-left:auto">🖨 Print</button>
+            <button class="da-add-party" onclick="openAddDispatchParty()" style="margin-left:auto">➕ Add New Party</button>
+            <button class="rp-btn print" onclick="window.print()" id="dispPrintBtn" style="display:none;margin-left:8px">🖨 Print</button>
             <button class="rp-btn excel" onclick="downloadDispExcel()" id="dispXlBtn" style="display:none;margin-left:8px">📊 Excel</button>
           </div>
           <div id="dispResult"><div class="nodata"><div class="nodata-icon">📦</div><div class="nodata-txt">Loading dispatch list…</div></div></div>
@@ -1112,6 +1141,64 @@ tr.pw td{background:rgba(229,122,26,.04)}
 </div><!-- /shell -->
 
 <div id="notifStack"></div>
+
+<!-- Add/Edit Dispatch Party Modal -->
+<div id="dispPartyModal" class="dp-modal-overlay" style="display:none">
+  <div class="dp-modal">
+    <div class="dp-modal-head">
+      <span id="dpModalTitle">➕ Add New Dispatch Party</span>
+      <button class="dp-modal-x" onclick="closeDispPartyModal()">✕</button>
+    </div>
+    <div class="dp-modal-body">
+      <label class="dp-field">
+        <span>Party Name <span style="color:#dc2626">*</span></span>
+        <input type="text" id="dpName" placeholder="e.g. BHARAT AUTOMOBILES (KAMSEET)" autocomplete="off">
+      </label>
+      <div class="dp-field">
+        <span>Dispatch Days <span style="color:#dc2626">*</span> <span style="font-weight:400;color:var(--dim)">(tap to toggle)</span></span>
+        <div class="dp-day-toggles" id="dpDayToggles">
+          <button type="button" class="dp-day-tog" data-day="MON" onclick="toggleDpDay(this)">MON</button>
+          <button type="button" class="dp-day-tog" data-day="TUE" onclick="toggleDpDay(this)">TUE</button>
+          <button type="button" class="dp-day-tog" data-day="WED" onclick="toggleDpDay(this)">WED</button>
+          <button type="button" class="dp-day-tog" data-day="THU" onclick="toggleDpDay(this)">THU</button>
+          <button type="button" class="dp-day-tog" data-day="FRI" onclick="toggleDpDay(this)">FRI</button>
+          <button type="button" class="dp-day-tog" data-day="SAT" onclick="toggleDpDay(this)">SAT</button>
+        </div>
+      </div>
+      <div class="dp-row">
+        <label class="dp-field">
+          <span>Mobile</span>
+          <input type="tel" id="dpMobile" placeholder="10-digit number" autocomplete="off">
+        </label>
+        <label class="dp-field">
+          <span>Category</span>
+          <input type="text" id="dpCategory" placeholder="e.g. B+H, T, B" autocomplete="off">
+        </label>
+      </div>
+      <div class="dp-row">
+        <label class="dp-field">
+          <span>Route</span>
+          <input type="text" id="dpRoute" placeholder="e.g. LONAWALA, PCMC" autocomplete="off" list="dpRouteList">
+          <datalist id="dpRouteList"></datalist>
+        </label>
+        <label class="dp-field">
+          <span>Salesman</span>
+          <input type="text" id="dpSalesman" placeholder="e.g. SUDHIR" autocomplete="off" list="dpSmList">
+          <datalist id="dpSmList"></datalist>
+        </label>
+      </div>
+      <label class="dp-field">
+        <span>Address / Area</span>
+        <input type="text" id="dpAddress" placeholder="e.g. KAMSEET" autocomplete="off">
+      </label>
+      <div id="dpModalMsg" style="font-size:12px;margin-top:4px"></div>
+    </div>
+    <div class="dp-modal-foot">
+      <button class="dp-cancel" onclick="closeDispPartyModal()">Cancel</button>
+      <button class="dp-save" id="dpSaveBtn" onclick="saveDispParty()">✓ Save Party</button>
+    </div>
+  </div>
+</div>
 <div id="toasts"></div>
 
 <script>
@@ -1233,7 +1320,7 @@ function startApp(){
   loadAll();
   // Check callbacks every 5 minutes
   checkCallbackNotifs();
-  notifInterval=setInterval(checkCallbackNotifs, 5*60*1000);
+  notifInterval=setInterval(checkCallbackNotifs, 60*1000);
 }
 
 /* ═══ NAV ═══ */
@@ -1859,8 +1946,8 @@ function renderDash(){
     if(!routeMap[p.route]) routeMap[p.route]={auto:0,hero:0,count:0};
     routeMap[p.route].auto+=ab; routeMap[p.route].hero+=hb; routeMap[p.route].count++;
   });
-  const cbPending=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate>TODAYISO).length;
-  const cbOverdue=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO).length;
+  const cbPending=callbacks.filter(cb=>!cb.dismissed&&cbIsFuture(cb)).length;
+  const cbOverdue=callbacks.filter(cb=>!cb.dismissed&&cbIsDue(cb)).length;
   document.getElementById('kpiParties').textContent=totalParties;
   document.getElementById('kpiAutoTotal').textContent='₹'+fmtN(totalAuto);
   document.getElementById('kpiHeroTotal').textContent='₹'+fmtN(totalHero);
@@ -2082,6 +2169,33 @@ function renderLB(){
 const CB_SHEET = 'CALLBACKS';
 const CB_HEADERS = ['id','sr','partyName','caller','remark','callbackDate','createdAt','createdBy','dismissed','daysSet'];
 
+// Callback timing helpers — callbackDate may be date-only ("2026-06-04") or full ISO datetime ("2026-06-04T15:30:00.000Z")
+function cbIsHourly(cb){ return String(cb.callbackDate||'').includes('T'); }
+// Returns ms timestamp the callback is due
+function cbDueTime(cb){
+  const s=String(cb.callbackDate||'');
+  if(s.includes('T')) return new Date(s).getTime();
+  // date-only → due at start of that day (local)
+  return new Date(s+'T00:00:00').getTime();
+}
+// Is the callback due now (time has passed)?
+function cbIsDue(cb){
+  if(cbIsHourly(cb)) return Date.now() >= cbDueTime(cb);
+  // date-only: due if its date is today or earlier
+  return String(cb.callbackDate||'').slice(0,10) <= TODAYISO;
+}
+// Is it in the future (not yet due)?
+function cbIsFuture(cb){ return !cbIsDue(cb); }
+// Display label for a callback's due time
+function cbWhenLabel(cb){
+  if(cbIsHourly(cb)){
+    const dt=new Date(cb.callbackDate);
+    const isToday=isoDate(dt)===TODAYISO;
+    return (isToday?'Today ':fmtDispISO(isoDate(dt))+' ')+dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+  }
+  return fmtDispISO(String(cb.callbackDate).slice(0,10));
+}
+
 async function loadCallbacks(){
   try{
     const vals = await fetchSheet(CB_SHEET);
@@ -2115,14 +2229,30 @@ async function loadCallbacks(){
 
 async function setCB(sr){
   const inp=document.getElementById('cbd-'+sr);
-  const days=parseInt(inp?inp.value:2)||2;
   const party=allParties.find(p=>p.sr===sr); if(!party) return;
-  const dt=new Date(); dt.setDate(dt.getDate()+days);
   const ci=todayColIdx; const d=ci>=0?(dateData[ci]||{})[sr]||{}:{};
+
+  // Ask whether to set callback in days or hours
+  const mode=prompt(`Set callback for:\n${party.name}\n\nEnter callback time:\n• A number = days from now (e.g. "2")\n• "Nh" = hours from now (e.g. "3h" for 3 hours)\n\nDefault: ${inp?inp.value||2:2} days`, inp?inp.value||'2':'2');
+  if(mode===null) return;
+  const m=String(mode).trim().toLowerCase();
+  let dt=new Date(), daysSet=0, isHours=false, hoursSet=0;
+  const hourMatch=m.match(/^(\d+(?:\.\d+)?)\s*h$/);
+  if(hourMatch){
+    hoursSet=parseFloat(hourMatch[1])||2;
+    dt=new Date(Date.now()+hoursSet*3600*1000);
+    isHours=true;
+  } else {
+    daysSet=parseInt(m)||2;
+    dt.setDate(dt.getDate()+daysSet);
+  }
+  // callbackDate: date-only for day callbacks (back-compat); full ISO datetime for hour callbacks
+  const cbDateStr = isHours ? dt.toISOString() : isoDate(dt);
+  const whenLbl = isHours ? `in ${hoursSet} hour${hoursSet!==1?'s':''} (today ${dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true})})` : `in ${daysSet} day${daysSet!==1?'s':''} (${fmtDispISO(isoDate(dt))})`;
 
   // Prompt for callback remark — user types what to remember
   const defaultRem=d.remA||d.remH||'';
-  const userRem=prompt(`Set callback for:\n${party.name}\n\nIn ${days} day${days!==1?'s':''} (${fmtDispISO(isoDate(dt))})\n\nWhat note do you want saved with this callback?`, defaultRem);
+  const userRem=prompt(`Callback for ${party.name}\n${whenLbl}\n\nWhat note do you want saved with this callback?`, defaultRem);
   if(userRem===null) return; // user cancelled
 
   const cb={
@@ -2130,11 +2260,11 @@ async function setCB(sr){
     partyName:party.name,
     caller:d.nameA||d.nameH||USER.name,
     remark:userRem||defaultRem||'',
-    callbackDate:isoDate(dt),
+    callbackDate:cbDateStr,
     createdAt:TODAYISO,
     createdBy:USER.name,
     dismissed:false,
-    daysSet:days
+    daysSet:isHours?(hoursSet+'h'):daysSet
   };
   // Remove existing open CB for same party
   const existing=callbacks.find(c=>c.sr===sr&&!c.dismissed);
@@ -2161,7 +2291,7 @@ async function setCB(sr){
     dot('ok');
     await loadCallbacks();
     render('O'); render('S');
-    toast(`📅 Callback set: ${party.name} in ${days} day${days!==1?'s':''}`,'ok');
+    toast(`📅 Callback set: ${party.name} ${whenLbl}`,'ok');
   }catch(e){dot('err');toast('✗ '+e.message,'err');}
 }
 
@@ -2228,14 +2358,14 @@ async function markCBNotAnswered(id){
 }
 
 function updateCBBadge(){
-  const due=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO);
+  const due=callbacks.filter(cb=>!cb.dismissed&&cbIsDue(cb));
   const el=document.getElementById('navCBBadge');
   if(el){if(due.length>0){el.textContent=due.length;el.classList.add('show');}else el.classList.remove('show');}
 }
 
 function checkCallbackNotifs(){
-  const due=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<=TODAYISO);
-  if(!due.length) return;
+  const due=callbacks.filter(cb=>!cb.dismissed&&cbIsDue(cb));
+  if(!due.length){document.querySelectorAll('.cb-notif').forEach(el=>el.remove());return;}
   document.querySelectorAll('.cb-notif').forEach(el=>el.remove());
   const notif=document.createElement('div');
   notif.className='notif cb-notif';
@@ -2244,23 +2374,49 @@ function checkCallbackNotifs(){
 }
 
 function renderCB(){
-  const now=TODAYISO;
-  const ov=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate<now).sort((a,b)=>a.callbackDate.localeCompare(b.callbackDate));
-  const td=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate===now);
-  const up=callbacks.filter(cb=>!cb.dismissed&&cb.callbackDate>now).sort((a,b)=>a.callbackDate.localeCompare(b.callbackDate));
+  const open=callbacks.filter(cb=>!cb.dismissed);
+  // Buckets: overdue (due, time passed), today (hourly due later today OR date today not yet passed), upcoming (future days)
+  const nowMs=Date.now();
+  const ov=[], td=[], up=[];
+  open.forEach(cb=>{
+    if(cbIsDue(cb)){ ov.push(cb); return; }
+    // not yet due
+    if(cbIsHourly(cb)){
+      // hourly + not due → due later today (or later). If same calendar day → today bucket
+      const dt=new Date(cb.callbackDate);
+      if(isoDate(dt)===TODAYISO) td.push(cb); else up.push(cb);
+    } else {
+      const dStr=String(cb.callbackDate).slice(0,10);
+      if(dStr===TODAYISO) td.push(cb); else up.push(cb);
+    }
+  });
+  const sortFn=(a,b)=>cbDueTime(a)-cbDueTime(b);
+  ov.sort(sortFn); td.sort(sortFn); up.sort(sortFn);
+
   const mkSec=(title,cls,icon,items)=>{
     if(!items.length) return '';
     return `<div style="margin-bottom:28px"><div class="cb-section-hd ${cls}">${title} (${items.length})</div>`+
       items.map(cb=>{
-        const dA=Math.round((new Date(now)-new Date(cb.callbackDate))/864e5);
-        const dU=Math.round((new Date(cb.callbackDate)-new Date(now))/864e5);
-        // Big visible label: "Call in 3 days" / "Call today" / "Was due 2d ago"
-        const bigLbl = cls==='overdue'
-          ? (dA===0?'Call NOW':dA===1?'Was due Yesterday':`Was due ${dA} days ago`)
-          : cls==='today' ? 'Call TODAY' : (dU===1?'Call Tomorrow':`Call in ${dU} days`);
-        // Show the original "set after X days" if we have it
+        let bigLbl;
+        if(cls==='overdue'){
+          if(cbIsHourly(cb)){
+            const mins=Math.round((nowMs-cbDueTime(cb))/60000);
+            bigLbl = mins<60 ? `Due ${mins}m ago` : `Call NOW`;
+          } else {
+            const dA=Math.round((new Date(TODAYISO)-new Date(String(cb.callbackDate).slice(0,10)))/864e5);
+            bigLbl = dA<=0?'Call NOW':dA===1?'Was due Yesterday':`Was due ${dA} days ago`;
+          }
+        } else if(cls==='today'){
+          if(cbIsHourly(cb)){
+            const mins=Math.round((cbDueTime(cb)-nowMs)/60000);
+            bigLbl = mins<=0?'Call NOW':mins<60?`Call in ${mins}m`:`Call in ${Math.round(mins/60)}h`;
+          } else bigLbl='Call TODAY';
+        } else {
+          const dU=Math.round((cbDueTime(cb)-nowMs)/864e5);
+          bigLbl = dU<=1?'Call Tomorrow':`Call in ${dU} days`;
+        }
         const setLbl = cb.daysSet
-          ? `Set ${fmtDispISO(cb.createdAt)} for ${cb.daysSet} day${cb.daysSet!==1?'s':''} later`
+          ? `Set ${fmtDispISO(cb.createdAt)} for ${cb.daysSet}${String(cb.daysSet).includes('h')?'':' day'+(cb.daysSet!=1?'s':'')} later`
           : `Set on ${fmtDispISO(cb.createdAt)}`;
         return `<div class="cb-card ${cls}">
           <div class="cb-card-ico">${icon}</div>
@@ -2275,7 +2431,7 @@ function renderCB(){
           </div>
           <div class="cb-card-date">
             <div class="cb-card-date-main ${cls}" style="font-size:14px;font-weight:800">${bigLbl}</div>
-            <div class="cb-card-date-sub" style="margin-top:4px">${fmtDispISO(cb.callbackDate)}</div>
+            <div class="cb-card-date-sub" style="margin-top:4px">${cbWhenLabel(cb)}</div>
           </div>
         </div>`;
       }).join('')+'</div>';
@@ -2429,28 +2585,39 @@ function renderDisp(){
   const withBalance=rows.filter(r=>r.total>0).length;
   const overdue30=rows.filter(r=>r.maxDays>30).length;
 
-  // Today's dispatch log entries map: sr → latest entry for today; also by name
+  // Today's dispatch log entries — keep ALL distinct statuses per party (latest per status).
+  // Keyed by sr (if present) and by name. Each value is an object: {STATUS: latestEntry, ...}
   const todayLog={}, todayLogByName={};
+  const addToMap=(map, key, L)=>{
+    if(!map[key]) map[key]={};
+    const ex=map[key][L.status];
+    if(!ex || (L.createdAt||'') > (ex.createdAt||'')) map[key][L.status]=L;
+  };
   dispatchLog.filter(L=>L.date===TODAYISO).forEach(L=>{
-    if(L.sr){
-      const ex=todayLog[L.sr];
-      if(!ex || (L.createdAt||'') > (ex.createdAt||'')) todayLog[L.sr]=L;
-    }
+    if(L.sr) addToMap(todayLog, L.sr, L);
     const nk=String(L.partyName||'').toUpperCase().trim();
-    if(nk){
-      const exN=todayLogByName[nk];
-      if(!exN || (L.createdAt||'') > (exN.createdAt||'')) todayLogByName[nk]=L;
-    }
+    if(nk) addToMap(todayLogByName, nk, L);
   });
-  // Status counts
-  const allTodayLogs=[...Object.values(todayLog), ...Object.values(todayLogByName).filter(L=>!L.sr)];
-  const seenIds=new Set(); const uniqLogs=allTodayLogs.filter(L=>{if(seenIds.has(L.id))return false;seenIds.add(L.id);return true;});
+  // Flatten all entries for counting (dedup by id)
+  const allEntries=[];
+  const pushAll=(map)=>Object.values(map).forEach(byStatus=>Object.values(byStatus).forEach(L=>allEntries.push(L)));
+  pushAll(todayLog);
+  Object.entries(todayLogByName).forEach(([nk,byStatus])=>{
+    Object.values(byStatus).forEach(L=>{ if(!L.sr) allEntries.push(L); }); // non-MASTER only (MASTER already counted via todayLog)
+  });
+  const seenIds=new Set(); const uniqLogs=allEntries.filter(L=>{if(seenIds.has(L.id))return false;seenIds.add(L.id);return true;});
   const sOrdered=uniqLogs.filter(L=>L.status==='ORDERED').length;
   const sPayment=uniqLogs.filter(L=>L.status==='PAYMENT_CALLED').length;
   const sNoOrder=uniqLogs.filter(L=>L.status==='NO_ORDER').length;
   const sCallback=uniqLogs.filter(L=>L.status==='CALLBACK').length;
   const sRerouted=uniqLogs.filter(L=>L.status==='REROUTED').length;
-  const sPending=Math.max(0,rows.length-sOrdered-sPayment-sNoOrder-sCallback);
+  // Pending = parties with NO log entry at all
+  const partiesWithLog=new Set();
+  uniqLogs.forEach(L=>partiesWithLog.add(L.sr?('sr:'+L.sr):('nm:'+String(L.partyName||'').toUpperCase().trim())));
+  const sPending=Math.max(0, rows.filter(r=>{
+    const k=r.sr?('sr:'+r.sr):('nm:'+r.name.toUpperCase().trim());
+    return !partiesWithLog.has(k);
+  }).length);
 
   let html=`<div class="disp-kpis">
     <div class="disp-kpi"><div class="disp-kpi-lbl">${showAll?'All Parties':`For ${DAY_NAMES[targetDay]||targetDay} Dispatch`}${isToday?` (call today)`:''}</div><div class="disp-kpi-val blue">${rows.length}</div><div style="font-size:10px;color:var(--dim)">parties to call</div></div>
@@ -2477,20 +2644,27 @@ function renderDisp(){
         ${rows.map((r,i)=>{
           const dayPills=r.days.map(d=>`<span class="disp-day-pill ${d===todayDay?'today':''}">${d}</span>`).join('');
           const overTag=r.maxDays>60?`<span class="disp-overdue-tag over">${r.maxDays}d</span>`:r.maxDays>30?`<span class="disp-overdue-tag warn">${r.maxDays}d</span>`:'';
-          // Look up log: by sr if available, else by partyName
-          const log = r.sr ? todayLog[r.sr] : (todayLogByName[r.name.toUpperCase().trim()]||null);
+          // Look up ALL today's log entries for this party (by sr or name) → object {STATUS: entry}
+          const logByStatus = r.sr ? (todayLog[r.sr]||{}) : (todayLogByName[r.name.toUpperCase().trim()]||{});
+          const logEntries = Object.values(logByStatus).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
           let statusBadge='<span style="font-size:10px;color:var(--dim);font-style:italic">Pending</span>';
-          if(log){
+          if(logEntries.length){
             const statusCfg={
               ORDERED:{cls:'ok',lbl:'✓ Ordered'},
-              PAYMENT_CALLED:{cls:'pay',lbl:'💰 Payment Called'},
+              PAYMENT_CALLED:{cls:'pay',lbl:'💰 Payment'},
               NO_ORDER:{cls:'no',lbl:'✗ No Order'},
-              CALLBACK:{cls:'cb',lbl:`📅 Callback +${log.callbackDays||0}d`},
+              CALLBACK:{cls:'cb',lbl:'📅 Callback'},
               REROUTED:{cls:'rt',lbl:'🔀 Rerouted'}
             };
-            const cfg=statusCfg[log.status]||{cls:'',lbl:log.status};
-            const timeStr=log.createdAt?new Date(log.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):'';
-            statusBadge=`<div><span class="disp-status ${cfg.cls}">${cfg.lbl}</span><div style="font-size:10px;color:var(--mid);margin-top:2px">by <b>${esc(log.caller)}</b>${timeStr?' at '+timeStr:''}${log.remark?'<br>“'+esc(log.remark)+'”':''}</div></div>`;
+            statusBadge=`<div style="display:flex;flex-direction:column;gap:5px">${logEntries.map(L=>{
+              const cfg=statusCfg[L.status]||{cls:'',lbl:L.status};
+              const lbl = L.status==='CALLBACK' ? `📅 Callback +${L.callbackDays||0}d` : cfg.lbl;
+              const timeStr=L.createdAt?new Date(L.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true}):'';
+              return `<div style="border-left:2px solid var(--border);padding-left:7px">
+                <span class="disp-status ${cfg.cls}">${lbl}</span>
+                <div style="font-size:10px;color:var(--mid);margin-top:2px">by <b>${esc(L.caller)}</b>${timeStr?' at '+timeStr:''}${L.remark?'<br>“'+esc(L.remark)+'”':''}</div>
+              </div>`;
+            }).join('')}</div>`;
           }
           const balCell = r.total>0
             ? `<div class="disp-bal-cell"><span class="num total"><b>₹${fmtN(r.total)}</b></span>${overTag}<div style="font-size:11px;color:var(--ink2);font-weight:600">A:₹${fmtN(r.autoBal)} · H:₹${fmtN(r.heroBal)}</div></div>`
@@ -2513,7 +2687,7 @@ function renderDisp(){
             </td>
             <td><span class="disp-cat">${esc(r.category||'—')}</span></td>
             <td style="font-family:'IBM Plex Mono',monospace;font-size:11px"><span class="disp-mob-edit" onclick="editDispatchMobile(${nameJson}, ${JSON.stringify(r.mobile||'').replace(/"/g,'&quot;')})">${r.mobile?esc(r.mobile):'<span style="color:var(--dim);font-style:italic">+ add</span>'}</span></td>
-            <td>${dayPills}</td>
+            <td><span class="disp-days-edit" onclick="editDispatchDays(${nameJson})" title="Click to change dispatch days">${dayPills||'<span style="color:var(--dim);font-style:italic;font-size:10px">+ set days</span>'}</span></td>
             <td style="font-size:11px">${esc(r.salesman||'—')}</td>
             <td style="text-align:right">${balCell}</td>
             <td>${statusBadge}</td>
@@ -2955,6 +3129,121 @@ async function uploadDispatchSheet(){
 
 
 /* ── Inline edit mobile in DISPATCH sheet ── */
+/* ── Edit dispatch days for a party (quick toggle prompt) ── */
+async function editDispatchDays(partyName){
+  const nk=String(partyName).toUpperCase().trim();
+  const entry=dispatchMap[nk] || dispatchMap[nk.replace(/\s+/g,' ')];
+  if(!entry||!entry._row){toast('Could not locate party row in DISPATCH sheet','err');return;}
+  // Open the modal in EDIT mode pre-filled
+  openDispPartyModal('edit', entry);
+}
+
+/* ── Open the Add/Edit dispatch party modal ── */
+let dpEditingEntry=null;
+function openAddDispatchParty(){ openDispPartyModal('add', null); }
+function openDispPartyModal(mode, entry){
+  dpEditingEntry = mode==='edit' ? entry : null;
+  document.getElementById('dpModalTitle').textContent = mode==='edit' ? '✏️ Edit Dispatch Party' : '➕ Add New Dispatch Party';
+  // Fill route/salesman datalists from existing dispatch data
+  const routesSet=new Set(), smSet=new Set();
+  Object.values(dispatchMap).forEach(d=>{ if(d.route)routesSet.add(d.route); if(d.salesman)smSet.add(d.salesman); });
+  document.getElementById('dpRouteList').innerHTML=Array.from(routesSet).sort().map(r=>`<option value="${esc(r)}">`).join('');
+  document.getElementById('dpSmList').innerHTML=Array.from(smSet).sort().map(s=>`<option value="${esc(s)}">`).join('');
+  // Pre-fill fields
+  document.getElementById('dpName').value = entry?entry.name:'';
+  document.getElementById('dpName').disabled = mode==='edit'; // name is the key; don't allow rename here
+  document.getElementById('dpMobile').value = entry?entry.mobile||'':'';
+  document.getElementById('dpCategory').value = entry?entry.category||'':'';
+  document.getElementById('dpRoute').value = entry?entry.route||'':'';
+  document.getElementById('dpSalesman').value = entry?entry.salesman||'':'';
+  document.getElementById('dpAddress').value = entry?entry.address||'':'';
+  // Day toggles
+  const activeDays = entry?entry.days||[]:[];
+  document.querySelectorAll('#dpDayToggles .dp-day-tog').forEach(b=>{
+    if(activeDays.includes(b.dataset.day)) b.classList.add('on'); else b.classList.remove('on');
+  });
+  document.getElementById('dpModalMsg').textContent='';
+  document.getElementById('dpSaveBtn').disabled=false;
+  document.getElementById('dpSaveBtn').textContent = mode==='edit' ? '✓ Update Party' : '✓ Save Party';
+  document.getElementById('dispPartyModal').style.display='flex';
+}
+function closeDispPartyModal(){
+  document.getElementById('dispPartyModal').style.display='none';
+  dpEditingEntry=null;
+}
+function toggleDpDay(btn){ btn.classList.toggle('on'); }
+
+/* ── Save (add or update) a dispatch party ── */
+async function saveDispParty(){
+  const name=document.getElementById('dpName').value.trim();
+  const mobile=document.getElementById('dpMobile').value.trim().replace(/\s+/g,'');
+  const category=document.getElementById('dpCategory').value.trim();
+  const route=document.getElementById('dpRoute').value.trim();
+  const salesman=document.getElementById('dpSalesman').value.trim();
+  const address=document.getElementById('dpAddress').value.trim();
+  const days=Array.from(document.querySelectorAll('#dpDayToggles .dp-day-tog.on')).map(b=>b.dataset.day);
+  const msg=document.getElementById('dpModalMsg');
+  const saveBtn=document.getElementById('dpSaveBtn');
+
+  if(!name){ msg.innerHTML='<span style="color:#dc2626">Party name is required.</span>'; return; }
+  if(!days.length){ msg.innerHTML='<span style="color:#dc2626">Select at least one dispatch day.</span>'; return; }
+  if(mobile && !/^\+?\d{7,15}$/.test(mobile)){ msg.innerHTML='<span style="color:#dc2626">Mobile must be 7-15 digits.</span>'; return; }
+
+  const isEdit = !!dpEditingEntry;
+  // Duplicate check for ADD mode
+  if(!isEdit){
+    const nk=name.toUpperCase().trim();
+    if(dispatchMap[nk] || dispatchMap[nk.replace(/\s+/g,' ')]){
+      msg.innerHTML='<span style="color:#dc2626">A party with this name already exists in dispatch. Use edit instead.</span>';
+      return;
+    }
+  }
+
+  saveBtn.disabled=true; saveBtn.textContent='⏳ Saving…';
+  dot('syncing');
+  try{
+    // Ensure DISPATCH sheet exists
+    let dispExists=true;
+    try{ await fetchSheet('DISPATCH'); }catch(e){ dispExists=false; }
+    if(!dispExists){
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}:batchUpdate`;
+      const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({requests:[{addSheet:{properties:{title:'DISPATCH'}}}]})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error('Could not create DISPATCH sheet: '+((j.error&&j.error.message)||'HTTP '+r.status));}
+      // Write headers
+      await batchWriteMulti([{range:'DISPATCH!A1:H1', values:[['SR','PARTY_NAME','ADDRESS','ROUTE','CATEGORY','DISPATCH_DAYS','SALESMAN','MOBILE']]}]);
+    }
+
+    if(isEdit && dpEditingEntry._row){
+      // Update the existing row A:H
+      const row=dpEditingEntry._row;
+      const sr=dpEditingEntry.sr||'';
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!A'+row+':H'+row)}?valueInputOption=USER_ENTERED`;
+      const vals=[[sr, name, address, route, category, days.join(','), salesman, mobile]];
+      const r=await fetch(url,{method:'PUT',headers:await authHeader(),body:JSON.stringify({range:'DISPATCH!A'+row+':H'+row, majorDimension:'ROWS', values:vals})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+      dot('ok');
+      toast(`✓ Updated ${name}`,'ok');
+    } else {
+      // Append a new row. Compute next SR.
+      const existingSRs=Object.values(dispatchMap).map(d=>d.sr||0);
+      const nextSR=(existingSRs.length?Math.max(...existingSRs):0)+1;
+      const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!A:H')}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+      const vals=[[nextSR, name, address, route, category, days.join(','), salesman, mobile]];
+      const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({majorDimension:'ROWS',values:vals})});
+      if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+      dot('ok');
+      toast(`✓ Added ${name} to dispatch`,'ok');
+    }
+    closeDispPartyModal();
+    setTimeout(()=>loadAll(), 600);
+  }catch(e){
+    dot('err');
+    msg.innerHTML=`<span style="color:#dc2626">✗ ${esc(e.message)}</span>`;
+    toast('✗ Save failed: '+e.message,'err');
+    saveBtn.disabled=false; saveBtn.textContent=isEdit?'✓ Update Party':'✓ Save Party';
+  }
+}
+
 async function editDispatchMobile(partyName, currentMob){
   const nk=String(partyName).toUpperCase().trim();
   const entry=dispatchMap[nk] || dispatchMap[nk.replace(/\s+/g,' ')];
@@ -3124,14 +3413,16 @@ async function logDispatchCall(sr, status, partyName){
   // sr can be 0 for parties not in MASTER — log by name only
   // Build the prompt based on status
   let defaultRem='', days=0;
+  let cbIsHourly=false, cbHours=0;
   if(status==='ORDERED') defaultRem='Order placed';
   else if(status==='NO_ORDER') defaultRem='Not ordering today';
   else if(status==='PAYMENT_CALLED') defaultRem='Called for payment';
   else if(status==='CALLBACK'){
-    const dInp=prompt(`Set callback for ${partyName}\n\nAfter how many days?`, '2');
+    const dInp=prompt(`Set callback for ${partyName}\n\n• A number = days (e.g. "2")\n• "Nh" = hours from now (e.g. "3h")`, '2');
     if(dInp===null) return;
-    days=parseInt(dInp)||2;
-    defaultRem=`Callback in ${days} day${days!==1?'s':''}`;
+    const hm=String(dInp).trim().toLowerCase().match(/^(\d+(?:\.\d+)?)\s*h$/);
+    if(hm){ cbIsHourly=true; cbHours=parseFloat(hm[1])||2; days=0; defaultRem=`Callback in ${cbHours} hour${cbHours!==1?'s':''}`; }
+    else { days=parseInt(dInp)||2; defaultRem=`Callback in ${days} day${days!==1?'s':''}`; }
   }
   const promptLabel=status==='ORDERED'?'order':status==='NO_ORDER'?'declined call':status==='PAYMENT_CALLED'?'payment call':'callback';
   const rem=prompt(`Remark for this ${promptLabel}:`, defaultRem);
@@ -3145,7 +3436,7 @@ async function logDispatchCall(sr, status, partyName){
     caller:USER.name,
     status,
     remark:rem||defaultRem,
-    callbackDays:days,
+    callbackDays:cbIsHourly?(cbHours+'h'):days,
     createdAt:new Date().toISOString()
   };
 
@@ -3179,15 +3470,17 @@ async function logDispatchCall(sr, status, partyName){
     dispatchLog.push({...entry});
 
     // If CALLBACK status, also create a regular callback entry in CALLBACKS sheet
-    if(status==='CALLBACK' && days>0){
-      const dt=new Date(); dt.setDate(dt.getDate()+days);
+    if(status==='CALLBACK' && (days>0 || cbIsHourly)){
+      let dt=new Date(), cbDateStr;
+      if(cbIsHourly){ dt=new Date(Date.now()+cbHours*3600*1000); cbDateStr=dt.toISOString(); }
+      else { dt.setDate(dt.getDate()+days); cbDateStr=isoDate(dt); }
       const cb={
-        id:Date.now()+'-CB-'+sr, sr,
+        id:Date.now()+'-CB-'+(sr||'NM'), sr:sr||0,
         partyName, caller:USER.name,
         remark:`[Dispatch] ${rem||defaultRem}`,
-        callbackDate:isoDate(dt),
+        callbackDate:cbDateStr,
         createdAt:TODAYISO, createdBy:USER.name,
-        dismissed:false, daysSet:days
+        dismissed:false, daysSet:cbIsHourly?(cbHours+'h'):days
       };
       try{
         // Reuse existing callback sheet append
@@ -3238,18 +3531,26 @@ function downloadDispExcel(){
   aoa.push([]);
   aoa.push(['#','Party Name','Category','Address','Mobile','Dispatch Days','Salesman','Auto ₹','Auto Days','Hero ₹','Hero Days','Total ₹','Call Status','Caller','Call Time','Remark','In MASTER?']);
   d.rows.forEach((r,i)=>{
-    const log=r.sr?(d.todayLog||{})[r.sr]:(d.todayLogByName||{})[r.name.toUpperCase().trim()];
-    const callTime=log&&log.createdAt?new Date(log.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}):'';
-    aoa.push([
-      i+1, r.name, r.category, r.address||r.area||'', r.mobile||'',
-      r.days.join(','), r.salesman,
-      r.autoBal||0, r.autoDays||0, r.heroBal||0, r.heroDays||0, r.total||0,
-      log?log.status:'PENDING',
-      log?log.caller:'',
-      callTime,
-      log?log.remark:'',
-      r.inMaster?'Yes':'NO'
-    ]);
+    const byStatus = r.sr ? (d.todayLog||{})[r.sr] : (d.todayLogByName||{})[r.name.toUpperCase().trim()];
+    const entries = byStatus ? Object.values(byStatus).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')) : [];
+    if(!entries.length){
+      aoa.push([
+        i+1, r.name, r.category, r.address||r.area||'', r.mobile||'',
+        r.days.join(','), r.salesman,
+        r.autoBal||0, r.autoDays||0, r.heroBal||0, r.heroDays||0, r.total||0,
+        'PENDING','','','',r.inMaster?'Yes':'NO'
+      ]);
+    } else {
+      entries.forEach((log,ei)=>{
+        const callTime=log.createdAt?new Date(log.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}):'';
+        aoa.push([
+          ei===0?i+1:'', ei===0?r.name:'  ↳ '+r.name, ei===0?r.category:'', ei===0?(r.address||r.area||''):'', ei===0?(r.mobile||''):'',
+          ei===0?r.days.join(','):'', ei===0?r.salesman:'',
+          ei===0?(r.autoBal||0):'', ei===0?(r.autoDays||0):'', ei===0?(r.heroBal||0):'', ei===0?(r.heroDays||0):'', ei===0?(r.total||0):'',
+          log.status, log.caller||'', callTime, log.remark||'', ei===0?(r.inMaster?'Yes':'NO'):''
+        ]);
+      });
+    }
   });
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols']=[{wch:5},{wch:35},{wch:8},{wch:18},{wch:14},{wch:14},{wch:12},{wch:13},{wch:8},{wch:13},{wch:8},{wch:13},{wch:15},{wch:14},{wch:20},{wch:35},{wch:10}];
