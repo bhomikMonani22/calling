@@ -1030,9 +1030,9 @@ tr.pw td{background:rgba(229,122,26,.04)}
             <select class="disp-sm" id="dispSM" onchange="renderDisp()">
               <option value="">All Salesmen</option>
             </select>
-            <label style="margin-left:12px">
-              <input type="checkbox" id="dispOnlyOutstanding" onchange="renderDisp()" style="margin-right:5px">
-              Only parties with outstanding
+            <label style="margin-left:12px;display:inline-flex;align-items:center;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;cursor:pointer">
+              <input type="checkbox" id="dispOnlyOutstanding" onchange="renderDisp()" style="margin-right:6px;cursor:pointer">
+              <span style="font-size:11px;font-weight:600">Hide ₹0 parties</span>
             </label>
             <button class="da-add-party" onclick="openAddDispatchParty()" style="margin-left:auto">➕ Add New Party</button>
             <button class="rp-btn print" onclick="window.print()" id="dispPrintBtn" style="display:none;margin-left:8px">🖨 Print</button>
@@ -2538,6 +2538,7 @@ function renderDisp(){
   // Filter dispatch parties for the target day
   const seen=new Set();
   let rows=[];
+  let hiddenByOutstanding=0, totalScheduled=0;
   Object.values(dispatchMap).forEach(d=>{
     if(!d||!d.name) return;
     if(seen.has(d.name)) return;
@@ -2545,10 +2546,11 @@ function renderDisp(){
     if(!showAll && !d.days.includes(targetDay)) return;
     if(routeFilter && d.route!==routeFilter) return;
     if(smFilter && d.salesman!==smFilter) return;
+    totalScheduled++;
     const bal=getBal(d.name);
     const autoBal=bal?bal.autoBal:0, heroBal=bal?bal.heroBal:0;
     const total=autoBal+heroBal;
-    if(onlyOutstanding && total===0) return;
+    if(onlyOutstanding && total===0){ hiddenByOutstanding++; return; }
     rows.push({
       ...d,
       autoBal, heroBal, total,
@@ -2568,10 +2570,13 @@ function renderDisp(){
   });
 
   if(!rows.length){
+    const allHidden = hiddenByOutstanding>0 && totalScheduled===hiddenByOutstanding;
     wrap.innerHTML=`<div class="disp-empty">
       <div style="font-size:36px;margin-bottom:10px">📭</div>
       <div style="font-weight:700;color:var(--ink);margin-bottom:6px">No parties to call${showAll?'':` for ${DAY_NAMES[targetDay]||targetDay}`}${isToday?` (today → ${DAY_NAMES[targetDay]} dispatch)`:''}</div>
-      <div style="font-size:12px">Try a different day or remove filters.</div>
+      ${allHidden
+        ? `<div style="font-size:12px">All ${totalScheduled} scheduled ${totalScheduled===1?'party has':'parties have'} ₹0 balance and the "Hide ₹0 parties" filter is on.<br><button onclick="document.getElementById('dispOnlyOutstanding').checked=false; renderDisp();" style="margin-top:10px;height:32px;padding:0 16px;border-radius:7px;border:2px solid var(--green);background:var(--green);color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">Show all ${totalScheduled} parties</button></div>`
+        : `<div style="font-size:12px">Try a different day or remove filters.</div>`}
     </div>`;
     ['dispPrintBtn','dispXlBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='inline-flex';});
     dispLastData={targetDay,rows:[],totalAuto:0,totalHero:0,total:0};
@@ -2626,6 +2631,11 @@ function renderDisp(){
     <div class="disp-kpi"><div class="disp-kpi-lbl">📅 Callback</div><div class="disp-kpi-val orange">${sCallback}</div></div>
     <div class="disp-kpi"><div class="disp-kpi-lbl">⏳ Pending</div><div class="disp-kpi-val red">${sPending}</div></div>
   </div>
+
+  ${hiddenByOutstanding>0 ? `<div style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:8px 14px;margin-bottom:12px;font-size:12px;color:#9a3412;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <span>⚠ <b>${hiddenByOutstanding}</b> ${hiddenByOutstanding===1?'party with ₹0 balance is':'parties with ₹0 balance are'} hidden. ${totalScheduled} scheduled total.</span>
+    <button onclick="document.getElementById('dispOnlyOutstanding').checked=false; renderDisp();" style="height:28px;padding:0 12px;border-radius:6px;border:1.5px solid #ea580c;background:#fff;color:#ea580c;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">Show all ${totalScheduled}</button>
+  </div>` : ''}
 
   <div class="disp-table-wrap">
     <table class="disp-table">
