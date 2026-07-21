@@ -1396,13 +1396,17 @@ async function getAccessToken(){
   if(!sa) throw new Error('No service account configured');
 
   // Build JWT
+  // Backdate iat by 30s to tolerate small device clock skew (Google rejects future iat
+  // or windows > 3600s). exp stays within 60 min: (now+3300) - (now-30) = 3330s < 3600.
   const now=Math.floor(Date.now()/1000);
+  const iat=now-30;
+  const exp=now+3300; // 55 min ahead — safely under Google's 60-min ceiling even with skew
   const header=b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
   const claim=b64url(JSON.stringify({
     iss:sa.client_email,
     scope:'https://www.googleapis.com/auth/spreadsheets',
     aud:'https://oauth2.googleapis.com/token',
-    iat:now, exp:now+3600
+    iat:iat, exp:exp
   }));
   const sigInput=header+'.'+claim;
   const signature=await rsaSign(sigInput, sa.private_key);
@@ -1414,7 +1418,14 @@ async function getAccessToken(){
     headers:{'Content-Type':'application/x-www-form-urlencoded'},
     body:`grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`
   });
-  if(!resp.ok){const j=await resp.json().catch(()=>({}));throw new Error(j.error_description||j.error||'Token error');}
+  if(!resp.ok){
+    const j=await resp.json().catch(()=>({}));
+    let errMsg=j.error_description||j.error||'Token error';
+    if(/JWT|iat|exp|timeframe|short-lived/i.test(errMsg)){
+      errMsg += ' — Your device clock may be wrong. Check that the date & time on this device are correct and set to sync automatically, then retry.';
+    }
+    throw new Error(errMsg);
+  }
   const j=await resp.json();
   SA_TOKEN={token:j.access_token, expires:Date.now()+(j.expires_in-60)*1000};
   return SA_TOKEN.token;
@@ -1536,11 +1547,22 @@ async function loadAll(){
 
     const row0=officeVals[0]||[];
     allDateGroups=[]; nextFreeCol=8;
-    for(let c=8;c<row0.length;c+=8){
+    // Scan EVERY column from index 8 onward for a date header (don't assume rigid 8-spacing,
+    // which breaks if a day was half-created or columns drifted). A date group occupies 8 cols.
+    let maxDateCol=7;
+    for(let c=8;c<row0.length;c++){
       const v=String(row0[c]||'').trim(); if(!v) continue;
       const iso=parseSheetDate(v);
-      if(iso){allDateGroups.push({label:v,colIdx:c,isoDate:iso});nextFreeCol=c+8;}
+      if(iso){
+        // Avoid double-counting: skip if this col is within 8 of an already-found group start
+        const tooClose=allDateGroups.some(g=>Math.abs(g.colIdx-c)<8);
+        if(tooClose) continue;
+        allDateGroups.push({label:v,colIdx:c,isoDate:iso});
+        maxDateCol=Math.max(maxDateCol, c+7);
+      }
     }
+    // nextFreeCol = first column after the last date group's 8-column block
+    nextFreeCol = allDateGroups.length ? (maxDateCol+1) : 8;
     allDateGroups.sort((a,b)=>b.isoDate.localeCompare(a.isoDate));
     todayColIdx=-1;
     const todayG=allDateGroups.find(g=>g.isoDate===TODAYISO);
@@ -1729,27 +1751,52 @@ async function createTodayColumns(){
       const ref=`$B${row}`, di=`IF(ISNUMBER(SEARCH("DESTINI",${ref})),"DESTINY",${ref})`;
       fRows.push([`=IFERROR(VLOOKUP(${di},DUMP_AUTO!$A:$C,2,0),0)`,`=IFERROR(VLOOKUP(${di},DUMP_AUTO!$A:$C,3,0),0)`,'','',`=IFERROR(VLOOKUP(${di},HERO!$A:$C,2,0),0)`,`=IFERROR(VLOOKUP(${di},HERO!$A:$C,3,0),0)`,'','']);
     }
+    // Header writes (date + labels) — these go with RAW so the date stays literal text "2026-06-15"
+    // and never gets coerced by Sheets into a serial/reformatted date the loader can't match.
+    const headerWrites=[];
+    // Formula/data writes — these use USER_ENTERED so the VLOOKUP formulas evaluate.
+    const dataWrites=[];
     const buildSheet=(sn)=>{
-      const u=[];
-      u.push({range:`${sn}!${colL(col1)}1`,values:[[TODAYISO]]});
-      u.push({range:`${sn}!${colL(col1)}2`,values:[['AUTO']]});
-      u.push({range:`${sn}!${colL(col1+4)}2`,values:[['HERO']]});
-      u.push({range:`${sn}!${colL(col1)}3:${colL(col1+7)}3`,values:[['AUTO BAL','AUTO DAYS','REMARK (A)','NAME','HERO BAL','HERO DAYS','REMARK','NAME']]});
+      headerWrites.push({range:`${sn}!${colL(col1)}1`,values:[[TODAYISO]]});
+      headerWrites.push({range:`${sn}!${colL(col1)}2`,values:[['AUTO']]});
+      headerWrites.push({range:`${sn}!${colL(col1+4)}2`,values:[['HERO']]});
+      headerWrites.push({range:`${sn}!${colL(col1)}3:${colL(col1+7)}3`,values:[['AUTO BAL','AUTO DAYS','REMARK (A)','NAME','HERO BAL','HERO DAYS','REMARK','NAME']]});
       const CHUNK=500;
       for(let i=0;i<fRows.length;i+=CHUNK){
         const sl=fRows.slice(i,i+CHUNK),r1=sr+i,r2=r1+sl.length-1;
-        u.push({range:`${sn}!${colL(col1)}${r1}:${colL(col1+7)}${r2}`,values:sl});
+        dataWrites.push({range:`${sn}!${colL(col1)}${r1}:${colL(col1+7)}${r2}`,values:sl});
       }
-      return u;
     };
-    const all=[...buildSheet('MASTER'),...buildSheet('OFFICE'),...buildSheet('SALESMAN')];
-    for(let i=0;i<all.length;i+=100) await batchWriteMulti(all.slice(i,i+100));
-    toast(`✓ Columns created for ${TODAYSTR}`,'ok'); dot('ok');
+    buildSheet('MASTER'); buildSheet('OFFICE'); buildSheet('SALESMAN');
+    // Write headers as RAW (literal text)
+    for(let i=0;i<headerWrites.length;i+=100) await batchWriteRaw(headerWrites.slice(i,i+100));
+    // Write formula rows as USER_ENTERED (so VLOOKUPs evaluate)
+    for(let i=0;i<dataWrites.length;i+=100) await batchWriteMulti(dataWrites.slice(i,i+100));
+
+    // Verify: re-fetch OFFICE row 1 and confirm the date landed where the loader will look
+    const check=await fetchSheet('OFFICE');
+    const hdrVal=String((check[0]||[])[col1-1]||'').trim();
+    const parsedBack=parseSheetDate(hdrVal);
+    if(parsedBack!==TODAYISO){
+      console.warn(`Date header verify: wrote "${TODAYISO}" at col ${col1}, read back "${hdrVal}" → parsed "${parsedBack}"`);
+      toast(`⚠ Column created but date reads as "${hdrVal}". Reloading to re-check…`,'warn');
+    } else {
+      toast(`✓ Columns created for ${TODAYSTR}`,'ok');
+    }
+    dot('ok');
     await loadAll();
   }catch(e){
     toast('✗ '+e.message,'err'); dot('err');
     btn.disabled=false; btn.textContent='＋ Create Today\'s Columns';
   }
+}
+
+/* Write values as RAW (literal text, no date/number coercion) */
+async function batchWriteRaw(data){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values:batchUpdate`;
+  const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({valueInputOption:'RAW',data:data.map(d=>({range:d.range,majorDimension:'ROWS',values:d.values}))})});
+  if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
+  return r.json();
 }
 
 /* ═══ SELECTS / MEMBER BARS / DATE BAR ═══ */
