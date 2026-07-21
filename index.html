@@ -1460,7 +1460,10 @@ async function authHeader(){
 }
 
 async function fetchSheet(name){
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(name+'!A1:ZZ')}?valueRenderOption=FORMATTED_VALUE`;
+  // Read a very wide range — after many daily columns the sheet can exceed ZZ (col 702).
+  // Use a numeric column bound via R1C1-safe A1 by going up to column ZZZ (~18k) is overkill;
+  // instead omit the end column so Sheets returns all populated columns in the row range.
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent(name)}?valueRenderOption=FORMATTED_VALUE&majorDimension=ROWS`;
   const r=await fetch(url,{headers:await authHeader()});
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
   return (await r.json()).values||[];
