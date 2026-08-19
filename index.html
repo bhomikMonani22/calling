@@ -221,8 +221,13 @@ table.dt td.sep{width:1px;min-width:1px;background:var(--border);border-right:no
 .c-ns{font-size:10px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
 .c-route{width:90px;text-align:center;font-size:11px;font-weight:600;color:var(--mid);padding:0 8px;white-space:nowrap}
 .c-beat{width:80px;text-align:center;font-size:11px;color:var(--dim);padding:0 6px;white-space:nowrap}
-.c-mob{width:100px;text-align:center;font-size:11px;padding:0 8px;white-space:nowrap}
+.c-mob{width:126px;text-align:center;font-size:11px;padding:0 8px;white-space:nowrap}
 .c-mob a{color:var(--blue);text-decoration:none;font-weight:500}.c-mob a:hover{text-decoration:underline}
+.mob-edit-btn{border:none;background:transparent;cursor:pointer;font-size:10px;padding:2px 3px;border-radius:4px;opacity:.35;transition:opacity .12s,background .12s;margin-left:3px;vertical-align:middle}
+.mob-edit-btn:hover{opacity:1;background:var(--y-dim)}
+tr:hover .mob-edit-btn{opacity:.75}
+.mob-add-btn{border:1px dashed var(--border2);background:transparent;color:var(--dim);cursor:pointer;font-size:10px;font-style:italic;font-family:'Plus Jakarta Sans',sans-serif;padding:3px 8px;border-radius:5px;transition:all .12s}
+.mob-add-btn:hover{border-color:var(--y2);background:var(--y-dim);color:var(--ink);font-style:normal;font-weight:600}
 .c-bal{text-align:right;padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;white-space:nowrap;width:96px}
 .c-bal.auto{color:var(--blue)}.c-bal.hero{color:var(--orange)}.c-bal.zero{color:var(--dim);font-weight:400}
 .c-days{width:58px;text-align:center;padding:0 4px}
@@ -1962,7 +1967,9 @@ function render(t){
         ${(()=>{ const dp=getDispatch(p.name); if(!dp||!dp.days.length) return ''; const today=DAY_CODES[new Date().getDay()]; const isToday=dp.days.includes(today); return `<div style="margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="font-size:9px;color:var(--dim);font-weight:600">📦</span>${dp.days.map(d=>`<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:5px;${d===today?'background:var(--green);color:#fff':'background:var(--bg3);color:var(--mid);border:1px solid var(--border)'}">${d}</span>`).join('')}${dp.category?`<span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:5px;background:var(--y-dim);color:var(--ink);border:1px solid var(--y2);margin-left:2px">${esc(dp.category)}</span>`:''}${isToday?'<span style="font-size:8px;font-weight:800;color:var(--green);margin-left:2px">CALL TODAY</span>':''}</div>`; })()}
       </td>
       <td class="c-route">${esc(p.route)}</td><td class="c-beat">${esc(p.beat)}</td>
-      <td class="c-mob">${p.mobile?`<a href="tel:${p.mobile}">${p.mobile}</a>`:'—'}</td>
+      <td class="c-mob">${p.mobile
+        ? `<a href="tel:${p.mobile}">${p.mobile}</a><button class="mob-edit-btn" onclick="editPartyMobile(${p.sr})" title="Edit mobile number">✏️</button>`
+        : `<button class="mob-add-btn" onclick="editPartyMobile(${p.sr})" title="Add mobile number">+ add</button>`}</td>
       <td style="text-align:right;padding:0 12px">${aB}</td>
       <td class="c-days">${badge(ad,aDC)}</td>
       <td class="sep"></td>
@@ -3313,6 +3320,21 @@ async function saveDispParty(){
       const r=await fetch(url,{method:'PUT',headers:await authHeader(),body:JSON.stringify({range:'DISPATCH!A'+row+':H'+row, majorDimension:'ROWS', values:vals})});
       if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
       dot('ok');
+      // Keep MASTER in sync if this party also exists there
+      if(mobile){
+        const master=findMasterParty(name);
+        if(master && rowMap[master.sr]){
+          const mr=rowMap[master.sr];
+          try{
+            await batchWriteRaw([
+              {range:`MASTER!C${mr}`,   values:[[mobile]]},
+              {range:`OFFICE!C${mr}`,   values:[[mobile]]},
+              {range:`SALESMAN!C${mr}`, values:[[mobile]]}
+            ]);
+            master.mobile=mobile;
+          }catch(e){ console.warn('Could not sync mobile to MASTER:', e); }
+        }
+      }
       toast(`✓ Updated ${name}`,'ok');
     } else {
       // Append a new row. Compute next SR.
@@ -3335,6 +3357,52 @@ async function saveDispParty(){
   }
 }
 
+/* ── Edit a party's mobile number in MASTER (shared — everyone sees it) ── */
+async function editPartyMobile(sr){
+  const party=allParties.find(p=>p.sr===sr);
+  if(!party){toast('Party not found','warn');return;}
+  const sheetRow=rowMap[sr];
+  if(!sheetRow){toast('Could not locate this party\'s row in the sheet','err');return;}
+
+  const newMob=prompt(`Mobile number for:\n${party.name}\n\nCurrent: ${party.mobile||'(none)'}\n\nEnter 10-digit number, or leave blank to clear.`, party.mobile||'');
+  if(newMob===null) return;
+  const clean=String(newMob).trim().replace(/[^\d+]/g,'');
+  if(clean && !/^\+?\d{7,15}$/.test(clean)){
+    toast('Invalid number — use 7 to 15 digits','warn');
+    return;
+  }
+  if(clean===String(party.mobile||'').trim()){ return; } // no change
+
+  dot('syncing');
+  try{
+    // Mobile lives in column C of MASTER, OFFICE and SALESMAN (same row across all three)
+    const writes=[
+      {range:`MASTER!C${sheetRow}`,   values:[[clean]]},
+      {range:`OFFICE!C${sheetRow}`,   values:[[clean]]},
+      {range:`SALESMAN!C${sheetRow}`, values:[[clean]]}
+    ];
+    // Keep DISPATCH in sync — if this party is also in the dispatch schedule, update its
+    // mobile (column H) so order-callers and payment-callers never see two different numbers.
+    const dp=getDispatch(party.name);
+    if(dp && dp._row){
+      writes.push({range:`DISPATCH!H${dp._row}`, values:[[clean]]});
+    }
+    await batchWriteRaw(writes);
+    // Update in memory so the change shows instantly for this user
+    party.mobile=clean;
+    if(dp) dp.mobile=clean;
+    dot('ok');
+    toast(clean?`✓ Mobile saved for ${party.name}${dp?' (outstanding + dispatch)':''}`:`✓ Mobile cleared for ${party.name}`,'ok');
+    // Re-render whichever outstanding views are showing
+    render('O'); render('S');
+    if(curPane==='A') render('A');
+    if(curPane==='DISP') renderDisp();
+  }catch(e){
+    dot('err');
+    toast('✗ Could not save mobile: '+e.message,'err');
+  }
+}
+
 async function editDispatchMobile(partyName, currentMob){
   const nk=String(partyName).toUpperCase().trim();
   const entry=dispatchMap[nk] || dispatchMap[nk.replace(/\s+/g,' ')];
@@ -3348,19 +3416,42 @@ async function editDispatchMobile(partyName, currentMob){
   }
   dot('syncing');
   try{
-    // Write to column H of the entry's row
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}/values/${encodeURIComponent('DISPATCH!H'+entry._row)}?valueInputOption=USER_ENTERED`;
-    const r=await fetch(url,{method:'PUT',headers:await authHeader(),body:JSON.stringify({range:'DISPATCH!H'+entry._row, majorDimension:'ROWS', values:[[clean]]})});
-    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
-    // Update in-memory entry and all aliased keys
+    const writes=[{range:`DISPATCH!H${entry._row}`, values:[[clean]]}];
+    // Keep MASTER in sync — find the matching party so outstanding callers see the same number
+    const master=findMasterParty(partyName);
+    if(master && rowMap[master.sr]){
+      const mr=rowMap[master.sr];
+      writes.push({range:`MASTER!C${mr}`,   values:[[clean]]});
+      writes.push({range:`OFFICE!C${mr}`,   values:[[clean]]});
+      writes.push({range:`SALESMAN!C${mr}`, values:[[clean]]});
+    }
+    await batchWriteRaw(writes);
+    // Update in-memory so both views reflect it immediately
     entry.mobile=clean;
+    if(master) master.mobile=clean;
     dot('ok');
-    toast(`✓ Mobile saved for ${partyName}`,'ok');
+    toast(`✓ Mobile saved for ${partyName}${master?' (dispatch + outstanding)':''}`,'ok');
     renderDisp();
+    render('O'); render('S');
   }catch(e){
     dot('err');
     toast('✗ Save failed: '+e.message,'err');
   }
+}
+
+/* ── Find a MASTER party from a dispatch-style name (normalized matching) ── */
+function findMasterParty(name){
+  if(!name) return null;
+  const nk=String(name).toUpperCase().trim();
+  let m=allParties.find(p=>p.name.toUpperCase().trim()===nk);
+  if(m) return m;
+  const norm=s=>String(s).toUpperCase().trim().replace(/\s+/g,' ').replace(/\s*\(\s*/g,'(').replace(/\s*\)\s*/g,')');
+  const nkNorm=norm(nk);
+  m=allParties.find(p=>norm(p.name)===nkNorm);
+  if(m) return m;
+  const nkNoSp=nk.replace(/\s/g,'');
+  m=allParties.find(p=>p.name.toUpperCase().replace(/\s/g,'')===nkNoSp);
+  return m||null;
 }
 
 /* ── Zomato/Zepto-style order placed celebration overlay ── */
