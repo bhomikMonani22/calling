@@ -1136,6 +1136,28 @@ tr.pw td{background:rgba(229,122,26,.04)}
             <div id="masterRestoreStatus" style="font-size:11px;color:#1e40af;margin-top:8px"></div>
             <div id="masterRestorePreview" style="margin-top:12px;display:none"></div>
           </div>
+
+          <!-- FREEZE OLD DAYS (admin only) -->
+          <div id="freezeSection" style="display:none;margin-top:28px;background:#f5f3ff;border:1.5px solid #a78bfa;border-radius:14px;padding:18px 22px">
+            <div style="font-size:15px;font-weight:800;color:#5b21b6;margin-bottom:4px">🧊 Freeze Old Days (Performance)</div>
+            <div style="font-size:12px;color:#6d28d9;margin-bottom:14px">
+              Each day's columns contain live VLOOKUP formulas that recalculate on <b>every single load</b>. Freezing converts a finished day's formulas into <b>static values</b> — history is fully preserved, but the sheet stops recalculating it. This dramatically speeds up the app and stops the cell-count from growing out of control.
+            </div>
+            <div id="freezeStats" style="font-size:12px;color:#5b21b6;background:#ede9fe;border-radius:8px;padding:10px 14px;margin-bottom:12px">Loading sheet stats…</div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+              <label style="font-size:11px;font-weight:700;color:#5b21b6;text-transform:uppercase;letter-spacing:.4px">Keep live (recent days)</label>
+              <select id="freezeKeepDays" style="height:36px;padding:0 12px;border-radius:8px;border:1.5px solid #a78bfa;background:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px">
+                <option value="3">Last 3 days</option>
+                <option value="7" selected>Last 7 days</option>
+                <option value="14">Last 14 days</option>
+                <option value="30">Last 30 days</option>
+              </select>
+              <button id="freezePreviewBtn" onclick="previewFreeze()" style="height:36px;padding:0 16px;border-radius:8px;border:2px solid #7c3aed;background:#fff;color:#7c3aed;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer">🔍 Preview</button>
+              <button id="freezeApplyBtn" onclick="applyFreeze()" style="height:36px;padding:0 16px;border-radius:8px;border:2px solid #7c3aed;background:#7c3aed;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:none">🧊 Freeze Now</button>
+            </div>
+            <div id="freezeStatus" style="font-size:11px;color:#5b21b6;margin-top:8px"></div>
+            <div id="freezePreview" style="margin-top:12px;display:none"></div>
+          </div>
         </div>
       </div>
 </div><!-- /shell -->
@@ -1650,6 +1672,8 @@ async function loadAll(){
       if(dispSec) dispSec.style.display='block';
       const restoreSec=document.getElementById('masterRestoreSection');
       if(restoreSec) restoreSec.style.display='block';
+      const freezeSec=document.getElementById('freezeSection');
+      if(freezeSec){ freezeSec.style.display='block'; renderFreezeStats(); }
     }
     if(dups.length){
       const total=dups.reduce((s,[,arr])=>s+arr.length,0);
@@ -1771,6 +1795,13 @@ async function createTodayColumns(){
       }
     };
     buildSheet('MASTER'); buildSheet('OFFICE'); buildSheet('SALESMAN');
+    // Ensure the grid is wide enough BEFORE writing — the new day occupies cols col1..col1+7.
+    // Without this, sheets that have run out of columns throw "exceeds grid limits".
+    const neededCols = col1 + 7; // 1-indexed last column this day will use
+    btn.textContent='Expanding grid…';
+    const expanded=await ensureGridColumns(['MASTER','OFFICE','SALESMAN'], neededCols);
+    if(expanded) toast('Sheet columns expanded to fit the new day','ok');
+    btn.textContent='Creating…';
     // Write headers as RAW (literal text)
     for(let i=0;i<headerWrites.length;i+=100) await batchWriteRaw(headerWrites.slice(i,i+100));
     // Write formula rows as USER_ENTERED (so VLOOKUPs evaluate)
@@ -4734,6 +4765,166 @@ async function fetchSheetMeta(){
   const r=await fetch(url,{headers:await authHeader()});
   if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error((j.error&&j.error.message)||'HTTP '+r.status);}
   return await r.json();
+}
+
+/* ═══ FREEZE OLD DAYS — convert VLOOKUP formulas to static values ═══ */
+let freezePending=null;
+
+function renderFreezeStats(){
+  const el=document.getElementById('freezeStats');
+  if(!el) return;
+  const dayCount=allDateGroups.length;
+  const rows=totalPartyRows||0;
+  // Each day = 8 cols, of which 4 are formulas (auto bal, auto days, hero bal, hero days)
+  const formulaCells=dayCount*4*rows*3; // ×3 sheets (MASTER, OFFICE, SALESMAN)
+  const totalCells=(8+dayCount*8)*(rows+3)*3;
+  const pct=Math.round(totalCells/10000000*100);
+  el.innerHTML=`<b>${dayCount}</b> day columns · <b>${rows}</b> parties · approx <b>${formulaCells.toLocaleString('en-IN')}</b> live formulas across 3 sheets`
+    + `<br>Estimated cells used: <b>${totalCells.toLocaleString('en-IN')}</b> of Google's 10,000,000 limit (<b>${pct}%</b>)`
+    + (pct>60?` <span style="color:#dc2626;font-weight:700">⚠ Freeze recommended soon</span>`:'');
+}
+
+async function previewFreeze(){
+  const keepDays=parseInt(document.getElementById('freezeKeepDays').value)||7;
+  const status=document.getElementById('freezeStatus');
+  const previewEl=document.getElementById('freezePreview');
+  const btn=document.getElementById('freezePreviewBtn');
+  btn.disabled=true; btn.textContent='⏳ Checking…';
+  status.textContent='Scanning day columns…';
+  try{
+    // Sort groups newest first (allDateGroups is already sorted desc by isoDate)
+    const sorted=[...allDateGroups].sort((a,b)=>b.isoDate.localeCompare(a.isoDate));
+    const keep=sorted.slice(0,keepDays);
+    const toFreeze=sorted.slice(keepDays);
+    if(!toFreeze.length){
+      status.innerHTML=`<span style="color:#15803d">Nothing to freeze — you have ${sorted.length} day${sorted.length!==1?'s':''}, all within the "keep live" window.</span>`;
+      previewEl.style.display='none';
+      document.getElementById('freezeApplyBtn').style.display='none';
+      return;
+    }
+    freezePending={toFreeze, keep, keepDays};
+    const rows=totalPartyRows||0;
+    const formulasFreed=toFreeze.length*4*rows*3;
+    previewEl.innerHTML=`<div style="background:#fff;border:1px solid #c4b5fd;border-radius:8px;padding:12px 14px;font-size:12px">
+      <div style="font-weight:700;color:#5b21b6;margin-bottom:8px">🧊 Freeze Plan</div>
+      <div style="margin-bottom:8px">
+        <b style="color:#15803d">${keep.length}</b> recent day${keep.length!==1?'s':''} stay live &nbsp;·&nbsp;
+        <b style="color:#7c3aed">${toFreeze.length}</b> older day${toFreeze.length!==1?'s':''} will be frozen &nbsp;·&nbsp;
+        <b style="color:#7c3aed">~${formulasFreed.toLocaleString('en-IN')}</b> formulas converted to values
+      </div>
+      <details><summary style="cursor:pointer;font-weight:600;color:#5b21b6">Days that stay LIVE (${keep.length})</summary>
+        <div style="margin-top:6px;font-size:11px;color:#4b5563">${keep.map(g=>fmtDispISO(g.isoDate)).join(' · ')||'(none)'}</div>
+      </details>
+      <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:600;color:#7c3aed">Days to FREEZE (${toFreeze.length})</summary>
+        <div style="margin-top:6px;font-size:11px;color:#4b5563;max-height:120px;overflow-y:auto">${toFreeze.map(g=>fmtDispISO(g.isoDate)).join(' · ')}</div>
+      </details>
+      <div style="margin-top:10px;padding:8px 10px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;font-size:11px;color:#15803d">
+        ✓ <b>Nothing is lost.</b> Balances, days, remarks and caller names all stay exactly as they are — they just stop being recalculated.
+      </div>
+    </div>`;
+    previewEl.style.display='block';
+    document.getElementById('freezeApplyBtn').style.display='inline-flex';
+    document.getElementById('freezeApplyBtn').textContent=`🧊 Freeze ${toFreeze.length} Day${toFreeze.length!==1?'s':''}`;
+    status.innerHTML=`<span style="color:#15803d"><b>✓ Ready.</b></span> Review below, then click Freeze.`;
+  }catch(e){
+    status.innerHTML=`<span style="color:#dc2626">✗ ${esc(e.message)}</span>`;
+  }finally{
+    btn.disabled=false; btn.textContent='🔍 Preview';
+  }
+}
+
+async function applyFreeze(){
+  if(!freezePending||!freezePending.toFreeze.length){toast('Run Preview first','warn');return;}
+  const {toFreeze}=freezePending;
+  if(!confirm(`Freeze ${toFreeze.length} day column group${toFreeze.length!==1?'s':''}?\n\nTheir VLOOKUP formulas become static values in MASTER, OFFICE and SALESMAN.\n\n• All existing numbers, remarks and caller names are preserved exactly\n• Those days stop recalculating (big speed gain)\n• This cannot be automatically undone — but the data stays intact\n\nProceed?`)) return;
+
+  const btn=document.getElementById('freezeApplyBtn');
+  const status=document.getElementById('freezeStatus');
+  btn.disabled=true; btn.textContent='⏳ Freezing…';
+  dot('syncing');
+  try{
+    const sheets=['MASTER','OFFICE','SALESMAN'];
+    const sr=4, er=sr+(totalPartyRows||0)-1;
+    let done=0;
+    for(const sn of sheets){
+      // Read the COMPUTED values for this sheet once (FORMATTED_VALUE gives evaluated results)
+      status.innerHTML=`Reading computed values from <b>${sn}</b>…`;
+      const vals=await fetchSheet(sn);
+      const writes=[];
+      for(const g of toFreeze){
+        const c=g.colIdx;              // 0-indexed first column of the group
+        const col1=c+1;                // 1-indexed
+        // Build a block of static values for rows sr..er across the 8 columns
+        const block=[];
+        for(let r=sr;r<=er;r++){
+          const rowArr=vals[r-1]||[];  // vals is 0-indexed by row
+          const cells=[];
+          for(let k=0;k<8;k++){
+            let v=rowArr[c+k];
+            if(v===undefined||v===null) v='';
+            // Strip currency/comma formatting from the numeric columns (0,1,4,5) so they store clean
+            if(k===0||k===1||k===4||k===5){
+              const n=parseFloat(String(v).replace(/[₹,\s]/g,''));
+              v=isNaN(n)?'':n;
+            }
+            cells.push(v);
+          }
+          block.push(cells);
+        }
+        // Chunk the writes
+        const CHUNK=500;
+        for(let i=0;i<block.length;i+=CHUNK){
+          const sl=block.slice(i,i+CHUNK), r1=sr+i, r2=r1+sl.length-1;
+          writes.push({range:`${sn}!${colL(col1)}${r1}:${colL(col1+7)}${r2}`, values:sl});
+        }
+      }
+      // Push with RAW so nothing gets re-interpreted as formula/date
+      status.innerHTML=`Writing static values to <b>${sn}</b> (${writes.length} block${writes.length!==1?'s':''})…`;
+      for(let i=0;i<writes.length;i+=50){
+        await batchWriteRaw(writes.slice(i,i+50));
+        done++;
+      }
+    }
+    dot('ok');
+    status.innerHTML=`<span style="color:#15803d"><b>✓ Frozen ${toFreeze.length} day${toFreeze.length!==1?'s':''}.</b></span> Reloading…`;
+    toast(`🧊 ${toFreeze.length} days frozen — sheet should feel much faster now`,'ok');
+    freezePending=null;
+    document.getElementById('freezeApplyBtn').style.display='none';
+    document.getElementById('freezePreview').style.display='none';
+    setTimeout(()=>loadAll(), 1000);
+  }catch(e){
+    dot('err');
+    status.innerHTML=`<span style="color:#dc2626">✗ Freeze failed: ${esc(e.message)}</span>`;
+    toast('✗ Freeze failed: '+e.message,'err');
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+/* ── Ensure the given sheets have at least `neededCols` columns; expand grid if short ── */
+async function ensureGridColumns(sheetNames, neededCols){
+  const meta=await fetchSheetMeta();
+  const bySheet={};
+  meta.sheets.forEach(s=>{ bySheet[s.properties.title]={id:s.properties.sheetId, cols:(s.properties.gridProperties||{}).columnCount||0}; });
+  const requests=[];
+  sheetNames.forEach(sn=>{
+    const info=bySheet[sn];
+    if(!info) return;
+    if(info.cols < neededCols){
+      // Append enough columns (add a buffer of 40 so we don't do this every single day)
+      const toAdd=(neededCols - info.cols) + 40;
+      requests.push({
+        appendDimension:{ sheetId:info.id, dimension:'COLUMNS', length:toAdd }
+      });
+    }
+  });
+  if(requests.length){
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${CFG.sheetId}:batchUpdate`;
+    const r=await fetch(url,{method:'POST',headers:await authHeader(),body:JSON.stringify({requests})});
+    if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error('Could not expand sheet columns: '+((j.error&&j.error.message)||'HTTP '+r.status));}
+    return true; // expanded
+  }
+  return false; // no expansion needed
 }
 
 async function uploadDump(t){
